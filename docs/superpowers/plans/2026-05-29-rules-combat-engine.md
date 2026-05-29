@@ -66,47 +66,34 @@ Every GdUnit4 suite is a script that `extends GdUnitTestSuite`; test methods are
 
 ---
 
-## Task 0: Project bootstrap + GdUnit4
+## Task 0: Verify project setup + smoke test
+
+**Already in place (do NOT recreate):** `project.godot` exists with the GdUnit4
+plugin enabled (`[editor_plugins] enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")`),
+the `addons/gdUnit4/` plugin is vendored and git-tracked, and `.gitignore`
+already ignores `.godot/`. This task only verifies the toolchain runs and
+establishes the test-run command — no cloning, no project file creation.
 
 **Files:**
-- Create: `project.godot`
-- Create: `addons/gdUnit4/` (vendored)
 - Create: `tests/test_smoke.gd`
 
-- [ ] **Step 1: Create the Godot project file**
-
-Create `project.godot`:
-```ini
-config_version=5
-
-[application]
-config/name="VGDC The Card Game"
-config/features=PackedStringArray("4.6", "GL Compatibility")
-
-[editor_plugins]
-enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
-```
-
-- [ ] **Step 2: Vendor the GdUnit4 plugin**
+- [ ] **Step 1: Confirm the existing setup**
 
 Run:
 ```bash
-git clone --depth 1 https://github.com/MikeSchulze/gdUnit4.git /tmp/gdunit4 \
-  && mkdir -p addons \
-  && cp -r /tmp/gdunit4/addons/gdUnit4 addons/ \
-  && rm -rf /tmp/gdunit4
+ls project.godot addons/gdUnit4/bin/GdUnitCmdTool.gd && grep -q '.godot/' .gitignore && echo OK
 ```
-Expected: `addons/gdUnit4/plugin.cfg` and `addons/gdUnit4/bin/GdUnitCmdTool.gd` now exist.
+Expected: all paths listed and `OK` printed. (If `project.godot` is missing, create it with `config_version=5`, a `[application]` block using `config/features=PackedStringArray("4.6", "GL Compatibility")`, and `[editor_plugins] enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")` — but per the checks above it already exists, so this should not be needed.)
 
-- [ ] **Step 3: Import the project once (registers GdUnit4 `class_name`s)**
+- [ ] **Step 2: Import the project once (registers GdUnit4 `class_name`s)**
 
 Run:
 ```bash
 godot --headless --path "$PWD" --import
 ```
-Expected: exits without fatal errors; a `.godot/` cache directory is created. (Harmless warnings are fine.)
+Expected: exits without fatal errors; the `.godot/` cache is populated. (Harmless warnings are fine.)
 
-- [ ] **Step 4: Write a smoke test**
+- [ ] **Step 3: Write a smoke test**
 
 Create `tests/test_smoke.gd`:
 ```gdscript
@@ -116,26 +103,19 @@ func test_arithmetic() -> void:
 	assert_int(2 + 2).is_equal(4)
 ```
 
-- [ ] **Step 5: Run the smoke test and verify it passes**
+- [ ] **Step 4: Run the smoke test and verify it passes**
 
 Run:
 ```bash
 godot --headless --path "$PWD" -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a res://tests/test_smoke.gd
 ```
-Expected: summary shows 1 test, `0 failed`, exit code `0`. If `GdUnitTestSuite` is "not found", re-run Step 3 then retry.
+Expected: summary shows 1 test, `0 failed`, exit code `0`. If `GdUnitTestSuite` is "not found", re-run Step 2 then retry.
 
-- [ ] **Step 6: Add a .gitignore entry for the Godot cache**
-
-Append to `.gitignore` (create if missing) a line:
-```
-.godot/
-```
-
-- [ ] **Step 7: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add project.godot addons/gdUnit4 tests/test_smoke.gd .gitignore
-git commit -m "chore: bootstrap Godot project with GdUnit4 and smoke test"
+git add tests/test_smoke.gd
+git commit -m "test: add GdUnit4 smoke test"
 ```
 
 ---
