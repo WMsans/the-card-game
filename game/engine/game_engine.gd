@@ -138,6 +138,8 @@ func apply(action: Action) -> void:
 			_apply_resolve_choice(action.params)
 		Enums.ActionType.DECLARE_ATTACK:
 			_declare_attack(action.params["attacker_id"], action.params["target"])
+		Enums.ActionType.ACTIVATE_TRAP:
+			pass
 		_:
 			push_error("Unhandled action type %d" % action.type)
 
@@ -252,5 +254,11 @@ func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
 			return c
 	return null
 
-func _check_traps(_event: GameEvent) -> void:
-	pass
+func _check_traps(event: GameEvent) -> void:
+	var defender_idx := state.opponent()
+	for trap in state.players[defender_idx].set_traps:
+		if _trap_condition_met(trap, event):
+			pass
+
+func _trap_condition_met(_trap: CardInstance, _event: GameEvent) -> bool:
+	return false
