@@ -673,13 +673,10 @@ git commit -m "feat: card gallery debug scene + calibrated CardView overlay regi
 
 ---
 
-## Roadmap — remaining phases (separate plans, written as each lands)
+## Roadmap — remaining phases (combined into three plans)
 
-These depend on `CardView`'s final shape (signals, drop API) and involve `.tscn`/interaction work that is calibrated against the running foundation, so each gets its own plan after the prior phase merges:
+Phases 3–8 are grouped into three plans by coherence + dependency (each a runnable, reviewable milestone). They depend on `CardView`'s final shape (signals, drop API) and involve `.tscn`/interaction work calibrated against the running foundation, so each follows once the prior plan merges:
 
-- **Plan 2 — Phase 3 (Juice):** hover tilt + scale/raise, dynamic shadow, drag wobble (spring/oscillator), dissolve shader on death; encapsulated in `CardView`; signals `hovered/unhovered/drag_started/drag_released/clicked`.
-- **Plan 3 — Phase 4 (Static table):** `hand_view`, `board_view`, `pile_view`/leader slot, `ticket_tray`, `opponent_hand`, `board_layout.gd` (pure zone+index→transform, unit-tested); rendered from a seeded `GameState`, no interaction.
-- **Plan 4 — Phase 5 (Match + reconciliation + flourishes):** `match.gd` apply→reconcile→flourish cycle; event flourishes (damage numbers, dissolve, mill burst, shake); turn banner.
-- **Plan 5 — Phase 6 (Player input):** drag-to-play, click-target attacks (`targeting_arrow`), end turn, leader cost prompt; highlights from `get_legal_actions()`; input→`Action` mapping unit-tested (no headless InputEvent reliance).
-- **Plan 6 — Phase 7 (Overlays):** mulligan, discard-to-limit, game-over panels.
-- **Plan 7 — Phase 8 (AI + flow + menu):** `ai_controller.gd`, deck selection main menu, play-again; full vs-AI loop + manual smoke.
+- **Plan 2 — Juice & Static Table (phases 3–4):** `docs/superpowers/plans/2026-05-29-game-ui-juice-and-table.md`. CardView hover tilt/scale, dynamic shadow, drag wobble, dissolve + input signals; then `board_layout.gd` (pure, unit-tested) and the read-only table widgets (`hand_view`, `board_view`, `pile_view`/leader slot, `ticket_tray`, `opponent_hand`) rendered from a seeded `GameState`.
+- **Plan 3 — Match & Player Input (phases 5–6):** `docs/superpowers/plans/2026-05-29-game-ui-match-and-input.md`. `match.gd` apply→reconcile→flourish cycle, event flourishes, turn banner; then drag-to-play, click-target attacks (`targeting_arrow`), end turn, `get_legal_actions()` highlights, with input→`Action` mapping unit-tested.
+- **Plan 4 — Overlays, AI & Flow (phases 7–8):** `docs/superpowers/plans/2026-05-29-game-ui-overlays-ai-flow.md`. Mulligan / discard-to-limit / leader-cost / game-over overlays, `ai_controller.gd`, main menu + deck selection + play-again, and the full vs-AI loop + smoke (replacing Plan 3's opponent/mulligan stubs).
