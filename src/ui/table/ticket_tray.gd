@@ -1,3 +1,4 @@
+class_name TicketTray
 extends HBoxContainer
 
 const PIP_FILLED := Color(0.95, 0.8, 0.2)
@@ -14,7 +15,7 @@ func set_tickets(tapped: int, total: int) -> void:
 	for i in range(total):
 		var pip := ColorRect.new()
 		pip.custom_minimum_size = Vector2(28, 28)
-		pip.color = PIP_FILLED if i < tapped else PIP_EMPTY
+		pip.color = PIP_FILLED if i < (total - tapped) else PIP_EMPTY
 		add_child(pip)
 
 func filled_count() -> int:
