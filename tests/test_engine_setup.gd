@@ -30,9 +30,10 @@ func test_after_both_mulligans_game_begins_in_main() -> void:
 
 func test_mulligan_reduces_hand_then_first_draw_restores() -> void:
 	var eng := _started_engine(7)
-	assert_array(eng.state.players[0].hand).has_size(5)
+	var first := eng.state.first_player
+	assert_array(eng.state.players[first].hand).has_size(5)
 
-func test_first_player_gets_one_ticket_second_gets_two() -> void:
+func test_first_player_gets_one_ticket() -> void:
 	var eng := _started_engine(7)
 	var first := eng.state.first_player
 	var second := 1 - first
