@@ -132,6 +132,10 @@ func apply(action: Action) -> void:
 			_apply_mulligan(action.params["indices"])
 		Enums.ActionType.PLAY_CARD:
 			_play_card(action.params["instance_id"], action.params)
+		Enums.ActionType.END_TURN:
+			_end_turn()
+		Enums.ActionType.RESOLVE_CHOICE:
+			_apply_resolve_choice(action.params)
 		_:
 			push_error("Unhandled action type %d" % action.type)
 
@@ -165,3 +169,40 @@ func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
 		if c.instance_id == instance_id:
 			return c
 	return null
+
+func _end_turn() -> void:
+	state.phase = Enums.Phase.END
+	var ps := state.active()
+	if ps.hand.size() > 5:
+		state.pending_choice = PendingChoice.new(
+			"discard_to_limit", state.active_player, {"count": ps.hand.size() - 5})
+		return
+	_finish_end_turn()
+
+func _apply_resolve_choice(params: Dictionary) -> void:
+	var pc := state.pending_choice
+	if pc.kind == "discard_to_limit":
+		var ps := state.players[pc.player]
+		var indices: Array = params["indices"].duplicate()
+		indices.sort()
+		indices.reverse()
+		for i in indices:
+			var c: CardInstance = ps.hand[i]
+			ps.hand.erase(c)
+			c.zone = Enums.Zone.DISCARD
+			ps.discard.append(c)
+			ps.turn_counters["cards_discarded"] += 1
+			state.bus.publish(GameEvent.new(Enums.EventType.CARD_DISCARDED,
+				{"player": pc.player, "instance": c.instance_id}))
+		state.pending_choice = null
+		_finish_end_turn()
+
+func _finish_end_turn() -> void:
+	for p in state.players:
+		for u in p.board:
+			u.reset_stats()
+	state.bus.publish(GameEvent.new(Enums.EventType.TURN_ENDED, {"player": state.active_player}))
+	if state.phase == Enums.Phase.GAME_OVER:
+		return
+	state.active_player = state.opponent()
+	_start_turn()
