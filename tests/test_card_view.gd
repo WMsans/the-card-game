@@ -54,3 +54,18 @@ func test_damaged_health_tints_red() -> void:
 	var cv := _spawn()
 	cv.setup(inst)
 	assert_object(cv.find_child("HealthLabel").modulate).is_equal(CardView.STAT_DAMAGED)
+
+func test_exposes_input_signals() -> void:
+	var cv := _spawn()
+	for sig in ["hovered", "unhovered", "drag_started", "drag_released", "clicked"]:
+		assert_bool(cv.has_signal(sig)).override_failure_message("missing signal %s" % sig).is_true()
+
+func test_dissolve_returns_tween_and_completes() -> void:
+	var def: CardDefinition = _strike_defs()[0]
+	var cv := _spawn()
+	cv.setup(_make(def))
+	var t := cv.dissolve()
+	assert_object(t).is_not_null()
+	while t.is_valid() and t.is_running():
+		t.custom_step(0.1)
+	assert_float(cv.find_child("Visuals").material.get_shader_parameter("dissolve_value")).is_equal_approx(0.0, 0.01)
