@@ -1,6 +1,9 @@
-[gd_scene load_steps=1 format=3 uid="uid://d6v5k4h8t0n8o"]
+[gd_scene load_steps=2 format=3 uid="uid://d6v5k4h8t0n8o"]
+
+[ext_resource type="Script" path="res://src/ui/card/card_view.gd" id="1_cv"]
 
 [node name="CardView" type="Control"]
+script = ExtResource("1_cv")
 layout_mode = 3
 anchors_preset = 0
 custom_minimum_size = Vector2(250, 350)
