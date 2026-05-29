@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://d6v5k4h8t0n8o"]
+
+[ext_resource type="Script" path="res://src/ui/card/card_view.gd" id="1_cv"]
+
+[node name="CardView" type="Control"]
+script = ExtResource("1_cv")
+layout_mode = 3
+anchors_preset = 0
+custom_minimum_size = Vector2(250, 350)
+
+[node name="Frame" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+expand_mode = 0
+stretch_mode = 5
+
+[node name="ArtTexture" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+stretch_mode = 6
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+autowrap_mode = 3
+clip_text = true
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DamageLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TicketLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiscardLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AbilityText" type="RichTextLabel" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="FlavorLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 350.0
+autowrap_mode = 3

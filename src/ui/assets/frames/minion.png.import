@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bypclaoaaoo1i"
-path="res://.godot/imported/strike_battle-bjorn.png-ff6e24b8b6de1d36ac137dc1f0125bfe.ctex"
+uid="uid://cg6jta8oalu7u"
+path="res://.godot/imported/minion.png-cb7c89eb11441a323afe3cfa26ecbf65.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://src/ui/assets/art/strike_battle-bjorn.png"
-dest_files=["res://.godot/imported/strike_battle-bjorn.png-ff6e24b8b6de1d36ac137dc1f0125bfe.ctex"]
+source_file="res://src/ui/assets/frames/minion.png"
+dest_files=["res://.godot/imported/minion.png-cb7c89eb11441a323afe3cfa26ecbf65.ctex"]
 
 [params]
 

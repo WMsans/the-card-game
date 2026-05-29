@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bypclaoaaoo1i"
-path="res://.godot/imported/strike_battle-bjorn.png-ff6e24b8b6de1d36ac137dc1f0125bfe.ctex"
+uid="uid://b5hyjo6bdvv6g"
+path="res://.godot/imported/back.png-f10771663ff8569133576adbd83e2577.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://src/ui/assets/art/strike_battle-bjorn.png"
-dest_files=["res://.godot/imported/strike_battle-bjorn.png-ff6e24b8b6de1d36ac137dc1f0125bfe.ctex"]
+source_file="res://src/ui/assets/frames/back.png"
+dest_files=["res://.godot/imported/back.png-f10771663ff8569133576adbd83e2577.ctex"]
 
 [params]
 
