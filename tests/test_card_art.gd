@@ -20,3 +20,10 @@ func test_art_path_empty_when_no_image() -> void:
 	var def := CardDefinition.new()
 	def.image = ""
 	assert_str(CardArt.art_path(def)).is_equal("")
+
+func test_leader_art_path_resolves_deck_leader() -> void:
+	assert_str(CardArt.leader_art_path("raccoon")).is_equal("res://src/ui/assets/art/raccoon_raccoon.png")
+
+func test_leader_art_path_empty_for_unknown_deck() -> void:
+	assert_str(CardArt.leader_art_path("")).is_equal("")
+	assert_str(CardArt.leader_art_path("nope")).is_equal("")

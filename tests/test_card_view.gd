@@ -47,6 +47,22 @@ func test_face_down_shows_back_and_hides_text() -> void:
 	assert_str((cv.find_child("Frame") as TextureRect).texture.resource_path).is_equal(CardArt.BACK)
 	assert_bool(cv.find_child("NameLabel").visible).is_false()
 
+func test_non_leader_shows_deck_leader_emblem() -> void:
+	var defs := CardDatabase.load_deck("res://src/data/decks/raccoon.csv", "raccoon")
+	var def: CardDefinition = defs.filter(func(d): return d.type == Enums.CardType.MINION)[0]
+	var cv := _spawn()
+	cv.setup(_make(def))
+	var emblem := cv.find_child("LeaderEmblem") as TextureRect
+	assert_bool(emblem.visible).is_true()
+	assert_str(emblem.texture.resource_path).is_equal(CardArt.leader_art_path("raccoon"))
+
+func test_leader_card_hides_emblem() -> void:
+	var defs := CardDatabase.load_deck("res://src/data/decks/raccoon.csv", "raccoon")
+	var def: CardDefinition = defs.filter(func(d): return d.type == Enums.CardType.LEADER)[0]
+	var cv := _spawn()
+	cv.setup(_make(def))
+	assert_bool((cv.find_child("LeaderEmblem") as TextureRect).visible).is_false()
+
 func test_damaged_health_tints_red() -> void:
 	var def: CardDefinition = _strike_defs().filter(func(d): return d.type == Enums.CardType.MINION)[0]
 	var inst := _make(def)

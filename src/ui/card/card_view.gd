@@ -14,6 +14,7 @@ const STAT_DAMAGED := Color(1.0, 0.4, 0.4)
 @onready var _discard: Label = $DiscardLabel
 @onready var _ability: RichTextLabel = $AbilityText
 @onready var _flavor: Label = $FlavorLabel
+@onready var _leader_emblem: TextureRect = $LeaderEmblem
 
 var _instance: CardInstance
 var _face_down: bool = false
@@ -57,11 +58,23 @@ func _refresh() -> void:
 	_discard.visible = def.type == Enums.CardType.LEADER
 	_discard.text = str(def.alt_discard_cost)
 
+	_refresh_leader_emblem(def)
+
 	_ability.text = _bold_keywords(def.ability_text, def.keywords)
 	_flavor.text = def.flavor
 
+func _refresh_leader_emblem(def: CardDefinition) -> void:
+	# The leader's portrait marks which deck a Minion/Spell/Trap belongs to;
+	# the Leader card itself doesn't carry its own emblem.
+	var emblem := ""
+	if def.type != Enums.CardType.LEADER:
+		emblem = CardArt.leader_art_path(def.deck_color)
+	_leader_emblem.visible = emblem != ""
+	if emblem != "":
+		_leader_emblem.texture = load(emblem)
+
 func _set_overlays_visible(v: bool) -> void:
-	for n in [_art, _name, _damage, _health, _ticket, _discard, _ability, _flavor]:
+	for n in [_art, _name, _damage, _health, _ticket, _discard, _ability, _flavor, _leader_emblem]:
 		n.visible = v
 
 func _stat_color(current: int, base: int) -> Color:

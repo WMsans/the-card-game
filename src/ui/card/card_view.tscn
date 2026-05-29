@@ -1,9 +1,13 @@
-[gd_scene format=3 uid="uid://ciay2k0asshw"]
+[gd_scene load_steps=6 format=3 uid="uid://ciay2k0asshw"]
 
 [ext_resource type="Script" uid="uid://bjw6oyoibhp72" path="res://src/ui/card/card_view.gd" id="1_cv"]
 [ext_resource type="Texture2D" uid="uid://kfj5y6vx3e2p" path="res://src/ui/assets/frames/leader.png" id="2_24qht"]
 [ext_resource type="Texture2D" uid="uid://c7w80x2tn3q7y" path="res://src/ui/assets/art/raccoon_raccoon.png" id="3_7p6om"]
 [ext_resource type="Script" uid="uid://leehmvr1x5lu" path="res://addons/AutoSizeText/ui/AutoSizeRichTextLabel.gd" id="4_7p6om"]
+[ext_resource type="Shader" path="res://src/ui/card/circle_mask.gdshader" id="5_emblem"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_emblem"]
+shader = ExtResource("5_emblem")
 
 [node name="CardView" type="Control" unique_id=1386500465]
 custom_minimum_size = Vector2(350, 490)
@@ -120,3 +124,13 @@ text = "\"Stand ready for my arrival.\""
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
+
+[node name="LeaderEmblem" type="TextureRect" parent="." unique_id=1900000001]
+material = SubResource("ShaderMaterial_emblem")
+layout_mode = 0
+offset_left = 259.0
+offset_top = 398.0
+offset_right = 330.0
+offset_bottom = 469.0
+expand_mode = 1
+stretch_mode = 6
