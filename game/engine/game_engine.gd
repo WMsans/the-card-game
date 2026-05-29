@@ -136,6 +136,8 @@ func apply(action: Action) -> void:
 			_end_turn()
 		Enums.ActionType.RESOLVE_CHOICE:
 			_apply_resolve_choice(action.params)
+		Enums.ActionType.DECLARE_ATTACK:
+			_declare_attack(action.params["attacker_id"], action.params["target"])
 		_:
 			push_error("Unhandled action type %d" % action.type)
 
@@ -206,3 +208,49 @@ func _finish_end_turn() -> void:
 		return
 	state.active_player = state.opponent()
 	_start_turn()
+
+func _declare_attack(attacker_id: int, target: Dictionary) -> void:
+	var ap := state.active()
+	var attacker: CardInstance = _find_on_board(ap, attacker_id)
+	attacker.tapped = true
+	ap.turn_counters["attacks_made"] += 1
+	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
+		{"attacker": attacker_id, "player": state.active_player}))
+	_check_traps(state.bus.log[-1])
+	if state.phase == Enums.Phase.GAME_OVER:
+		return
+	if target.get("deck", false):
+		_deck_damage(state.opponent(), attacker.current_damage)
+		return
+	var opp := state.players[state.opponent()]
+	var defender: CardInstance = _find_on_board(opp, target["unit"])
+	var r := Combat.compute(attacker, defender)
+	defender.current_health -= r["dmg_to_def"]
+	attacker.current_health -= r["dmg_to_atk"]
+	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
+		{"target": defender.instance_id, "amount": r["dmg_to_def"]}))
+	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
+		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
+	if r["def_dies"]:
+		_kill(state.opponent(), defender)
+	if r["atk_dies"]:
+		_kill(state.active_player, attacker)
+
+func _kill(owner_idx: int, unit: CardInstance) -> void:
+	var owner := state.players[owner_idx]
+	owner.board.erase(unit)
+	unit.zone = Enums.Zone.DISCARD
+	unit.reset_stats()
+	owner.discard.append(unit)
+	owner.turn_counters["units_died"] += 1
+	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DIED,
+		{"owner": owner_idx, "instance": unit.instance_id}))
+
+func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
+	for c in ps.board:
+		if c.instance_id == instance_id:
+			return c
+	return null
+
+func _check_traps(_event: GameEvent) -> void:
+	pass
