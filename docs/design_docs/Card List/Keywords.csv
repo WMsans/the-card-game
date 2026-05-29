@@ -1,0 +1,29 @@
+Keyword,Inspiration(s),Description
+Deck,,"Your main 20 card deck that can consist of any number of minions, spells, and traps. May be used in reference to the entity that takes damage when attempting to win the game."
+Discard Pile,,All cards that have already been used or discarded.
+Resource Deck,,The deck of cards that contains all Resources.
+Discard,,Send a card to the Discard Pile.
+Hand,,The cards that you can actively play from.
+Draw,,Put a card from you Deck into your Hand.
+Board,,The play area where Units are placed.
+Unit,,A Minion or a Leader
+Minion,,A unit that is played on the Board with a stat line.
+Leader,,"A unique unit that starts out in your Hand. When killed, it is sent (like normal) to your Discard pile."
+Trap,Secret (Hearthstone),"A card that is (by default) hidden. When its stated condition occurs, it can be revealed, immediately activating its effect."
+Spell,,A card that when played has an instantaneous effect on the game.
+Trash,Sacrifice (All),KO an allied unit.
+Removed,Obliterate (LoR),"Whenever you play this card from hand, remove this card from the game."
+Cycle,,"Discard this card, draw 1."
+Taunt,,Enemy attacks must target your cards with Taunt.
+Detonate,,Activate and remove all bombs on a unit.
+Bomb,,"Whenever a bomb is activated, it deals its power as damage to the unit it is attached to. This damage lasts until the unit attacks or is attacked. Any bomb can be defused by attacking a bomb with any unit unless specified."
+Defuse,,"Remove the targetted bomb from the unit, or all bombs if the card specifies so."
+Request,,"A condition that activates special effects when met. When this unit attacks, if the Request conditions are met, it gains +2 Damage and +2 Health during the fight."
+Harmonize,,"Only triggers when another card activates Harmonize. Sometimes Harmonize has to be triggered more than once for the stated effect to occur. Once the threshold has been reached, the effect cannot trigger for a specific unit again. Harmonize only applies to units currently on the board."
+Clef,,"Only one Clef belonging to a leader can exist on the board at a time. During your turn, you can spend 2 resources to return a Clef to your hand."
+Rummage,,Draw from the bottom of the Discard Pile.
+Empowered,Enlightened (LoR),When you start your turn with 10 Resources.
+Scrapped,"Deathrattle (Hearthstone), Last Breath (LoR)",When a Unit dies.
+Overcharge,Overload (Hearthstone),Return [X] (Untapped or Tapped) Resources to the Resource Deck.
+Recycle,Heal (All),Return [X] cards to the bottom of your Deck.
+Mill,Mill (MTG),Take top cards of draw pile and put them into the discard pile.

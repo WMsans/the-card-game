@@ -1,0 +1,23 @@
+Card ID,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image
+1,Leader,Raccoon,2 / Discard 5,2,1,"While discarded, RUMMAGE 2 at the start of your turn. Once per turn, you may Discard any number of cards in your Hand to deal that amount of Damage to a Unit. Return to your Hand on Deck Reshuffles.
+RUMMAGE: Draw from the bottom of your Discard Pile","""Stand ready for my arrival.""",docs/design_docs/Card List/images/raccoon_raccoon.png
+2,Minion,Rat,1,2,1,"When RUMMAGED, play this for free.","""Oh sh*t, a rat!""",
+3,Minion,Rat,1,2,1,"When RUMMAGED, play this for free.","""Oh sh*t, a rat!""",
+4,Minion,Opossum,2,2,2,RUMMAGE 3.,"""https://en.wikipedia.org/wiki/Opossum""",henri
+5,Minion,Opossum,2,2,2,RUMMAGE 3.,"""https://en.wikipedia.org/wiki/Opossum""",
+6,Minion,Skunk,3,4,2,"The first time you RUMMAGE each turn, set an opponent Unit's Damage to 0 until the end of the turn.","""In the US, skunks can legally be kept as pets in 17 states.""",
+7,Minion,Skunk,3,4,2,"The first time you RUMMAGE each turn, set an opponent Unit's Damage to 0 until the end of the turn.","""In the US, skunks can legally be kept as pets in 17 states.""",
+8,Minion,Coyote,4,6,3,"RUMMAGE 3. Every time you RUMMAGE, RUMMAGE an extra card.","""I hope there isn't a roadrunner in this deck...""",henri
+9,Minion,Coyote,4,6,3,"RUMMAGE 3. Every time you RUMMAGE, RUMMAGE an extra card.","""I hope there isn't a roadrunner in this deck...""",
+10,Minion,Trash Cannon,7,2,7,"When you RUMMAGE (instance, not per card), deal 2 Damage to the opponent's Deck.","""Have you ever wanted to throw away your trash from the comfort of your couch? NOW YOU CAN!""",
+11,Minion,Trash Cannon,7,2,7,"When you RUMMAGE (instance, not per card), deal 2 Damage to the opponent's Deck.","""Have you ever wanted to throw away your trash from the comfort of your couch? NOW YOU CAN!""",
+12,Spell,Trash Day,1,,,Discard up to 3 cards from your Deck to deal that much Damage to a Unit.,"""Why are the garbage trucks here? They're supposed to come tomorrow!""",docs/design_docs/Card List/images/raccoon_trash-day.png
+13,Spell,Trash Day,1,,,Discard up to 3 cards from your Deck to deal that much Damage to a Unit.,"""Why are the garbage trucks here? They're supposed to come tomorrow!""",docs/design_docs/Card List/images/raccoon_trash-day.png
+14,Spell,Trash to Treasure,2,,,"RUMMAGE 2, then put 2 cards in your hand to the bottom of your Deck.","""One man's trash is another man's... nevermind, this is just garbage.""",
+15,Spell,Trash to Treasure,2,,,"RUMMAGE 2, then put 2 cards in your hand to the bottom of your Deck.","""One man's trash is another man's... nevermind, this is just garbage.""",
+16,Spell,Trashalanche,4,,,Damage ALL Units equal to the number of cards in your Discard Pile.,"""It's not a garbage pile, it's a COLLECTION! Of tin cans.""",
+17,Spell,Trashalanche,4,,,Damage ALL Units equal to the number of cards in your Discard Pile.,"""It's not a garbage pile, it's a COLLECTION! Of tin cans.""",
+18,Trap,Garbage Guard,3,,,"Negate the next instance of Damage to your Deck, then RUMMAGE cards equal to the Damage negated.","""Have you heard of the guy who used a trash can lid to block a fire hose?""",
+19,Trap,Garbage Guard,3,,,"Negate the next instance of Damage to your Deck, then RUMMAGE cards equal to the Damage negated.","""Have you heard of the guy who used a trash can lid to block a fire hose?""",
+20,Trap,Safety Net,3,,,The next killed allied Unit will be put at the bottom of the Discard Pile.,"""Quick! Jump into the dumpster!""",
+21,Trap,Safety Net,3,,,The next killed allied Unit will be put at the bottom of the Discard Pile.,"""Quick! Jump into the dumpster!""",
