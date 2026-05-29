@@ -262,3 +262,29 @@ func _check_traps(event: GameEvent) -> void:
 
 func _trap_condition_met(_trap: CardInstance, _event: GameEvent) -> bool:
 	return false
+
+func get_legal_actions() -> Array:
+	var out: Array = []
+	if state.phase == Enums.Phase.GAME_OVER:
+		return out
+	if state.pending_choice != null:
+		return out
+	if state.phase != Enums.Phase.MAIN:
+		return out
+	var ps := state.active()
+	for c in ps.hand:
+		var def := c.definition
+		if ps.available_tickets() >= def.ticket_cost:
+			out.append(Action.play_card(c.instance_id))
+		if def.type == Enums.CardType.LEADER \
+				and ps.deck.size() + ps.discard.size() >= def.alt_discard_cost:
+			out.append(Action.play_card(c.instance_id, {"pay_by_discard": true}))
+	var opp := state.players[state.opponent()]
+	for u in ps.board:
+		if u.tapped or not u.is_unit():
+			continue
+		out.append(Action.declare_attack(u.instance_id, {"deck": true}))
+		for d in opp.board:
+			out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+	out.append(Action.end_turn())
+	return out
