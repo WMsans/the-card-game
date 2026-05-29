@@ -132,7 +132,7 @@ func _on_mouse_entered() -> void:
 	t.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.4)
 
 func _on_mouse_exited() -> void:
-	if not _interactive:
+	if not _interactive or _dragging:
 		return
 	unhovered.emit(self)
 	_frame.material.set_shader_parameter("x_rot", 0.0)
