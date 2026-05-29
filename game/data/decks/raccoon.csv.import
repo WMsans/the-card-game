@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c0a5vixtjyweq"
+
+[deps]
+
+files=["res://game/data/decks/raccoon.Type.translation", "res://game/data/decks/raccoon.Name.translation", "res://game/data/decks/raccoon.Cost.translation", "res://game/data/decks/raccoon.Damage.translation", "res://game/data/decks/raccoon.Health.translation", "res://game/data/decks/raccoon.Ability.translation", "res://game/data/decks/raccoon.Flavor Text.translation", "res://game/data/decks/raccoon.Image.translation"]
+
+source_file="res://game/data/decks/raccoon.csv"
+dest_files=["res://game/data/decks/raccoon.Type.translation", "res://game/data/decks/raccoon.Name.translation", "res://game/data/decks/raccoon.Cost.translation", "res://game/data/decks/raccoon.Damage.translation", "res://game/data/decks/raccoon.Health.translation", "res://game/data/decks/raccoon.Ability.translation", "res://game/data/decks/raccoon.Flavor Text.translation", "res://game/data/decks/raccoon.Image.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

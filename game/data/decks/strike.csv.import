@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cbwqyql8ahup"
+
+[deps]
+
+files=["res://game/data/decks/strike.Type.translation", "res://game/data/decks/strike.Name.translation", "res://game/data/decks/strike.Cost.translation", "res://game/data/decks/strike.Damage.translation", "res://game/data/decks/strike.Health.translation", "res://game/data/decks/strike.Ability.translation", "res://game/data/decks/strike.Flavor Text.translation", "res://game/data/decks/strike.Image.translation"]
+
+source_file="res://game/data/decks/strike.csv"
+dest_files=["res://game/data/decks/strike.Type.translation", "res://game/data/decks/strike.Name.translation", "res://game/data/decks/strike.Cost.translation", "res://game/data/decks/strike.Damage.translation", "res://game/data/decks/strike.Health.translation", "res://game/data/decks/strike.Ability.translation", "res://game/data/decks/strike.Flavor Text.translation", "res://game/data/decks/strike.Image.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
