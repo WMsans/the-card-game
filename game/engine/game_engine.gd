@@ -130,5 +130,38 @@ func apply(action: Action) -> void:
 	match action.type:
 		Enums.ActionType.MULLIGAN:
 			_apply_mulligan(action.params["indices"])
+		Enums.ActionType.PLAY_CARD:
+			_play_card(action.params["instance_id"], action.params)
 		_:
 			push_error("Unhandled action type %d" % action.type)
+
+func _play_card(instance_id: int, params: Dictionary) -> void:
+	var ps := state.active()
+	var card: CardInstance = _find_in_hand(ps, instance_id)
+	var def := card.definition
+	var pay_by_discard: bool = params.get("pay_by_discard", false)
+	if def.type == Enums.CardType.LEADER and pay_by_discard:
+		_mill(state.active_player, def.alt_discard_cost)
+	else:
+		ps.tickets_tapped += def.ticket_cost
+	ps.hand.erase(card)
+	ps.turn_counters["cards_played"] += 1
+	match def.type:
+		Enums.CardType.MINION, Enums.CardType.LEADER:
+			card.zone = Enums.Zone.BOARD
+			card.tapped = true
+			ps.board.append(card)
+		Enums.CardType.SPELL:
+			card.zone = Enums.Zone.DISCARD
+			ps.discard.append(card)
+		Enums.CardType.TRAP:
+			card.zone = Enums.Zone.TRAP_SET
+			ps.set_traps.append(card)
+	state.bus.publish(GameEvent.new(Enums.EventType.CARD_PLAYED,
+		{"player": state.active_player, "instance": instance_id, "card_type": def.type}))
+
+func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
+	for c in ps.hand:
+		if c.instance_id == instance_id:
+			return c
+	return null
