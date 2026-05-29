@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bf0n10oc7xv2x"
+
+[deps]
+
+files=["res://docs/design_docs/Card List/Strike Deck v2.Type.translation", "res://docs/design_docs/Card List/Strike Deck v2.Name.translation", "res://docs/design_docs/Card List/Strike Deck v2.Cost.translation", "res://docs/design_docs/Card List/Strike Deck v2.Damage.translation", "res://docs/design_docs/Card List/Strike Deck v2.Health.translation", "res://docs/design_docs/Card List/Strike Deck v2.Ability.translation", "res://docs/design_docs/Card List/Strike Deck v2.Flavor Text.translation", "res://docs/design_docs/Card List/Strike Deck v2.Image.translation"]
+
+source_file="res://docs/design_docs/Card List/Strike Deck v2.csv"
+dest_files=["res://docs/design_docs/Card List/Strike Deck v2.Type.translation", "res://docs/design_docs/Card List/Strike Deck v2.Name.translation", "res://docs/design_docs/Card List/Strike Deck v2.Cost.translation", "res://docs/design_docs/Card List/Strike Deck v2.Damage.translation", "res://docs/design_docs/Card List/Strike Deck v2.Health.translation", "res://docs/design_docs/Card List/Strike Deck v2.Ability.translation", "res://docs/design_docs/Card List/Strike Deck v2.Flavor Text.translation", "res://docs/design_docs/Card List/Strike Deck v2.Image.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d4netrctkvvam"
+
+[deps]
+
+files=["res://docs/design_docs/Card List/Keywords.Inspiration(s).translation", "res://docs/design_docs/Card List/Keywords.Description.translation"]
+
+source_file="res://docs/design_docs/Card List/Keywords.csv"
+dest_files=["res://docs/design_docs/Card List/Keywords.Inspiration(s).translation", "res://docs/design_docs/Card List/Keywords.Description.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
