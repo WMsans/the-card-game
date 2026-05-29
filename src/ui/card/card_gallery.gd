@@ -14,6 +14,6 @@ func populate() -> void:
 		var defs := CardDatabase.load_deck("res://src/data/decks/%s.csv" % color, color)
 		for def in defs:
 			var cv: CardView = CARD_VIEW.instantiate()
-			cv.custom_minimum_size = Vector2(250, 350)
+			cv.custom_minimum_size = Vector2(350, 490)
 			_grid.add_child(cv)
 			cv.setup(CardInstance.new(0, def))

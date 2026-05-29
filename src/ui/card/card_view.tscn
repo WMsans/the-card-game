@@ -1,31 +1,42 @@
 [gd_scene format=3 uid="uid://ciay2k0asshw"]
 
 [ext_resource type="Script" uid="uid://bjw6oyoibhp72" path="res://src/ui/card/card_view.gd" id="1_cv"]
+[ext_resource type="Texture2D" uid="uid://kfj5y6vx3e2p" path="res://src/ui/assets/frames/leader.png" id="2_24qht"]
+[ext_resource type="Texture2D" uid="uid://c7w80x2tn3q7y" path="res://src/ui/assets/art/raccoon_raccoon.png" id="3_7p6om"]
+[ext_resource type="Script" uid="uid://leehmvr1x5lu" path="res://addons/AutoSizeText/ui/AutoSizeRichTextLabel.gd" id="4_7p6om"]
 
 [node name="CardView" type="Control" unique_id=1386500465]
-custom_minimum_size = Vector2(250, 350)
+custom_minimum_size = Vector2(350, 490)
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_cv")
 
 [node name="Frame" type="TextureRect" parent="." unique_id=1208811020]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_right = 350.0
+offset_bottom = 490.0
+texture = ExtResource("2_24qht")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="ArtTexture" type="TextureRect" parent="." unique_id=1787484799]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 29.0
+offset_top = 88.0
+offset_right = 321.0
+offset_bottom = 252.0
+texture = ExtResource("3_7p6om")
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 4
 
 [node name="NameLabel" type="Label" parent="." unique_id=370385257]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 91.0
+offset_top = 22.0
+offset_right = 259.0
+offset_bottom = 69.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Raccon"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
@@ -33,42 +44,79 @@ clip_text = true
 
 [node name="DamageLabel" type="Label" parent="." unique_id=2083285191]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 35.0
+offset_top = 31.0
+offset_right = 67.0
+offset_bottom = 71.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HealthLabel" type="Label" parent="." unique_id=484804909]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 273.0
+offset_top = 24.0
+offset_right = 329.0
+offset_bottom = 71.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TicketLabel" type="Label" parent="." unique_id=1728497022]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 41.0
+offset_top = 414.0
+offset_right = 69.0
+offset_bottom = 451.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="DiscardLabel" type="Label" parent="." unique_id=1659578876]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 273.0
+offset_top = 414.0
+offset_right = 319.0
+offset_bottom = 456.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AbilityText" type="RichTextLabel" parent="." unique_id=583288906]
+[node name="AbilityText" type="RichTextLabel" parent="." unique_id=789969953]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 29.0
+offset_top = 272.0
+offset_right = 321.0
+offset_bottom = 383.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 11
+theme_override_font_sizes/bold_font_size = 11
+theme_override_font_sizes/bold_italics_font_size = 11
+theme_override_font_sizes/italics_font_size = 11
+theme_override_font_sizes/mono_font_size = 11
 bbcode_enabled = true
-fit_content = true
+text = "While discarded, RUMMAGE 2 at the start of your turn. Once per turn, you may Discard any number of cards in your Hand to deal that amount of Damage to a Unit. Return to your Hand on Deck Reshuffles. RUMMAGE: Draw from the bottom of your Discard Pile."
 scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("4_7p6om")
+watch_text_change = true
+max_font_size = 14
+metadata/_custom_type_script = "uid://leehmvr1x5lu"
 
 [node name="FlavorLabel" type="Label" parent="." unique_id=471542997]
 layout_mode = 0
-offset_right = 250.0
-offset_bottom = 350.0
+offset_left = 101.0
+offset_top = 391.0
+offset_right = 249.0
+offset_bottom = 463.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
+text = "\"Stand ready for my arrival.\""
+horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 3
