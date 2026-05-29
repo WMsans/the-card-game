@@ -35,6 +35,7 @@ static func _parse_row(row: PackedStringArray, deck_color: String) -> CardDefini
 	d.base_health = _parse_leading_int(row[5])
 	d.ability_text = row[6].strip_edges()
 	d.flavor = row[7].strip_edges()
+	d.image = row[8].strip_edges() if row.size() > 8 else ""
 	d.keywords = _extract_keywords(d.ability_text)
 	return d
 

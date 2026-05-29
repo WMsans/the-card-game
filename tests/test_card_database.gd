@@ -27,6 +27,11 @@ func test_spell_has_zero_stats() -> void:
 	assert_int(spell.base_damage).is_equal(0)
 	assert_int(spell.base_health).is_equal(0)
 
+func test_image_path_parsed_from_csv() -> void:
+	var defs := CardDatabase.load_deck("res://src/data/decks/strike.csv", "Strike")
+	var bjorn: CardDefinition = defs.filter(func(d): return d.name == "Battle Bjorn")[0]
+	assert_str(bjorn.image).is_equal("docs/design_docs/Card List/images/strike_battle-bjorn.png")
+
 func test_all_four_decks_load_without_error() -> void:
 	for path in ["strike", "raccoon", "writing", "audio"]:
 		var defs := CardDatabase.load_deck("res://src/data/decks/%s.csv" % path, path)
