@@ -15,8 +15,8 @@ signal clicked(card_view: CardView)
 @export var hover_scale: float = 1.8
 @export var hover_lift: float = -160.0
 @export var hover_shadow_offset: Vector2 = Vector2(8.0, 16.0)
-@export var spring: float = 150.0
-@export var damp: float = 10.0
+@export var spring: float = 800.0
+@export var damp: float = 8.0
 @export var velocity_multiplier: float = 1.0
 
 @onready var _surface: SubViewportContainer = $CardSurface
@@ -161,17 +161,16 @@ func _handle_shadow(delta: float) -> void:
 		_shadow.position.x += hover_shadow_offset.x
 
 func _wobble(delta: float) -> void:
-	# Reference (balatro card.gd::rotate_velocity): lean the card into the drag by
-	# kicking the oscillator off the *direction* of motion, not its magnitude. The
-	# unit-vector x means a steady drag gives a constant gentle lean and a flick
-	# reverses it, which is what reads as a lively, weighted grab. The spring/damp
-	# pair then lets it swing back and settle.
+	# Lean the card into the drag motion. The kick is proportional to actual
+	# horizontal speed (clamped) so fast flicks lean hard and slow drags stay calm,
+	# instead of a constant nudge that feels mushy.
 	var velocity := (position - _last_pos) / maxf(delta, 0.0001)
 	_last_pos = position
-	_osc_velocity += velocity.normalized().x * velocity_multiplier
+	_osc_velocity += clampf(velocity.x, -2400.0, 2400.0) * 0.00035 * velocity_multiplier
 	var force := -spring * _displacement - damp * _osc_velocity
 	_osc_velocity += force * delta
 	_displacement += _osc_velocity * delta
+	_displacement = clampf(_displacement, -0.4, 0.4)
 	rotation = _displacement
 
 func _on_mouse_entered() -> void:
