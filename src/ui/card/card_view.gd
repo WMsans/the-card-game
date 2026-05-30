@@ -32,6 +32,7 @@ signal clicked(card_view: CardView)
 @onready var _ability: RichTextLabel = $CardSurface/CardViewport/Visuals/AbilityText
 @onready var _flavor: Label = $CardSurface/CardViewport/Visuals/FlavorLabel
 @onready var _leader_emblem: TextureRect = $CardSurface/CardViewport/LeaderEmblem
+@onready var _highlight: CardHighlight = $Highlight
 
 var _instance: CardInstance
 var _face_down: bool = false
@@ -131,11 +132,14 @@ func _ready() -> void:
 func set_interactive(v: bool) -> void:
 	_interactive = v
 
+func set_highlight(state: int) -> void:
+	_highlight.set_state(state)
+
 func set_playable(v: bool) -> void:
-	modulate = Color(1, 1, 0.8) if v else Color(0.7, 0.7, 0.7)
+	set_highlight(CardHighlight.State.PLAYABLE if v else CardHighlight.State.NONE)
 
 func set_attackable(v: bool) -> void:
-	modulate = Color(1, 0.9, 0.5) if v else Color(1, 1, 1)
+	set_highlight(CardHighlight.State.ATTACKABLE if v else CardHighlight.State.NONE)
 
 # Resting scale for table cards. Hover/exit tweens animate relative to this so
 # a hovered card returns to its table size, not full 1.0.
