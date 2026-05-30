@@ -17,7 +17,7 @@ signal clicked(card_view: CardView)
 @export var hover_shadow_offset: Vector2 = Vector2(8.0, 16.0)
 @export var spring: float = 150.0
 @export var damp: float = 10.0
-@export var velocity_multiplier: float = 1.0
+@export var velocity_multiplier: float = 2.0
 
 @onready var _surface: SubViewportContainer = $CardSurface
 @onready var _visuals: CanvasGroup = $CardSurface/CardViewport/Visuals
@@ -45,6 +45,9 @@ var _osc_velocity: float = 0.0
 var _last_pos: Vector2
 var _drag_offset: Vector2 = Vector2.ZERO
 var _interactive: bool = true
+var _tween_hover: Tween
+var _tween_unhover: Tween
+var _tween_grab: Tween
 
 func setup(instance: CardInstance) -> void:
 	_instance = instance
@@ -170,10 +173,13 @@ func _on_mouse_entered() -> void:
 	z_index = 100
 	_hovering = true
 	_rest_position = position
-	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	t.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4)
-	var t2 := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	t2.tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2)
+	if _tween_hover and _tween_hover.is_running():
+		_tween_hover.kill()
+	if _tween_unhover and _tween_unhover.is_running():
+		_tween_unhover.kill()
+	_tween_hover = create_tween()
+	_tween_hover.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+	_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
 func _on_mouse_exited() -> void:
 	if not _interactive or _dragging:
@@ -181,12 +187,16 @@ func _on_mouse_exited() -> void:
 	unhovered.emit(self)
 	z_index = 0
 	_hovering = false
-	_surface.material.set_shader_parameter("x_rot", 0.0)
-	_surface.material.set_shader_parameter("y_rot", 0.0)
-	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45)
-	var t2 := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	t2.tween_property(self, "position:y", _rest_position.y, 0.2)
+	if _tween_hover and _tween_hover.is_running():
+		_tween_hover.kill()
+	if _tween_unhover and _tween_unhover.is_running():
+		_tween_unhover.kill()
+	_tween_unhover = create_tween()
+	_tween_unhover.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+	_tween_unhover.parallel().tween_property(self, "position:y", _rest_position.y, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	var tilt_tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tilt_tween.tween_property(_surface.material, "shader_parameter/x_rot", 0.0, 0.5)
+	tilt_tween.parallel().tween_property(_surface.material, "shader_parameter/y_rot", 0.0, 0.5)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _interactive:
@@ -194,20 +204,35 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
-			_drag_offset = get_global_mouse_position() - global_position
+			_drag_offset = size * 0.5
 			z_index = 100
 			_last_pos = position
 			_displacement = 0.0
 			_osc_velocity = 0.0
+			# Kill hover/unhover tweens so they don't fight drag positioning
+			if _tween_hover and _tween_hover.is_running():
+				_tween_hover.kill()
+			if _tween_unhover and _tween_unhover.is_running():
+				_tween_unhover.kill()
+			# Snappy grab pop
+			if _tween_grab and _tween_grab.is_running():
+				_tween_grab.kill()
+			_tween_grab = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+			_tween_grab.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.15)
 			drag_started.emit(self)
 		else:
 			if _dragging:
 				_dragging = false
+				_hovering = false
 				z_index = 0
 				clicked.emit(self)
 				drag_released.emit(self, get_global_mouse_position())
-				var t := create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-				t.tween_property(self, "rotation", 0.0, 0.3)
+				if _tween_grab and _tween_grab.is_running():
+					_tween_grab.kill()
+				# Satisfying release: elastic scale drop + rotation settle
+				var t := create_tween()
+				t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+				t.parallel().tween_property(self, "rotation", 0.0, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	elif event is InputEventMouseMotion and not _dragging:
 		var lx := remap(event.position.x, 0.0, size.x, 0.0, 1.0)
 		var ly := remap(event.position.y, 0.0, size.y, 0.0, 1.0)
