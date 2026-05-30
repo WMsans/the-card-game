@@ -1,0 +1,22 @@
+class_name CardScriptRegistry
+extends RefCounted
+
+static var _default := DefaultCard.new()
+static var _scripts: Dictionary = {}      # "deck:id" -> CardScript
+static var _built: bool = false
+
+static func _key(deck: String, id: int) -> String:
+	return "%s:%d" % [deck.to_lower(), id]
+
+static func _register(deck: String, id: int, script: CardScript) -> void:
+	_scripts[_key(deck, id)] = script
+
+static func _build() -> void:
+	if _built:
+		return
+	_built = true
+	# Strike registrations are added in Phase 8.
+
+static func get_script_for(deck: String, id: int) -> CardScript:
+	_build()
+	return _scripts.get(_key(deck, id), _default)
