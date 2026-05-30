@@ -80,3 +80,6 @@ func _refresh_highlights() -> void:
 
 func _play_flourishes(events: Array) -> void:
 	Flourishes.play(self, events)
+	for e in events:
+		if e.type == Enums.EventType.TURN_STARTED:
+			$Banner.show_turn(e.data["player"] == HUMAN)

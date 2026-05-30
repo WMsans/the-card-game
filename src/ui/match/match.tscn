@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://src/ui/table/pile_view.tscn" id="4_pile"]
 [ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="5_ticket"]
 [ext_resource type="Script" path="res://src/ui/match/match.gd" id="6_match"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
 
 [node name="Match" type="Control"]
 script = ExtResource("6_match")
@@ -113,4 +114,4 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Banner" type="CanvasLayer" parent="."]
+[node name="Banner" parent="." instance=ExtResource("7_banner")]
