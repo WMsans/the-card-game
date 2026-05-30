@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://cmenu0001"]
+
+[ext_resource type="Script" path="res://src/ui/menu/main_menu.gd" id="1_main"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 710.0
+offset_top = 200.0
+offset_right = 1210.0
+offset_bottom = 300.0
+text = "The Card Game"
+horizontal_alignment = 1
+
+[node name="DeckButtons" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 510.0
+offset_top = 400.0
+offset_right = 1410.0
+offset_bottom = 460.0
+
+[node name="Strike" type="Button" parent="DeckButtons" unique_id=2345678901]
+text = "Strike"
+
+[node name="Raccoon" type="Button" parent="DeckButtons" unique_id=3456789012]
+text = "Raccoon"
+
+[node name="Writing" type="Button" parent="DeckButtons" unique_id=4567890123]
+text = "Writing"
+
+[node name="Audio" type="Button" parent="DeckButtons" unique_id=5678901234]
+text = "Audio"
+
+[node name="SeedField" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 710.0
+offset_top = 520.0
+offset_right = 1210.0
+offset_bottom = 580.0
+placeholder_text = "Seed (optional)"
+
+[node name="PlayButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 710.0
+offset_top = 640.0
+offset_right = 910.0
+offset_bottom = 700.0
+text = "Play"
+
+[node name="QuitButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 930.0
+offset_top = 640.0
+offset_right = 1130.0
+offset_bottom = 700.0
+text = "Quit"
