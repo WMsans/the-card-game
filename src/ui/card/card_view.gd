@@ -36,6 +36,8 @@ signal clicked(card_view: CardView)
 var _instance: CardInstance
 var _face_down: bool = false
 var base_scale: float = 1.0   # table cards render scaled-down; hover is relative to this
+static var _active_drag: CardView = null
+
 var _dragging: bool = false
 var _hovering: bool = false
 var _rest_position: Vector2
@@ -175,7 +177,7 @@ func _wobble(delta: float) -> void:
 	rotation = _displacement
 
 func _on_mouse_entered() -> void:
-	if not _interactive or _dragging:
+	if not _interactive or _dragging or _active_drag != null:
 		return
 	hovered.emit(self)
 	z_index = 100
@@ -190,7 +192,7 @@ func _on_mouse_entered() -> void:
 	_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
 func _on_mouse_exited() -> void:
-	if not _interactive or _dragging:
+	if not _interactive or _dragging or _active_drag != null:
 		return
 	unhovered.emit(self)
 	z_index = 0
@@ -212,6 +214,7 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
+			_active_drag = self
 			# Grab-relative pivot: keep the card exactly where it was picked up so it
 			# doesn't snap-jump to recenter, AND make drag rotation pivot around the
 			# cursor. pivot_offset is in local (unscaled) space, so divide the
@@ -241,6 +244,7 @@ func _on_gui_input(event: InputEvent) -> void:
 		else:
 			if _dragging:
 				_dragging = false
+				_active_drag = null
 				_hovering = false
 				z_index = 0
 				# Restore the center pivot for hover/hand layout, compensating
