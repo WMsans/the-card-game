@@ -12,7 +12,7 @@ signal drag_released(card_view: CardView, at: Vector2)
 signal clicked(card_view: CardView)
 
 @export var angle_max: float = 12.0
-@export var hover_scale: float = 1.12
+@export var hover_scale: float = 1.8
 @export var spring: float = 150.0
 @export var damp: float = 10.0
 @export var velocity_multiplier: float = 1.0
@@ -33,6 +33,7 @@ signal clicked(card_view: CardView)
 
 var _instance: CardInstance
 var _face_down: bool = false
+var base_scale: float = 1.0   # table cards render scaled-down; hover is relative to this
 var _dragging: bool = false
 var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
@@ -119,6 +120,12 @@ func _ready() -> void:
 func set_interactive(v: bool) -> void:
 	_interactive = v
 
+# Resting scale for table cards. Hover/exit tweens animate relative to this so
+# a hovered card returns to its table size, not full 1.0.
+func set_base_scale(s: float) -> void:
+	base_scale = s
+	scale = Vector2(s, s)
+
 func _process(delta: float) -> void:
 	_handle_shadow()
 	if _dragging:
@@ -142,17 +149,19 @@ func _on_mouse_entered() -> void:
 	if not _interactive or _dragging:
 		return
 	hovered.emit(self)
+	z_index = 100
 	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	t.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.4)
+	t.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4)
 
 func _on_mouse_exited() -> void:
 	if not _interactive or _dragging:
 		return
 	unhovered.emit(self)
+	z_index = 0
 	_surface.material.set_shader_parameter("x_rot", 0.0)
 	_surface.material.set_shader_parameter("y_rot", 0.0)
 	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	t.tween_property(self, "scale", Vector2.ONE, 0.45)
+	t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _interactive:

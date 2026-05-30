@@ -6,6 +6,12 @@ const RACCOON := "res://src/data/decks/raccoon.csv"
 var state: GameState
 var engine: GameEngine
 
+func _ready() -> void:
+	if get_tree().current_scene != self:
+		return
+	build(12345)
+	render()
+
 func build(seed_value: int) -> void:
 	state = GameState.new(seed_value)
 	engine = GameEngine.new(state)

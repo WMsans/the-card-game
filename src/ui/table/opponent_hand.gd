@@ -17,6 +17,7 @@ func set_count(n: int) -> void:
 		add_child(cv)
 		cv.setup(CardInstance.new(-1 - i, _placeholder))
 		cv.set_face_down(true)
+		cv.set_base_scale(BoardLayout.CARD_SCALE)
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, 1)
-		cv.position = t.origin
+		cv.position = t.origin - BoardLayout.CARD_PIVOT
 		cv.rotation = t.get_rotation()

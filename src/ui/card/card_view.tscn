@@ -46,14 +46,19 @@ script = ExtResource("1_cv")
 
 [node name="Shadow" type="TextureRect" parent="."]
 modulate = Color(0, 0, 0, 1)
-self_modulate = Color(1, 1, 1, 0.25)
+self_modulate = Color(1, 1, 1, 0.168627)
 show_behind_parent = true
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_top = 24.0
-offset_right = 350.0
-offset_bottom = 514.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("7_ojgne")
+expand_mode = 1
 
 [node name="CardSurface" type="SubViewportContainer" parent="."]
 material = SubResource("fake3d_mat")

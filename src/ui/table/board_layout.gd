@@ -4,13 +4,19 @@ extends RefCounted
 const SCREEN := Vector2(1920, 1080)
 const CENTER_X := 960.0
 
-const PLAYER_BOARD_Y := 620.0
-const OPP_BOARD_Y := 320.0
+const PLAYER_BOARD_Y := 640.0
+const OPP_BOARD_Y := 310.0
 const PLAYER_HAND_Y := 940.0
 const OPP_HAND_Y := 90.0
 
-const BOARD_SLOT_W := 200.0
-const HAND_SLOT_W := 150.0
+# CardViews are authored at 350x490; the table renders them scaled down so a
+# full row fits at 1920x1080 without overlap.
+const CARD_SCALE := 0.6
+const CARD_SIZE := Vector2(350, 490)
+const CARD_PIVOT := CARD_SIZE * 0.5   # top-left -> center offset (matches scene pivot_offset)
+
+const BOARD_SLOT_W := 240.0
+const HAND_SLOT_W := 180.0
 const TAP_ANGLE := deg_to_rad(15.0)
 const FAN_ANGLE := deg_to_rad(4.0)
 

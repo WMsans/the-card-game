@@ -14,7 +14,8 @@ func render(cards: Array, player: int) -> void:
 		var cv: CardView = CARD_VIEW.instantiate()
 		add_child(cv)
 		cv.setup(inst)
+		cv.set_base_scale(BoardLayout.CARD_SCALE)
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, player)
-		cv.position = t.origin
+		cv.position = t.origin - BoardLayout.CARD_PIVOT
 		cv.rotation = t.get_rotation()
 		card_views[inst.instance_id] = cv
