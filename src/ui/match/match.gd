@@ -5,6 +5,8 @@ const HUMAN := 0
 var state: GameState
 var engine: GameEngine
 var _selected_attacker: int = -1
+var _deck0_path: String
+var _deck1_path: String
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -19,6 +21,10 @@ var _selected_attacker: int = -1
 @onready var _tickets = $Table/PlayerTickets
 @onready var _end_turn: Button = $EndTurnButton
 @onready var _arrow: Node2D = $ArrowLayer
+@onready var _mulligan: MulliganPanel = $MulliganPanel
+@onready var _discard = $DiscardPanel
+@onready var _leader_prompt = $LeaderCostPrompt
+@onready var _game_over = $GameOverPanel
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -26,14 +32,19 @@ func _ready() -> void:
 	player_board.unit_clicked.connect(handle_unit_clicked)
 	opp_board.unit_clicked.connect(handle_unit_clicked)
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
+	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
+	_discard.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_game_over.play_again.connect(_on_play_again)
+	_game_over.quit.connect(func(): get_tree().quit())
 
 func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void:
+	_deck0_path = deck0_path
+	_deck1_path = deck1_path
 	state = GameState.new(seed_value)
 	engine = GameEngine.new(state)
 	var d0: Array[CardDefinition] = CardDatabase.load_deck(deck0_path, "P0")
 	var d1: Array[CardDefinition] = CardDatabase.load_deck(deck1_path, "P1")
 	engine.setup(d0, d1)
-	_auto_resolve_mulligans()
 	render_all()
 	_post_action()
 
@@ -64,21 +75,41 @@ func _post_action() -> void:
 	_refresh_highlights()
 	_end_turn.disabled = state.active_player != HUMAN or state.pending_choice != null
 	if state.phase == Enums.Phase.GAME_OVER:
+		_show_game_over()
 		return
-	if state.active_player != HUMAN and state.pending_choice == null:
-		_take_opponent_turn_stub()
+	if state.pending_choice != null:
+		_route_pending_choice()
+		return
+	if state.active_player != HUMAN:
+		_run_ai_turn()
+
+func _route_pending_choice() -> void:
+	var pc := state.pending_choice
+	if pc.player != HUMAN:
+		await get_tree().create_timer(0.2).timeout
+		apply_action(AiController.choice_action(engine))
+		return
+	match pc.kind:
+		"mulligan":
+			_mulligan.show_hand(state.players[HUMAN].hand)
+		"discard_to_limit":
+			_discard.show_hand(state.players[HUMAN].hand, pc.data["count"])
+
+func _run_ai_turn() -> void:
+	await get_tree().create_timer(0.35).timeout
+	if state.phase == Enums.Phase.GAME_OVER or state.active_player == HUMAN:
+		return
+	apply_action(AiController.choose_action(engine))
+
+func _show_game_over() -> void:
+	_game_over.show_result(state.winner, HUMAN)
+
+func _on_play_again() -> void:
+	_game_over.visible = false
+	start_game(randi(), _deck0_path, _deck1_path)
 
 func _on_end_turn_pressed() -> void:
 	if state.active_player == HUMAN and state.pending_choice == null:
-		apply_action(Action.end_turn())
-
-func _auto_resolve_mulligans() -> void:
-	while state.pending_choice != null and state.pending_choice.kind == "mulligan":
-		engine.apply(Action.mulligan([0, 1]))
-
-func _take_opponent_turn_stub() -> void:
-	await get_tree().create_timer(0.3).timeout
-	if state.phase != Enums.Phase.GAME_OVER and state.active_player != HUMAN:
 		apply_action(Action.end_turn())
 
 func _refresh_highlights() -> void:
@@ -101,12 +132,25 @@ func _refresh_highlights() -> void:
 
 func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	var legal: Array = engine.get_legal_actions()
-	var act = CardInput.play_from_drop(instance_id, drop_zone, legal)
-	if act == null:
-		render_all()
-		return false
-	apply_action(act)
-	return true
+	var by_tickets: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, false)
+	var by_discard: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, true)
+	if by_tickets != null and by_discard != null:
+		_leader_prompt.show_prompt()
+		var handler := func(by_disc: bool):
+			if by_disc:
+				apply_action(by_discard)
+			else:
+				apply_action(by_tickets)
+		_leader_prompt.chosen.connect(handler, CONNECT_ONE_SHOT)
+		return true
+	if by_discard != null:
+		apply_action(by_discard)
+		return true
+	if by_tickets != null:
+		apply_action(by_tickets)
+		return true
+	render_all()
+	return false
 
 func handle_unit_clicked(instance_id: int) -> void:
 	if _selected_attacker == -1:
