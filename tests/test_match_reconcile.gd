@@ -19,6 +19,7 @@ func test_played_minion_moves_from_hand_to_board() -> void:
 	var iid: int = act.params["instance_id"]
 	m.apply_action(act)
 	assert_bool(m.hand_view.card_views.has(iid)).is_false()
+	assert_bool(m.player_board.card_views.has(iid)).is_true()
 
 func test_state_is_source_of_truth_after_apply() -> void:
 	var m := _spawn()
