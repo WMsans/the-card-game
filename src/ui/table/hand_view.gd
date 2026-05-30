@@ -2,6 +2,8 @@ extends Node2D
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
+signal card_drag_released(instance_id: int, at: Vector2)
+
 var card_views: Dictionary = {}
 
 func render(cards: Array, player: int) -> void:
@@ -15,6 +17,8 @@ func render(cards: Array, player: int) -> void:
 			cv = CARD_VIEW.instantiate()
 			add_child(cv)
 			card_views[inst.instance_id] = cv
+			var iid := inst.instance_id
+			cv.drag_released.connect(func(_cv: CardView, at: Vector2): card_drag_released.emit(iid, at))
 		cv.setup(inst)
 		cv.set_base_scale(BoardLayout.CARD_SCALE)
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, player)

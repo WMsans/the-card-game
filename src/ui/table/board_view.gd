@@ -2,6 +2,8 @@ extends Node2D
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
+signal unit_clicked(instance_id: int)
+
 var card_views: Dictionary = {}
 
 func render(units: Array, player: int) -> void:
@@ -15,9 +17,11 @@ func render(units: Array, player: int) -> void:
 			cv = CARD_VIEW.instantiate()
 			add_child(cv)
 			card_views[inst.instance_id] = cv
+			var iid := inst.instance_id
+			cv.clicked.connect(func(_cv: CardView): unit_clicked.emit(iid))
 		cv.setup(inst)
 		cv.set_base_scale(BoardLayout.CARD_SCALE)
-		cv.set_interactive(player == 0)
+		cv.set_interactive(true)
 		var t := BoardLayout.slot(Enums.Zone.BOARD, i, n, player, inst.tapped)
 		var tw := cv.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.parallel().tween_property(cv, "position", t.origin - BoardLayout.CARD_PIVOT, 0.25)

@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="5_ticket"]
 [ext_resource type="Script" path="res://src/ui/match/match.gd" id="6_match"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
+[ext_resource type="Script" path="res://src/ui/table/targeting_arrow.gd" id="8_arrow"]
 
 [node name="Match" type="Control"]
 script = ExtResource("6_match")
@@ -96,6 +97,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="ArrowLayer" type="Node2D" parent="."]
+script = ExtResource("8_arrow")
 
 [node name="EndTurnButton" type="Button" parent="."]
 layout_mode = 0

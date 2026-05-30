@@ -4,6 +4,7 @@ const HUMAN := 0
 
 var state: GameState
 var engine: GameEngine
+var _selected_attacker: int = -1
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -17,9 +18,14 @@ var engine: GameEngine
 @onready var _opp_leader = $Table/OppLeader
 @onready var _tickets = $Table/PlayerTickets
 @onready var _end_turn: Button = $EndTurnButton
+@onready var _arrow: Node2D = $ArrowLayer
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
+	hand_view.card_drag_released.connect(_on_hand_card_drag_released)
+	player_board.unit_clicked.connect(handle_unit_clicked)
+	opp_board.unit_clicked.connect(handle_unit_clicked)
+	_opp_deck.clicked.connect(handle_deck_target_clicked)
 
 func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void:
 	state = GameState.new(seed_value)
@@ -76,7 +82,78 @@ func _take_opponent_turn_stub() -> void:
 		apply_action(Action.end_turn())
 
 func _refresh_highlights() -> void:
-	pass
+	if engine == null:
+		return
+	var legal: Array = engine.get_legal_actions()
+	var playable_ids: Array = []
+	var attacker_ids: Array = []
+	for a in legal:
+		if a.type == Enums.ActionType.PLAY_CARD:
+			playable_ids.append(a.params["instance_id"])
+		elif a.type == Enums.ActionType.DECLARE_ATTACK:
+			attacker_ids.append(a.params["attacker_id"])
+	for iid in hand_view.card_views:
+		var cv: CardView = hand_view.card_views[iid]
+		cv.set_playable(playable_ids.has(iid))
+	for iid in player_board.card_views:
+		var cv: CardView = player_board.card_views[iid]
+		cv.set_attackable(attacker_ids.has(iid))
+
+func handle_drop(instance_id: int, drop_zone: String) -> bool:
+	var legal: Array = engine.get_legal_actions()
+	var act = CardInput.play_from_drop(instance_id, drop_zone, legal)
+	if act == null:
+		render_all()
+		return false
+	apply_action(act)
+	return true
+
+func handle_unit_clicked(instance_id: int) -> void:
+	if _selected_attacker == -1:
+		if instance_id in legal_attacker_ids():
+			_selected_attacker = instance_id
+			var cv: CardView = player_board.card_views.get(instance_id)
+			if cv:
+				_arrow.begin(cv.global_position + cv.size * 0.5)
+	else:
+		_resolve_attack_target({"unit": instance_id})
+
+func handle_deck_target_clicked() -> void:
+	if _selected_attacker != -1:
+		_resolve_attack_target({"deck": true})
+
+func _resolve_attack_target(target: Dictionary) -> void:
+	var legal: Array = engine.get_legal_actions()
+	var act = CardInput.attack_from_target(_selected_attacker, target, legal)
+	_selected_attacker = -1
+	_arrow.end()
+	if act != null:
+		apply_action(act)
+	else:
+		render_all()
+
+func legal_attacker_ids() -> Array:
+	var legal: Array = engine.get_legal_actions()
+	var ids: Array = []
+	for a in legal:
+		if a.type == Enums.ActionType.DECLARE_ATTACK:
+			ids.append(a.params["attacker_id"])
+	return ids
+
+func legal_play_ids() -> Array:
+	var legal: Array = engine.get_legal_actions()
+	var ids: Array = []
+	for a in legal:
+		if a.type == Enums.ActionType.PLAY_CARD:
+			ids.append(a.params["instance_id"])
+	return ids
+
+func _on_hand_card_drag_released(instance_id: int, _at: Vector2) -> void:
+	handle_drop(instance_id, "play_zone")
+
+func _process(_delta: float) -> void:
+	if _selected_attacker != -1:
+		_arrow.point_at(get_global_mouse_position())
 
 func _play_flourishes(events: Array) -> void:
 	Flourishes.play(self, events)
