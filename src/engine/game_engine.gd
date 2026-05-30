@@ -2,9 +2,83 @@ class_name GameEngine
 extends RefCounted
 
 var state: GameState
+var _queue: Array = []
+var _resolving: bool = false
+var _suspended: bool = false
 
 func _init(game_state: GameState) -> void:
 	state = game_state
+
+func emit(event: GameEvent) -> void:
+	_queue.append({"kind": "event", "event": event})
+	_pump()
+
+func _push(item: Dictionary) -> void:
+	_queue.append(item)
+
+func _pump() -> void:
+	if _resolving:
+		return
+	_resolving = true
+	_drain()
+
+func _drain() -> void:
+	while not _queue.is_empty():
+		if _suspended:
+			return
+		var item: Dictionary = _queue.pop_front()
+		match item["kind"]:
+			"event":
+				state.bus.publish(item["event"])
+				_dispatch_triggers(item["event"])
+			"react":
+				item["card"].card_script.react(item["card"], item["event"], _ctx_for(item["pidx"]))
+			"call":
+				item["fn"].call()
+	_resolving = false
+
+func _dispatch_triggers(event: GameEvent) -> void:
+	var jobs: Array = []
+	for pidx in [state.active_player, state.opponent()]:
+		for card in _trigger_candidates(state.players[pidx]):
+			var s = card.card_script
+			if s == null:
+				continue
+			if not s.reacts_to().has(event.type):
+				continue
+			if not s.active_zones().has(card.zone):
+				continue
+			jobs.append({"kind": "react", "card": card, "event": event, "pidx": pidx})
+	for i in range(jobs.size() - 1, -1, -1):
+		_queue.push_front(jobs[i])
+
+func _trigger_candidates(ps: PlayerState) -> Array:
+	var out: Array = []
+	out.append_array(ps.board)
+	out.append_array(ps.set_traps)
+	out.append_array(ps.discard)
+	return out
+
+func _ctx_for(pidx: int):
+	return EffectContext.new(self, pidx)
+
+func _owner_of(unit: CardInstance) -> int:
+	for i in range(state.players.size()):
+		var ps := state.players[i]
+		if ps.board.has(unit) or ps.discard.has(unit) or ps.hand.has(unit) \
+				or ps.set_traps.has(unit) or ps.deck.has(unit):
+			return i
+	return -1
+
+func _request_met(card: CardInstance) -> bool:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return false
+	if state.players[owner].all_requests_met_this_turn:
+		return true
+	if card.card_script == null or not card.card_script.has_request():
+		return false
+	return card.card_script.condition_met(card, _ctx_for(owner))
 
 func _draw(player_idx: int, n: int = 1) -> void:
 	var ps := state.players[player_idx]
@@ -16,7 +90,7 @@ func _draw(player_idx: int, n: int = 1) -> void:
 		var card: CardInstance = ps.deck.pop_front()
 		card.zone = Enums.Zone.HAND
 		ps.hand.append(card)
-		state.bus.publish(GameEvent.new(Enums.EventType.CARD_DRAWN,
+		emit(GameEvent.new(Enums.EventType.CARD_DRAWN,
 			{"player": player_idx, "instance": card.instance_id}))
 
 func _mill(player_idx: int, n: int) -> void:
@@ -30,12 +104,12 @@ func _mill(player_idx: int, n: int) -> void:
 		card.zone = Enums.Zone.DISCARD
 		ps.discard.append(card)
 		ps.turn_counters["cards_discarded"] += 1
-		state.bus.publish(GameEvent.new(Enums.EventType.CARD_DISCARDED,
+		emit(GameEvent.new(Enums.EventType.CARD_DISCARDED,
 			{"player": player_idx, "instance": card.instance_id}))
 
 func _deck_damage(player_idx: int, amount: int) -> void:
 	_mill(player_idx, amount)
-	state.bus.publish(GameEvent.new(Enums.EventType.DECK_DAMAGED,
+	emit(GameEvent.new(Enums.EventType.DECK_DAMAGED,
 		{"player": player_idx, "amount": amount}))
 
 func _reshuffle_or_lose(player_idx: int) -> bool:
@@ -49,7 +123,7 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 	for c in ps.deck:
 		c.zone = Enums.Zone.DECK
 	state.rng.shuffle(ps.deck)
-	state.bus.publish(GameEvent.new(Enums.EventType.DECK_RESHUFFLED,
+	emit(GameEvent.new(Enums.EventType.DECK_RESHUFFLED,
 		{"player": player_idx, "remaining": ps.reshuffles_remaining}))
 	if ps.deck.is_empty():
 		_lose(player_idx)
@@ -59,7 +133,7 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 func _lose(player_idx: int) -> void:
 	state.winner = 1 - player_idx
 	state.phase = Enums.Phase.GAME_OVER
-	state.bus.publish(GameEvent.new(Enums.EventType.GAME_OVER, {"winner": state.winner}))
+	emit(GameEvent.new(Enums.EventType.GAME_OVER, {"winner": state.winner}))
 
 # --- setup -----------------------------------------------------------------
 
@@ -121,7 +195,7 @@ func _start_turn() -> void:
 		ps.tickets_total = min(10, ps.tickets_total + 2)
 	ps.turns_taken += 1
 	ps.reset_turn_counters()
-	state.bus.publish(GameEvent.new(Enums.EventType.TURN_STARTED, {"player": state.active_player}))
+	emit(GameEvent.new(Enums.EventType.TURN_STARTED, {"player": state.active_player}))
 	_draw(state.active_player, 1)
 	if state.phase == Enums.Phase.GAME_OVER:
 		return
@@ -168,7 +242,7 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 		Enums.CardType.TRAP:
 			card.zone = Enums.Zone.TRAP_SET
 			ps.set_traps.append(card)
-	state.bus.publish(GameEvent.new(Enums.EventType.CARD_PLAYED,
+	emit(GameEvent.new(Enums.EventType.CARD_PLAYED,
 		{"player": state.active_player, "instance": instance_id, "card_type": def.type}))
 
 func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
@@ -199,7 +273,7 @@ func _apply_resolve_choice(params: Dictionary) -> void:
 			c.zone = Enums.Zone.DISCARD
 			ps.discard.append(c)
 			ps.turn_counters["cards_discarded"] += 1
-			state.bus.publish(GameEvent.new(Enums.EventType.CARD_DISCARDED,
+			emit(GameEvent.new(Enums.EventType.CARD_DISCARDED,
 				{"player": pc.player, "instance": c.instance_id}))
 		state.pending_choice = null
 		_finish_end_turn()
@@ -208,7 +282,7 @@ func _finish_end_turn() -> void:
 	for p in state.players:
 		for u in p.board:
 			u.reset_stats()
-	state.bus.publish(GameEvent.new(Enums.EventType.TURN_ENDED, {"player": state.active_player}))
+	emit(GameEvent.new(Enums.EventType.TURN_ENDED, {"player": state.active_player}))
 	if state.phase == Enums.Phase.GAME_OVER:
 		return
 	state.active_player = state.opponent()
@@ -217,24 +291,41 @@ func _finish_end_turn() -> void:
 func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	var ap := state.active()
 	var attacker: CardInstance = _find_on_board(ap, attacker_id)
+	if attacker == null:
+		return
 	attacker.tapped = true
 	ap.turn_counters["attacks_made"] += 1
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
-		{"attacker": attacker_id, "player": state.active_player}))
-	_check_traps(state.bus.log[-1])
+	emit(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
+		{"attacker": attacker_id, "player": state.active_player,
+		 "target_unit": target.get("unit", -1), "target_deck": target.get("deck", false)}))
+	if attacker.card_script != null and attacker.card_script.has_request() and _request_met(attacker):
+		attacker.current_damage += 2
+		attacker.current_health += 2
+		emit(GameEvent.new(Enums.EventType.REQUEST_MET,
+			{"player": state.active_player, "instance": attacker_id}))
+	_push({"kind": "call", "fn": func(): _resolve_combat(attacker_id, target)})
+	_pump()
+
+func _resolve_combat(attacker_id: int, target: Dictionary) -> void:
 	if state.phase == Enums.Phase.GAME_OVER:
+		return
+	var ap := state.active()
+	var attacker: CardInstance = _find_on_board(ap, attacker_id)
+	if attacker == null:
 		return
 	if target.get("deck", false):
 		_deck_damage(state.opponent(), attacker.current_damage)
 		return
 	var opp := state.players[state.opponent()]
 	var defender: CardInstance = _find_on_board(opp, target["unit"])
+	if defender == null:
+		return
 	var r := Combat.compute(attacker, defender)
 	defender.current_health -= r["dmg_to_def"]
 	attacker.current_health -= r["dmg_to_atk"]
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": defender.instance_id, "amount": r["dmg_to_def"]}))
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
 	if r["def_dies"]:
 		_kill(state.opponent(), defender)
@@ -248,7 +339,7 @@ func _kill(owner_idx: int, unit: CardInstance) -> void:
 	unit.reset_stats()
 	owner.discard.append(unit)
 	owner.turn_counters["units_died"] += 1
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DIED,
+	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
 
 func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
@@ -256,15 +347,6 @@ func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
 		if c.instance_id == instance_id:
 			return c
 	return null
-
-func _check_traps(event: GameEvent) -> void:
-	var defender_idx := state.opponent()
-	for trap in state.players[defender_idx].set_traps:
-		if _trap_condition_met(trap, event):
-			pass
-
-func _trap_condition_met(_trap: CardInstance, _event: GameEvent) -> bool:
-	return false
 
 func get_legal_actions() -> Array:
 	var out: Array = []

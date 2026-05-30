@@ -22,8 +22,3 @@ func test_set_vanilla_trap_does_not_fire_on_opponent_attack() -> void:
 	eng.apply(Action.declare_attack(atk.instance_id, {"deck": true}))
 	assert_array(eng.state.players[opp].set_traps).contains([trap])
 	assert_object(eng.state.pending_choice).is_null()
-
-func test_trap_condition_is_inert() -> void:
-	var eng := _engine()
-	var trap := eng.state.make_instance(TestFactory.trap(2, 502))
-	assert_bool(eng._trap_condition_met(trap, GameEvent.new(Enums.EventType.UNIT_ATTACKED))).is_false()
