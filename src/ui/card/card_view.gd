@@ -15,9 +15,9 @@ signal clicked(card_view: CardView)
 @export var hover_scale: float = 1.8
 @export var hover_lift: float = -160.0
 @export var hover_shadow_offset: Vector2 = Vector2(8.0, 16.0)
-@export var spring: float = 150.0
-@export var damp: float = 10.0
-@export var velocity_multiplier: float = 2.0
+@export var spring: float = 280.0
+@export var damp: float = 28.0
+@export var velocity_multiplier: float = 1.0
 
 @onready var _surface: SubViewportContainer = $CardSurface
 @onready var _visuals: CanvasGroup = $CardSurface/CardViewport/Visuals
@@ -144,6 +144,8 @@ func set_base_scale(s: float) -> void:
 func _process(delta: float) -> void:
 	_handle_shadow(delta)
 	if _dragging:
+		# Exact, same-frame follow: the card stays pinned under the cursor at the
+		# exact point it was grabbed (no recenter snap). This is what reads as snappy.
 		global_position = get_global_mouse_position() - _drag_offset
 		_wobble(delta)
 
@@ -158,12 +160,16 @@ func _handle_shadow(delta: float) -> void:
 		_shadow.position.x += hover_shadow_offset.x
 
 func _wobble(delta: float) -> void:
+	# Lean the card into the drag motion. The kick is proportional to actual
+	# horizontal speed (clamped) so fast flicks lean hard and slow drags stay calm,
+	# instead of a constant nudge that feels mushy.
 	var velocity := (position - _last_pos) / maxf(delta, 0.0001)
 	_last_pos = position
-	_osc_velocity += velocity.normalized().x * velocity_multiplier
+	_osc_velocity += clampf(velocity.x, -2400.0, 2400.0) * 0.00035 * velocity_multiplier
 	var force := -spring * _displacement - damp * _osc_velocity
 	_osc_velocity += force * delta
 	_displacement += _osc_velocity * delta
+	_displacement = clampf(_displacement, -0.4, 0.4)
 	rotation = _displacement
 
 func _on_mouse_entered() -> void:
@@ -204,7 +210,9 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
-			_drag_offset = size * 0.5
+			# Grab-relative offset: keep the card exactly where it was picked up
+			# so it doesn't snap-jump to recenter under the cursor.
+			_drag_offset = get_global_mouse_position() - global_position
 			z_index = 100
 			_last_pos = position
 			_displacement = 0.0
@@ -218,7 +226,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			if _tween_grab and _tween_grab.is_running():
 				_tween_grab.kill()
 			_tween_grab = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-			_tween_grab.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.15)
+			_tween_grab.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.08)
 			drag_started.emit(self)
 		else:
 			if _dragging:
