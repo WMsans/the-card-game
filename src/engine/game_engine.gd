@@ -250,6 +250,10 @@ func _start_turn() -> void:
 		ps.tickets_total = min(10, ps.tickets_total + 2)
 	ps.turns_taken += 1
 	ps.reset_turn_counters()
+	for p in state.players:
+		for u in p.board:
+			u.vars.erase("immortal_this_turn")
+			u.vars.erase("opt_used_this_turn")
 	emit(GameEvent.new(Enums.EventType.TURN_STARTED, {"player": state.active_player}))
 	_draw(state.active_player, 1)
 	if state.phase == Enums.Phase.GAME_OVER:
@@ -374,6 +378,8 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 		_kill(state.active_player, attacker)
 
 func _kill(owner_idx: int, unit: CardInstance) -> void:
+	if unit.vars.get("immortal_this_turn", false):
+		return
 	var owner := state.players[owner_idx]
 	owner.board.erase(unit)
 	unit.zone = Enums.Zone.DISCARD

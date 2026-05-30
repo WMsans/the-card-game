@@ -35,3 +35,14 @@ func test_global_flag_forces_request_met() -> void:
 	state.players[0].board.append(u)
 	state.players[0].all_requests_met_this_turn = true
 	assert_bool(eng._request_met(u)).is_true()
+
+func test_immortal_unit_is_not_killed() -> void:
+	var state := GameState.new(13)
+	var eng := GameEngine.new(state)
+	eng.setup(TestFactory.simple_deck(), TestFactory.simple_deck())
+	var u := state.make_instance(TestFactory.minion(1, 1, 1, 804))
+	u.zone = Enums.Zone.BOARD
+	u.vars["immortal_this_turn"] = true
+	state.players[0].board.append(u)
+	eng._kill(0, u)
+	assert_array(state.players[0].board).contains([u])
