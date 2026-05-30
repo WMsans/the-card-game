@@ -13,13 +13,30 @@ func _inst(path: String) -> Node:
 	auto_free(p)
 	return p
 
-func test_discard_panel_requires_exact_count() -> void:
-	var p = _inst("res://src/ui/overlays/discard_panel.tscn")
-	p.show_hand(_hand(7), 2)
+func test_card_select_requires_min_to_confirm() -> void:
+	var p = _inst("res://src/ui/overlays/card_select_panel.tscn")
+	p.show_selection(_hand(7), 2, 2, "Pick 2")
 	p.toggle_index(0)
 	assert_bool(p.can_confirm()).is_false()
 	p.toggle_index(1)
 	assert_bool(p.can_confirm()).is_true()
+
+func test_card_select_allows_range() -> void:
+	var p = _inst("res://src/ui/overlays/card_select_panel.tscn")
+	p.show_selection(_hand(7), 0, 3, "Up to 3")
+	assert_bool(p.can_confirm()).is_true()        # 0 is allowed
+	p.toggle_index(0); p.toggle_index(1); p.toggle_index(2); p.toggle_index(3)
+	assert_int(p._selected.size()).is_equal(3)    # capped at max 3
+
+func test_card_select_highlights_card() -> void:
+	var p = _inst("res://src/ui/overlays/card_select_panel.tscn")
+	p.show_selection(_hand(7), 0, 2, "x")
+	p.toggle_index(0)
+	var row := p.find_child("CardRow")
+	var first_card: CardView = row.get_child(0)
+	assert_bool((first_card.find_child("Highlight") as Control).visible).is_true()
+	p.toggle_index(0)
+	assert_bool((first_card.find_child("Highlight") as Control).visible).is_false()
 
 func test_leader_prompt_emits_payment_choice() -> void:
 	var p = _inst("res://src/ui/overlays/leader_cost_prompt.tscn")
@@ -36,13 +53,3 @@ func test_game_over_shows_winner_text() -> void:
 	assert_str(p.find_child("ResultLabel").text).is_equal("You Win")
 	p.show_result(1, 0)
 	assert_str(p.find_child("ResultLabel").text).is_equal("You Lose")
-
-func test_discard_selection_highlights_card() -> void:
-	var p = _inst("res://src/ui/overlays/discard_panel.tscn")
-	p.show_hand(_hand(7), 2)
-	p.toggle_index(0)
-	var row := p.find_child("CardRow")
-	var first_card: CardView = row.get_child(0)
-	assert_bool((first_card.find_child("Highlight") as Control).visible).is_true()
-	p.toggle_index(0)
-	assert_bool((first_card.find_child("Highlight") as Control).visible).is_false()

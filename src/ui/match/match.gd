@@ -24,7 +24,7 @@ var _dragging_id: int = -1
 @onready var _end_turn: Button = $EndTurnButton
 @onready var _arrow: Node2D = $ArrowLayer
 @onready var _mulligan: MulliganPanel = $MulliganPanel
-@onready var _discard = $DiscardPanel
+@onready var _select = $CardSelectPanel
 @onready var _leader_prompt = $LeaderCostPrompt
 @onready var _game_over = $GameOverPanel
 @onready var _drop_zones: DropZoneOverlay = $DropZoneLayer
@@ -37,7 +37,7 @@ func _ready() -> void:
 	opp_board.unit_clicked.connect(handle_unit_clicked)
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
-	_discard.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
 	theme = THEME
@@ -99,7 +99,8 @@ func _route_pending_choice() -> void:
 		"mulligan":
 			_mulligan.show_hand(state.players[HUMAN].hand)
 		"discard_to_limit":
-			_discard.show_hand(state.players[HUMAN].hand, pc.data["count"])
+			var n: int = pc.data["count"]
+			_select.show_selection(state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
 
 func _run_ai_turn() -> void:
 	await get_tree().create_timer(0.35).timeout

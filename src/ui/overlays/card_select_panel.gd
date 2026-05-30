@@ -5,26 +5,30 @@ signal confirmed(indices: Array)
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
 var _selected: Array = []
-var _required: int = 0
+var _min: int = 0
+var _max: int = 0
 
 @onready var _row: HBoxContainer = $Panel/CardRow
 @onready var _confirm: Button = $Panel/ConfirmButton
+@onready var _label: Label = $Panel/Label
 
 func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
 	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
 	JuicyButton.apply(_confirm)
 
-func show_hand(hand: Array, count: int) -> void:
+func show_selection(cards: Array, min_n: int, max_n: int, title: String) -> void:
 	if not is_node_ready(): await ready
-	_required = count
+	_min = min_n
+	_max = max_n
+	_label.text = title
 	_selected.clear()
 	for c in _row.get_children(): c.queue_free()
-	for i in range(hand.size()):
+	for i in range(cards.size()):
 		var cv: CardView = CARD_VIEW.instantiate()
 		cv.set_interactive(false)
 		_row.add_child(cv)
-		cv.setup(hand[i])
+		cv.setup(cards[i])
 		var idx := i
 		cv.gui_input.connect(func(e):
 			if e is InputEventMouseButton and e.pressed: toggle_index(idx))
@@ -33,10 +37,11 @@ func show_hand(hand: Array, count: int) -> void:
 
 func toggle_index(i: int) -> void:
 	if _selected.has(i): _selected.erase(i)
-	elif _selected.size() < _required: _selected.append(i)
+	elif _selected.size() < _max: _selected.append(i)
 	_update()
 
-func can_confirm() -> bool: return _selected.size() == _required
+func can_confirm() -> bool:
+	return _selected.size() >= _min and _selected.size() <= _max
 
 func _confirm_pressed() -> void:
 	if can_confirm():

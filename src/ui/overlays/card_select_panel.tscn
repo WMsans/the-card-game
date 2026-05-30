@@ -1,9 +1,9 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://src/ui/overlays/discard_panel.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/ui/overlays/card_select_panel.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://ciay2k0asshw" path="res://src/ui/card/card_view.tscn" id="2_cv"]
 
-[node name="DiscardPanel" type="CanvasLayer"]
+[node name="CardSelectPanel" type="CanvasLayer"]
 visible = false
 script = ExtResource("1_script")
 
@@ -21,7 +21,7 @@ offset_top = 30.0
 offset_right = 400.0
 offset_bottom = 60.0
 theme_override_font_sizes/font_size = 24
-text = "Select cards to discard"
+text = "Select cards"
 
 [node name="CardRow" type="HBoxContainer" parent="Panel"]
 layout_mode = 0
