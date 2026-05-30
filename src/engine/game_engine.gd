@@ -27,6 +27,7 @@ func _pump() -> void:
 func _drain() -> void:
 	while not _queue.is_empty():
 		if _suspended:
+			_resolving = false
 			return
 		var item: Dictionary = _queue.pop_front()
 		match item["kind"]:
@@ -72,6 +73,57 @@ func _owner_of(unit: CardInstance) -> int:
 				or ps.set_traps.has(unit) or ps.deck.has(unit):
 			return i
 	return -1
+
+func _request_choice(card: CardInstance, spec: ChoiceSpec, tag: String, asked_player: int) -> void:
+	state.pending_choice = PendingChoice.new("card_effect", asked_player, {
+		"spec": spec,
+		"ui_shape": spec.ui_shape,
+		"resume_card": card.instance_id,
+		"resume_tag": tag,
+		"resume_owner": _owner_of(card),
+	})
+	_suspended = true
+
+func _find_anywhere(instance_id: int) -> CardInstance:
+	for ps in state.players:
+		for zone in [ps.board, ps.hand, ps.discard, ps.set_traps, ps.deck]:
+			for c in zone:
+				if c.instance_id == instance_id:
+					return c
+	return null
+
+func _resolve_card_effect(params: Dictionary) -> void:
+	var pc := state.pending_choice
+	var data := pc.data
+	var spec: ChoiceSpec = data["spec"]
+	var card := _find_anywhere(data["resume_card"])
+	var owner: int = data["resume_owner"]
+	var result := _build_choice_result(spec, params)
+	state.pending_choice = null
+	_suspended = false
+	if card != null and card.card_script != null:
+		card.card_script.resume(card, data["resume_tag"], result, _ctx_for(owner))
+	if not _suspended:
+		_pump()
+
+func _build_choice_result(spec: ChoiceSpec, params: Dictionary) -> Dictionary:
+	match spec.ui_shape:
+		"select_cards":
+			var picked: Array = []
+			for i in params.get("indices", []):
+				picked.append(spec.cards[i])
+			return {"cards": picked}
+		"select_target":
+			var targets: Array = []
+			for id in params.get("target_ids", []):
+				for u in spec.cards:
+					if u.instance_id == id:
+						targets.append(u)
+			return {"targets": targets}
+		"choose_option":
+			return {"option": params.get("option", 0)}
+		_:
+			return {}
 
 func _draw(player_idx: int, n: int = 1) -> void:
 	var ps := state.players[player_idx]
@@ -255,6 +307,9 @@ func _end_turn() -> void:
 
 func _apply_resolve_choice(params: Dictionary) -> void:
 	var pc := state.pending_choice
+	if pc.kind == "card_effect":
+		_resolve_card_effect(params)
+		return
 	if pc.kind == "discard_to_limit":
 		var ps := state.players[pc.player]
 		var indices: Array = params["indices"].duplicate()
