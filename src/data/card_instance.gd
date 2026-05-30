@@ -7,6 +7,8 @@ var zone: int = Enums.Zone.DECK
 var tapped: bool = false
 var current_damage: int
 var current_health: int
+var vars: Dictionary = {}
+var card_script: CardScript = null
 
 func _init(id: int, def: CardDefinition) -> void:
 	instance_id = id
