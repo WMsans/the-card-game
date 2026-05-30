@@ -373,7 +373,7 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	attacker.tapped = true
 	ap.turn_counters["attacks_made"] += 1
 	emit(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
-		{"attacker": attacker_id, "player": state.active_player}))
+		{"attacker": attacker_id, "player": state.active_player, "target_unit": target.get("unit", -1)}))
 	if _request_met(attacker):
 		emit(GameEvent.new(Enums.EventType.REQUEST_MET,
 			{"player": state.active_player, "instance": attacker_id}))
