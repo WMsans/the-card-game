@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/ui/overlays/game_over_panel.gd" id="1_script"]
+
+[node name="GameOverPanel" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResultLabel" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayAgain" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 350.0
+offset_right = 450.0
+offset_bottom = 400.0
+text = "Play Again"
+
+[node name="Quit" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 470.0
+offset_top = 350.0
+offset_right = 670.0
+offset_bottom = 400.0
+text = "Quit"

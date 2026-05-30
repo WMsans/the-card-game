@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/ui/overlays/mulligan_panel.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://ciay2k0asshw" path="res://src/ui/card/card_view.tscn" id="2_cv"]
+
+[node name="MulliganPanel" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 30.0
+offset_right = 400.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 24
+text = "Select 2 cards to discard"
+
+[node name="CardRow" type="HBoxContainer" parent="Panel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 70.0
+offset_right = 1200.0
+offset_bottom = 560.0
+theme_override_constants/separation = 10
+
+[node name="ConfirmButton" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 580.0
+offset_right = 700.0
+offset_bottom = 630.0
+text = "Confirm"
