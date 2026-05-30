@@ -78,5 +78,5 @@ func _take_opponent_turn_stub() -> void:
 func _refresh_highlights() -> void:
 	pass
 
-func _play_flourishes(_events: Array) -> void:
-	pass
+func _play_flourishes(events: Array) -> void:
+	Flourishes.play(self, events)
