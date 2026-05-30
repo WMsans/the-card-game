@@ -1,6 +1,7 @@
 extends Control
 
 const HUMAN := 0
+const THEME := preload("res://src/ui/theme/game_theme.tres")
 
 var state: GameState
 var engine: GameEngine
@@ -39,6 +40,8 @@ func _ready() -> void:
 	_discard.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
+	theme = THEME
+	JuicyButton.apply(_end_turn)
 
 func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void:
 	_deck0_path = deck0_path

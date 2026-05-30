@@ -15,12 +15,24 @@ func _ready() -> void:
 	for c in COLORS:
 		var btn: Button = $DeckButtons.get_node(c.capitalize())
 		btn.pressed.connect(select_deck.bind(c))
+	theme = preload("res://src/ui/theme/game_theme.tres")
+	JuicyButton.apply(_play)
+	JuicyButton.apply($QuitButton)
+	for c in COLORS:
+		JuicyButton.apply($DeckButtons.get_node(c.capitalize()))
+	_refresh_deck_selection()
 
 static func deck_path(color: String) -> String:
 	return "res://src/data/decks/%s.csv" % color
 
 func select_deck(color: String) -> void:
 	chosen_deck = color
+	_refresh_deck_selection()
+
+func _refresh_deck_selection() -> void:
+	for c in COLORS:
+		var btn: Button = $DeckButtons.get_node(c.capitalize())
+		btn.modulate = UiPalette.ACCENT if c == chosen_deck else Color.WHITE
 
 func _seed_value() -> int:
 	var txt := _seed_field.text.strip_edges()

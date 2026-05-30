@@ -8,6 +8,9 @@ signal chosen(by_discard: bool)
 func _ready() -> void:
 	_tickets_btn.pressed.connect(func(): _emit(false))
 	_discard_btn.pressed.connect(func(): _emit(true))
+	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+	JuicyButton.apply(_tickets_btn)
+	JuicyButton.apply(_discard_btn)
 
 func show_prompt() -> void:
 	if not is_node_ready(): await ready

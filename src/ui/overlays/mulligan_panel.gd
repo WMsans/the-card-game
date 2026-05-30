@@ -14,6 +14,8 @@ var _discardable: Array = []
 
 func _ready() -> void:
 	_confirm.pressed.connect(confirm)
+	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+	JuicyButton.apply(_confirm)
 
 func show_hand(hand: Array) -> void:
 	if not is_node_ready():

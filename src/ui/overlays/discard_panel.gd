@@ -12,6 +12,8 @@ var _required: int = 0
 
 func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
+	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+	JuicyButton.apply(_confirm)
 
 func show_hand(hand: Array, count: int) -> void:
 	if not is_node_ready(): await ready
