@@ -36,3 +36,13 @@ func test_game_over_shows_winner_text() -> void:
 	assert_str(p.find_child("ResultLabel").text).is_equal("You Win")
 	p.show_result(1, 0)
 	assert_str(p.find_child("ResultLabel").text).is_equal("You Lose")
+
+func test_discard_selection_highlights_card() -> void:
+	var p = _inst("res://src/ui/overlays/discard_panel.tscn")
+	p.show_hand(_hand(7), 2)
+	p.toggle_index(0)
+	var row := p.find_child("CardRow")
+	var first_card: CardView = row.get_child(0)
+	assert_bool((first_card.find_child("Highlight") as Control).visible).is_true()
+	p.toggle_index(0)
+	assert_bool((first_card.find_child("Highlight") as Control).visible).is_false()

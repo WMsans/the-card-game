@@ -8,6 +8,7 @@
 [ext_resource type="Shader" uid="uid://cw50pxx388iey" path="res://src/ui/assets/shaders/fake_3D.gdshader" id="6_1w3ji"]
 [ext_resource type="Texture2D" uid="uid://c5h36x8oq1dj1" path="res://src/ui/assets/shadow.png" id="7_ojgne"]
 [ext_resource type="Shader" uid="uid://bkx5ijghxv2fb" path="res://src/ui/card/circle_mask.gdshader" id="8_emblem"]
+[ext_resource type="Script" path="res://src/ui/theme/card_highlight.gd" id="9_hl"]
 
 [sub_resource type="ShaderMaterial" id="fake3d_mat"]
 resource_local_to_scene = true
@@ -187,3 +188,13 @@ offset_right = 330.0
 offset_bottom = 469.0
 expand_mode = 1
 stretch_mode = 6
+
+[node name="Highlight" type="Control" parent="." unique_id=771100922]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_hl")

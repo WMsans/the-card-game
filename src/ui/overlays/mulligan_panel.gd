@@ -14,6 +14,8 @@ var _discardable: Array = []
 
 func _ready() -> void:
 	_confirm.pressed.connect(confirm)
+	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+	JuicyButton.apply(_confirm)
 
 func show_hand(hand: Array) -> void:
 	if not is_node_ready():
@@ -54,3 +56,8 @@ func confirm() -> void:
 
 func _update() -> void:
 	_confirm.disabled = not can_confirm()
+	for i in _row.get_child_count():
+		var cv: CardView = _row.get_child(i)
+		if not _discardable.has(i):
+			continue
+		cv.set_highlight(CardHighlight.State.SELECTED if _selected.has(i) else CardHighlight.State.NONE)

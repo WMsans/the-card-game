@@ -85,3 +85,21 @@ func test_dissolve_returns_tween_and_completes() -> void:
 	while t.is_valid() and t.is_running():
 		t.custom_step(0.1)
 	assert_float(cv.find_child("Visuals").material.get_shader_parameter("dissolve_value")).is_equal_approx(0.0, 0.01)
+
+func test_set_highlight_toggles_overlay() -> void:
+	var cv := _spawn()
+	var def: CardDefinition = _strike_defs()[0]
+	cv.setup(_make(def))
+	cv.set_highlight(CardHighlight.State.PLAYABLE)
+	assert_bool((cv.find_child("Highlight") as Control).visible).is_true()
+	cv.set_highlight(CardHighlight.State.NONE)
+	assert_bool((cv.find_child("Highlight") as Control).visible).is_false()
+
+func test_set_playable_drives_highlight() -> void:
+	var cv := _spawn()
+	var def: CardDefinition = _strike_defs()[0]
+	cv.setup(_make(def))
+	cv.set_playable(true)
+	assert_bool((cv.find_child("Highlight") as Control).visible).is_true()
+	cv.set_playable(false)
+	assert_bool((cv.find_child("Highlight") as Control).visible).is_false()

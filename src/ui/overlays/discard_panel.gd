@@ -12,6 +12,8 @@ var _required: int = 0
 
 func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
+	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+	JuicyButton.apply(_confirm)
 
 func show_hand(hand: Array, count: int) -> void:
 	if not is_node_ready(): await ready
@@ -41,4 +43,8 @@ func _confirm_pressed() -> void:
 		visible = false
 		confirmed.emit(_selected.duplicate())
 
-func _update() -> void: _confirm.disabled = not can_confirm()
+func _update() -> void:
+	_confirm.disabled = not can_confirm()
+	for i in _row.get_child_count():
+		var cv: CardView = _row.get_child(i)
+		cv.set_highlight(CardHighlight.State.SELECTED if _selected.has(i) else CardHighlight.State.NONE)

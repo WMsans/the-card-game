@@ -32,6 +32,7 @@ signal clicked(card_view: CardView)
 @onready var _ability: RichTextLabel = $CardSurface/CardViewport/Visuals/AbilityText
 @onready var _flavor: Label = $CardSurface/CardViewport/Visuals/FlavorLabel
 @onready var _leader_emblem: TextureRect = $CardSurface/CardViewport/LeaderEmblem
+@onready var _highlight: CardHighlight = $Highlight
 
 var _instance: CardInstance
 var _face_down: bool = false
@@ -42,6 +43,10 @@ var _dragging: bool = false
 var _hovering: bool = false
 var _rest_position: Vector2
 var _rest_rotation: float
+# True once the slot is known authoritatively (set by the layout, or captured on
+# the first hover for static panels). Hover/release animate to this fixed value
+# instead of re-reading the live, possibly mid-tween, position.
+var _rest_set: bool = false
 var _shadow_y_offset: float = 0.0
 var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
@@ -50,6 +55,8 @@ var _interactive: bool = true
 var _tween_hover: Tween
 var _tween_unhover: Tween
 var _tween_grab: Tween
+var _tween_release: Tween
+var _tween_tilt: Tween
 
 func setup(instance: CardInstance) -> void:
 	_instance = instance
@@ -131,17 +138,29 @@ func _ready() -> void:
 func set_interactive(v: bool) -> void:
 	_interactive = v
 
+func set_highlight(state: int) -> void:
+	_highlight.set_state(state)
+
 func set_playable(v: bool) -> void:
-	modulate = Color(1, 1, 0.8) if v else Color(0.7, 0.7, 0.7)
+	set_highlight(CardHighlight.State.PLAYABLE if v else CardHighlight.State.NONE)
 
 func set_attackable(v: bool) -> void:
-	modulate = Color(1, 0.9, 0.5) if v else Color(1, 1, 1)
+	set_highlight(CardHighlight.State.ATTACKABLE if v else CardHighlight.State.NONE)
 
 # Resting scale for table cards. Hover/exit tweens animate relative to this so
 # a hovered card returns to its table size, not full 1.0.
 func set_base_scale(s: float) -> void:
 	base_scale = s
 	scale = Vector2(s, s)
+
+# Authoritative slot, supplied by the layout (hand/board). Hover, unhover, and
+# release all animate back to this — never to a value sampled from the live
+# `position`, which may be mid-tween and would otherwise let the card ratchet
+# away from its slot under rapid hover/click.
+func set_rest(pos: Vector2, rot: float) -> void:
+	_rest_position = pos
+	_rest_rotation = rot
+	_rest_set = true
 
 func _process(delta: float) -> void:
 	_handle_shadow(delta)
@@ -182,11 +201,18 @@ func _on_mouse_entered() -> void:
 	hovered.emit(self)
 	z_index = 100
 	_hovering = true
-	_rest_position = position
+	# Static panels (gallery/overlays) never call set_rest; capture their stable
+	# slot once on first hover. Animated layouts (hand/board) set it explicitly.
+	if not _rest_set:
+		_rest_position = position
+		_rest_rotation = rotation
+		_rest_set = true
 	if _tween_hover and _tween_hover.is_running():
 		_tween_hover.kill()
 	if _tween_unhover and _tween_unhover.is_running():
 		_tween_unhover.kill()
+	if _tween_tilt and _tween_tilt.is_running():
+		_tween_tilt.kill()
 	_tween_hover = create_tween()
 	_tween_hover.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 	_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
@@ -204,9 +230,11 @@ func _on_mouse_exited() -> void:
 	_tween_unhover = create_tween()
 	_tween_unhover.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 	_tween_unhover.parallel().tween_property(self, "position:y", _rest_position.y, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	var tilt_tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tilt_tween.tween_property(_surface.material, "shader_parameter/x_rot", 0.0, 0.5)
-	tilt_tween.parallel().tween_property(_surface.material, "shader_parameter/y_rot", 0.0, 0.5)
+	if _tween_tilt and _tween_tilt.is_running():
+		_tween_tilt.kill()
+	_tween_tilt = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_tween_tilt.tween_property(_surface.material, "shader_parameter/x_rot", 0.0, 0.5)
+	_tween_tilt.parallel().tween_property(_surface.material, "shader_parameter/y_rot", 0.0, 0.5)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _interactive:
@@ -222,19 +250,21 @@ func _on_gui_input(event: InputEvent) -> void:
 			# because moving the pivot to the grab point leaves that point fixed.
 			pivot_offset = (get_global_mouse_position() - global_position) / scale
 			z_index = 100
-			# Don't recapture _rest_position here: hover already lifted the card by
-			# hover_lift, so `position` is the raised spot, not the hand slot. The hand
-			# slot was stored in _rest_position by _on_mouse_entered before the lift, so
-			# leave it intact or the release tween lands the card too high.
-			_rest_rotation = rotation
+			# _rest_position / _rest_rotation are the authoritative slot from the
+			# layout (set_rest); never recapture them from the live, lifted/wobbling
+			# transform here or the release tween would land the card in the wrong spot.
 			_last_pos = position
 			_displacement = 0.0
 			_osc_velocity = 0.0
-			# Kill hover/unhover tweens so they don't fight drag positioning
+			# Kill all competing tweens so they don't fight drag positioning
 			if _tween_hover and _tween_hover.is_running():
 				_tween_hover.kill()
 			if _tween_unhover and _tween_unhover.is_running():
 				_tween_unhover.kill()
+			if _tween_release and _tween_release.is_running():
+				_tween_release.kill()
+			if _tween_tilt and _tween_tilt.is_running():
+				_tween_tilt.kill()
 			# Snappy grab pop
 			if _tween_grab and _tween_grab.is_running():
 				_tween_grab.kill()
@@ -257,11 +287,17 @@ func _on_gui_input(event: InputEvent) -> void:
 				if _tween_grab and _tween_grab.is_running():
 					_tween_grab.kill()
 				# Satisfying release: elastic scale drop + return to rest
-				var t := create_tween()
-				t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-				t.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-				t.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	elif event is InputEventMouseMotion and not _dragging:
+				if _tween_release and _tween_release.is_running():
+					_tween_release.kill()
+				_tween_release = create_tween()
+				_tween_release.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+				_tween_release.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+				_tween_release.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	elif event is InputEventMouseMotion and _hovering and _active_drag == null:
+		# Only tilt while this card is the active hover. Without the _active_drag /
+		# _hovering guard, moving over a card while another is dragged would set the
+		# shader tilt but neither mouse_entered nor mouse_exited (both guarded) would
+		# ever reset it, leaving the card stuck in a tilted 3D rotation.
 		var lx := remap(event.position.x, 0.0, size.x, 0.0, 1.0)
 		var ly := remap(event.position.y, 0.0, size.y, 0.0, 1.0)
 		_surface.material.set_shader_parameter("y_rot", rad_to_deg(lerp_angle(-deg_to_rad(angle_max), deg_to_rad(angle_max), lx)))

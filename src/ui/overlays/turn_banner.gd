@@ -2,6 +2,10 @@ extends CanvasLayer
 
 @onready var _label: Label = $Panel/Label
 
+func _ready() -> void:
+	if has_node("Panel"):
+		$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+
 func show_turn(is_player: bool) -> void:
 	if not is_node_ready():
 		await ready
