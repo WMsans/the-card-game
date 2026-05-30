@@ -1,6 +1,8 @@
 class_name GameEngine
 extends RefCounted
 
+const EffectContextClass = preload("res://src/cards/effect_context.gd")
+
 var state: GameState
 var _queue: Array = []
 var _resolving: bool = false
@@ -32,7 +34,7 @@ func _drain() -> void:
 				state.bus.publish(item["event"])
 				_dispatch_triggers(item["event"])
 			"react":
-				item["card"].script.react(item["card"], item["event"], _ctx_for(item["pidx"]))
+				item["card"].card_script.react(item["card"], item["event"], _ctx_for(item["pidx"]))
 			"call":
 				item["fn"].call()
 	_resolving = false
@@ -40,8 +42,17 @@ func _drain() -> void:
 func _dispatch_triggers(_event: GameEvent) -> void:
 	pass
 
-func _ctx_for(_pidx: int):
-	return null
+func _ctx_for(pidx: int):
+	return EffectContextClass.new(self, pidx)
+
+
+func _owner_of(unit: CardInstance) -> int:
+	for i in range(state.players.size()):
+		var ps := state.players[i]
+		if ps.board.has(unit) or ps.discard.has(unit) or ps.hand.has(unit) \
+				or ps.set_traps.has(unit) or ps.deck.has(unit):
+			return i
+	return -1
 
 func _draw(player_idx: int, n: int = 1) -> void:
 	var ps := state.players[player_idx]
