@@ -42,8 +42,8 @@ func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void
 	_deck1_path = deck1_path
 	state = GameState.new(seed_value)
 	engine = GameEngine.new(state)
-	var d0: Array[CardDefinition] = CardDatabase.load_deck(deck0_path, "P0")
-	var d1: Array[CardDefinition] = CardDatabase.load_deck(deck1_path, "P1")
+	var d0: Array[CardDefinition] = CardDatabase.load_deck(deck0_path, _deck_color_from(deck0_path))
+	var d1: Array[CardDefinition] = CardDatabase.load_deck(deck1_path, _deck_color_from(deck1_path))
 	engine.setup(d0, d1)
 	render_all()
 	_post_action()
@@ -103,6 +103,9 @@ func _run_ai_turn() -> void:
 
 func _show_game_over() -> void:
 	_game_over.show_result(state.winner, HUMAN)
+
+static func _deck_color_from(path: String) -> String:
+	return path.get_file().replace(".csv", "")
 
 func _on_play_again() -> void:
 	_game_over.visible = false
