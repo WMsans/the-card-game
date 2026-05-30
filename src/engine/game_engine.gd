@@ -89,7 +89,10 @@ func _apply_mulligan(indices: Array) -> void:
 	var ps := state.players[p]
 	var to_discard: Array[CardInstance] = []
 	for i in indices:
-		to_discard.append(ps.hand[i])
+		var ci: CardInstance = ps.hand[i]
+		if ci.definition.type == Enums.CardType.LEADER:
+			continue
+		to_discard.append(ci)
 	for c in to_discard:
 		ps.hand.erase(c)
 		c.zone = Enums.Zone.DISCARD

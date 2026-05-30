@@ -28,6 +28,19 @@ func test_after_both_mulligans_game_begins_in_main() -> void:
 	assert_int(eng.state.phase).is_equal(Enums.Phase.MAIN)
 	assert_int(eng.state.turn_number).is_equal(1)
 
+func test_mulligan_cannot_discard_leader() -> void:
+	var state := GameState.new(7)
+	var eng := GameEngine.new(state)
+	eng.setup(TestFactory.simple_deck(), TestFactory.simple_deck())
+	var leader := state.players[0].leader
+	assert_object(leader).is_not_null()
+	assert_int(leader.definition.type).is_equal(Enums.CardType.LEADER)
+	eng.apply(Action.mulligan([0, 1]))
+	assert_array(state.players[0].hand).has(leader)
+	assert_object(state.players[0].leader).is_not_null()
+	var discard_has_leader := state.players[0].discard.any(func(c): return c == leader)
+	assert_bool(discard_has_leader).is_false()
+
 func test_mulligan_reduces_hand_then_first_draw_restores() -> void:
 	var eng := _started_engine(7)
 	var first := eng.state.first_player
