@@ -19,6 +19,12 @@ static func _build() -> void:
 	_register("strike", 2, StrikeRequestForm.new())
 	_register("strike", 3, StrikeRequestForm.new())
 	_register("strike", 9, GrayAlien.new())
+	_register("strike", 11, RequestSlacker.new())
+	_register("strike", 12, RequestSlacker.new())
+	_register("strike", 15, RequestBoard.new())
+	_register("strike", 16, RequestBoard.new())
+	_register("strike", 17, BjornHammer.new())
+	_register("strike", 18, BjornHammer.new())
 
 static func get_script_for(deck: String, id: int) -> CardScript:
 	_build()
