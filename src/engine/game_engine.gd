@@ -74,6 +74,16 @@ func _owner_of(unit: CardInstance) -> int:
 			return i
 	return -1
 
+func _request_met(card: CardInstance) -> bool:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return false
+	if state.players[owner].all_requests_met_this_turn:
+		return true
+	if card.card_script == null or not card.card_script.has_request():
+		return false
+	return card.card_script.condition_met(card, _ctx_for(owner))
+
 func _request_choice(card: CardInstance, spec: ChoiceSpec, tag: String, asked_player: int) -> void:
 	state.pending_choice = PendingChoice.new("card_effect", asked_player, {
 		"spec": spec,
