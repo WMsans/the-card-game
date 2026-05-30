@@ -17,18 +17,19 @@ signal clicked(card_view: CardView)
 @export var damp: float = 10.0
 @export var velocity_multiplier: float = 1.0
 
-@onready var _visuals: CanvasGroup = $Visuals
+@onready var _surface: SubViewportContainer = $CardSurface
+@onready var _visuals: CanvasGroup = $CardSurface/CardViewport/Visuals
 @onready var _shadow: TextureRect = $Shadow
-@onready var _frame: TextureRect = $Visuals/Frame
-@onready var _art: TextureRect = $Visuals/ArtTexture
-@onready var _name: Label = $Visuals/NameLabel
-@onready var _damage: Label = $Visuals/DamageLabel
-@onready var _health: Label = $Visuals/HealthLabel
-@onready var _ticket: Label = $Visuals/TicketLabel
-@onready var _discard: Label = $Visuals/DiscardLabel
-@onready var _ability: RichTextLabel = $Visuals/AbilityText
-@onready var _flavor: Label = $Visuals/FlavorLabel
-@onready var _leader_emblem: TextureRect = $LeaderEmblem
+@onready var _frame: TextureRect = $CardSurface/CardViewport/Visuals/Frame
+@onready var _art: TextureRect = $CardSurface/CardViewport/Visuals/ArtTexture
+@onready var _name: Label = $CardSurface/CardViewport/Visuals/NameLabel
+@onready var _damage: Label = $CardSurface/CardViewport/Visuals/DamageLabel
+@onready var _health: Label = $CardSurface/CardViewport/Visuals/HealthLabel
+@onready var _ticket: Label = $CardSurface/CardViewport/Visuals/TicketLabel
+@onready var _discard: Label = $CardSurface/CardViewport/Visuals/DiscardLabel
+@onready var _ability: RichTextLabel = $CardSurface/CardViewport/Visuals/AbilityText
+@onready var _flavor: Label = $CardSurface/CardViewport/Visuals/FlavorLabel
+@onready var _leader_emblem: TextureRect = $CardSurface/CardViewport/LeaderEmblem
 
 var _instance: CardInstance
 var _face_down: bool = false
@@ -148,8 +149,8 @@ func _on_mouse_exited() -> void:
 	if not _interactive or _dragging:
 		return
 	unhovered.emit(self)
-	_frame.material.set_shader_parameter("x_rot", 0.0)
-	_frame.material.set_shader_parameter("y_rot", 0.0)
+	_surface.material.set_shader_parameter("x_rot", 0.0)
+	_surface.material.set_shader_parameter("y_rot", 0.0)
 	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 	t.tween_property(self, "scale", Vector2.ONE, 0.45)
 
@@ -173,8 +174,8 @@ func _on_gui_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and not _dragging:
 		var lx := remap(event.position.x, 0.0, size.x, 0.0, 1.0)
 		var ly := remap(event.position.y, 0.0, size.y, 0.0, 1.0)
-		_frame.material.set_shader_parameter("y_rot", rad_to_deg(lerp_angle(-deg_to_rad(angle_max), deg_to_rad(angle_max), lx)))
-		_frame.material.set_shader_parameter("x_rot", rad_to_deg(lerp_angle(deg_to_rad(angle_max), -deg_to_rad(angle_max), ly)))
+		_surface.material.set_shader_parameter("y_rot", rad_to_deg(lerp_angle(-deg_to_rad(angle_max), deg_to_rad(angle_max), lx)))
+		_surface.material.set_shader_parameter("x_rot", rad_to_deg(lerp_angle(deg_to_rad(angle_max), -deg_to_rad(angle_max), ly)))
 
 func dissolve() -> Tween:
 	var t := create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
