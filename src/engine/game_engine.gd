@@ -383,6 +383,75 @@ func _kill(owner_idx: int, unit: CardInstance) -> void:
 	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
 
+func _damage_unit(unit: CardInstance, n: int) -> void:
+	unit.current_health -= n
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED, {"target": unit.instance_id, "amount": n}))
+	if unit.current_health <= 0:
+		_kill_unit(unit)
+
+func _kill_unit(unit: CardInstance) -> void:
+	var owner := _owner_of(unit)
+	if owner >= 0 and state.players[owner].board.has(unit):
+		_kill(owner, unit)
+
+func _discard_from_hand(card: CardInstance) -> void:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	if not ps.hand.has(card):
+		return
+	ps.hand.erase(card)
+	card.zone = Enums.Zone.DISCARD
+	ps.discard.append(card)
+	ps.turn_counters["cards_discarded"] += 1
+	emit(GameEvent.new(Enums.EventType.CARD_DISCARDED, {"player": owner, "instance": card.instance_id}))
+
+func _search_deck(pidx: int, pred: Callable) -> CardInstance:
+	for c in state.players[pidx].deck:
+		if pred.call(c):
+			return c
+	return null
+
+func _draw_specific(pidx: int, card: CardInstance) -> void:
+	var ps := state.players[pidx]
+	if not ps.deck.has(card):
+		return
+	ps.deck.erase(card)
+	card.zone = Enums.Zone.HAND
+	ps.hand.append(card)
+	emit(GameEvent.new(Enums.EventType.CARD_DRAWN, {"player": pidx, "instance": card.instance_id}))
+
+func _summon_free(pidx: int, card: CardInstance) -> void:
+	var ps := state.players[pidx]
+	if ps.hand.has(card):
+		ps.hand.erase(card)
+	card.zone = Enums.Zone.BOARD
+	card.tapped = true
+	ps.board.append(card)
+	emit(GameEvent.new(Enums.EventType.CARD_PLAYED,
+		{"player": pidx, "instance": card.instance_id, "card_type": card.definition.type}))
+
+func _put_on_deck_top(unit: CardInstance) -> void:
+	var owner := _owner_of(unit)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	ps.board.erase(unit)
+	unit.reset_stats()
+	unit.zone = Enums.Zone.DECK
+	ps.deck.push_front(unit)
+
+func _steal_top_discard(thief: int, victim: int) -> CardInstance:
+	var vps := state.players[victim]
+	if vps.discard.is_empty():
+		return null
+	var card: CardInstance = vps.discard.pop_back()
+	card.vars["stolen_from"] = victim
+	card.zone = Enums.Zone.HAND
+	state.players[thief].hand.append(card)
+	return card
+
 func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
 	for c in ps.board:
 		if c.instance_id == instance_id:
