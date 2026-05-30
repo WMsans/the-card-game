@@ -43,6 +43,7 @@ layout_mode = 3
 anchors_preset = 0
 pivot_offset = Vector2(175, 245)
 script = ExtResource("1_cv")
+angle_max = 24.0
 
 [node name="Shadow" type="TextureRect" parent="." unique_id=321789905]
 modulate = Color(0, 0, 0, 1)

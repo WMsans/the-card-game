@@ -237,18 +237,18 @@ func _on_gui_input(event: InputEvent) -> void:
 				_dragging = false
 				_hovering = false
 				z_index = 0
-				# Restore the top-left pivot for hover/hand layout, compensating
+				# Restore the center pivot for hover/hand layout, compensating
 				# position so the card doesn't jump when the rotation center moves.
-				global_position += (Vector2.ONE - scale) * pivot_offset
-				pivot_offset = Vector2.ZERO
+				var center := size * 0.5
+				global_position += (Vector2.ONE - scale) * (pivot_offset - center)
+				pivot_offset = center
 				clicked.emit(self)
 				drag_released.emit(self, get_global_mouse_position())
 				if _tween_grab and _tween_grab.is_running():
 					_tween_grab.kill()
-				# Satisfying release: elastic scale drop + rotation settle
+				# Satisfying release: elastic scale drop
 				var t := create_tween()
 				t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-				t.parallel().tween_property(self, "rotation", 0.0, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	elif event is InputEventMouseMotion and not _dragging:
 		var lx := remap(event.position.x, 0.0, size.x, 0.0, 1.0)
 		var ly := remap(event.position.y, 0.0, size.y, 0.0, 1.0)
