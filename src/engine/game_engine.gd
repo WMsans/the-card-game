@@ -53,7 +53,7 @@ func _draw(player_idx: int, n: int = 1) -> void:
 		var card: CardInstance = ps.deck.pop_front()
 		card.zone = Enums.Zone.HAND
 		ps.hand.append(card)
-		state.bus.publish(GameEvent.new(Enums.EventType.CARD_DRAWN,
+		emit(GameEvent.new(Enums.EventType.CARD_DRAWN,
 			{"player": player_idx, "instance": card.instance_id}))
 
 func _mill(player_idx: int, n: int) -> void:
@@ -67,12 +67,12 @@ func _mill(player_idx: int, n: int) -> void:
 		card.zone = Enums.Zone.DISCARD
 		ps.discard.append(card)
 		ps.turn_counters["cards_discarded"] += 1
-		state.bus.publish(GameEvent.new(Enums.EventType.CARD_DISCARDED,
+		emit(GameEvent.new(Enums.EventType.CARD_DISCARDED,
 			{"player": player_idx, "instance": card.instance_id}))
 
 func _deck_damage(player_idx: int, amount: int) -> void:
 	_mill(player_idx, amount)
-	state.bus.publish(GameEvent.new(Enums.EventType.DECK_DAMAGED,
+	emit(GameEvent.new(Enums.EventType.DECK_DAMAGED,
 		{"player": player_idx, "amount": amount}))
 
 func _reshuffle_or_lose(player_idx: int) -> bool:
@@ -86,7 +86,7 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 	for c in ps.deck:
 		c.zone = Enums.Zone.DECK
 	state.rng.shuffle(ps.deck)
-	state.bus.publish(GameEvent.new(Enums.EventType.DECK_RESHUFFLED,
+	emit(GameEvent.new(Enums.EventType.DECK_RESHUFFLED,
 		{"player": player_idx, "remaining": ps.reshuffles_remaining}))
 	if ps.deck.is_empty():
 		_lose(player_idx)
@@ -96,7 +96,7 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 func _lose(player_idx: int) -> void:
 	state.winner = 1 - player_idx
 	state.phase = Enums.Phase.GAME_OVER
-	state.bus.publish(GameEvent.new(Enums.EventType.GAME_OVER, {"winner": state.winner}))
+	emit(GameEvent.new(Enums.EventType.GAME_OVER, {"winner": state.winner}))
 
 # --- setup -----------------------------------------------------------------
 
@@ -158,7 +158,7 @@ func _start_turn() -> void:
 		ps.tickets_total = min(10, ps.tickets_total + 2)
 	ps.turns_taken += 1
 	ps.reset_turn_counters()
-	state.bus.publish(GameEvent.new(Enums.EventType.TURN_STARTED, {"player": state.active_player}))
+	emit(GameEvent.new(Enums.EventType.TURN_STARTED, {"player": state.active_player}))
 	_draw(state.active_player, 1)
 	if state.phase == Enums.Phase.GAME_OVER:
 		return
@@ -205,7 +205,7 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 		Enums.CardType.TRAP:
 			card.zone = Enums.Zone.TRAP_SET
 			ps.set_traps.append(card)
-	state.bus.publish(GameEvent.new(Enums.EventType.CARD_PLAYED,
+	emit(GameEvent.new(Enums.EventType.CARD_PLAYED,
 		{"player": state.active_player, "instance": instance_id, "card_type": def.type}))
 
 func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
@@ -236,7 +236,7 @@ func _apply_resolve_choice(params: Dictionary) -> void:
 			c.zone = Enums.Zone.DISCARD
 			ps.discard.append(c)
 			ps.turn_counters["cards_discarded"] += 1
-			state.bus.publish(GameEvent.new(Enums.EventType.CARD_DISCARDED,
+			emit(GameEvent.new(Enums.EventType.CARD_DISCARDED,
 				{"player": pc.player, "instance": c.instance_id}))
 		state.pending_choice = null
 		_finish_end_turn()
@@ -245,7 +245,7 @@ func _finish_end_turn() -> void:
 	for p in state.players:
 		for u in p.board:
 			u.reset_stats()
-	state.bus.publish(GameEvent.new(Enums.EventType.TURN_ENDED, {"player": state.active_player}))
+	emit(GameEvent.new(Enums.EventType.TURN_ENDED, {"player": state.active_player}))
 	if state.phase == Enums.Phase.GAME_OVER:
 		return
 	state.active_player = state.opponent()
@@ -256,7 +256,7 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	var attacker: CardInstance = _find_on_board(ap, attacker_id)
 	attacker.tapped = true
 	ap.turn_counters["attacks_made"] += 1
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
+	emit(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
 		{"attacker": attacker_id, "player": state.active_player}))
 	_check_traps(state.bus.log[-1])
 	if state.phase == Enums.Phase.GAME_OVER:
@@ -269,9 +269,9 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	var r := Combat.compute(attacker, defender)
 	defender.current_health -= r["dmg_to_def"]
 	attacker.current_health -= r["dmg_to_atk"]
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": defender.instance_id, "amount": r["dmg_to_def"]}))
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
 	if r["def_dies"]:
 		_kill(state.opponent(), defender)
@@ -285,7 +285,7 @@ func _kill(owner_idx: int, unit: CardInstance) -> void:
 	unit.reset_stats()
 	owner.discard.append(unit)
 	owner.turn_counters["units_died"] += 1
-	state.bus.publish(GameEvent.new(Enums.EventType.UNIT_DIED,
+	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
 
 func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
