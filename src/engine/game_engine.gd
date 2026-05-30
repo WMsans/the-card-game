@@ -39,8 +39,27 @@ func _drain() -> void:
 				item["fn"].call()
 	_resolving = false
 
-func _dispatch_triggers(_event: GameEvent) -> void:
-	pass
+func _dispatch_triggers(event: GameEvent) -> void:
+	var jobs: Array = []
+	for pidx in [state.active_player, state.opponent()]:
+		for card in _trigger_candidates(state.players[pidx]):
+			var s: CardScript = card.card_script
+			if s == null:
+				continue
+			if not s.reacts_to().has(event.type):
+				continue
+			if not s.active_zones().has(card.zone):
+				continue
+			jobs.append({"kind": "react", "card": card, "event": event, "pidx": pidx})
+	for i in range(jobs.size() - 1, -1, -1):
+		_queue.push_front(jobs[i])
+
+func _trigger_candidates(ps: PlayerState) -> Array:
+	var out: Array = []
+	out.append_array(ps.board)
+	out.append_array(ps.set_traps)
+	out.append_array(ps.discard)
+	return out
 
 func _ctx_for(pidx: int):
 	return EffectContextClass.new(self, pidx)
