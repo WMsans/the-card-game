@@ -41,4 +41,8 @@ func _confirm_pressed() -> void:
 		visible = false
 		confirmed.emit(_selected.duplicate())
 
-func _update() -> void: _confirm.disabled = not can_confirm()
+func _update() -> void:
+	_confirm.disabled = not can_confirm()
+	for i in _row.get_child_count():
+		var cv: CardView = _row.get_child(i)
+		cv.set_highlight(CardHighlight.State.SELECTED if _selected.has(i) else CardHighlight.State.NONE)
