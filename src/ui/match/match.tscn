@@ -5,8 +5,10 @@
 [ext_resource type="Script" path="res://src/ui/table/opponent_hand.gd" id="3_opp"]
 [ext_resource type="PackedScene" path="res://src/ui/table/pile_view.tscn" id="4_pile"]
 [ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="5_ticket"]
+[ext_resource type="Script" path="res://src/ui/match/match.gd" id="6_match"]
 
 [node name="Match" type="Control"]
+script = ExtResource("6_match")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
