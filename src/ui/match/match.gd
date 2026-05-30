@@ -9,6 +9,8 @@ var _selected_attacker: int = -1
 var _deck0_path: String
 var _deck1_path: String
 var _dragging_id: int = -1
+var _targeting_for_choice: bool = false
+var _target_candidates: Array = []
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -28,6 +30,7 @@ var _dragging_id: int = -1
 @onready var _leader_prompt = $LeaderCostPrompt
 @onready var _game_over = $GameOverPanel
 @onready var _drop_zones: DropZoneOverlay = $DropZoneLayer
+@onready var _option_prompt = $OptionPrompt
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -38,6 +41,7 @@ func _ready() -> void:
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_option_prompt.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
 	theme = THEME
@@ -101,6 +105,25 @@ func _route_pending_choice() -> void:
 		"discard_to_limit":
 			var n: int = pc.data["count"]
 			_select.show_selection(state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
+		"card_effect":
+			_route_card_effect(pc)
+
+func _route_card_effect(pc: PendingChoice) -> void:
+	var spec: ChoiceSpec = pc.data["spec"]
+	match spec.ui_shape:
+		"select_cards":
+			_select.show_selection(spec.cards, spec.min_n, spec.max_n, spec.title)
+		"choose_option":
+			_option_prompt.show_options(spec.labels, spec.title)
+		"select_target":
+			_begin_target_selection(spec)
+
+func _begin_target_selection(spec: ChoiceSpec) -> void:
+	_target_candidates = []
+	for u in spec.cards:
+		_target_candidates.append(u.instance_id)
+	_targeting_for_choice = true
+	_refresh_highlights()
 
 func _run_ai_turn() -> void:
 	await get_tree().create_timer(0.35).timeout
@@ -139,6 +162,13 @@ func _refresh_highlights() -> void:
 	for iid in player_board.card_views:
 		var cv: CardView = player_board.card_views[iid]
 		cv.set_attackable(attacker_ids.has(iid))
+	if _targeting_for_choice:
+		for iid in player_board.card_views:
+			var cv: CardView = player_board.card_views[iid]
+			cv.set_highlight(CardHighlight.State.SELECTABLE if _target_candidates.has(iid) else CardHighlight.State.NONE)
+		for iid in opp_board.card_views:
+			var cv: CardView = opp_board.card_views[iid]
+			cv.set_highlight(CardHighlight.State.SELECTABLE if _target_candidates.has(iid) else CardHighlight.State.NONE)
 
 func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	var legal: Array = engine.get_legal_actions()
@@ -163,6 +193,11 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	return false
 
 func handle_unit_clicked(instance_id: int) -> void:
+	if _targeting_for_choice:
+		if _target_candidates.has(instance_id):
+			_targeting_for_choice = false
+			apply_action(Action.resolve_choice({"target_ids": [instance_id]}))
+		return
 	if _selected_attacker == -1:
 		if instance_id in legal_attacker_ids():
 			_selected_attacker = instance_id

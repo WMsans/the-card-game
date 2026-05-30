@@ -21,3 +21,11 @@ func test_game_over_panel_shows_on_game_over() -> void:
 	m.state.winner = 0
 	m._show_game_over()
 	assert_bool(m.get_node("GameOverPanel").visible).is_true()
+
+func test_select_cards_choice_shows_card_select_panel() -> void:
+	var m: Node = _spawn()
+	m.start_game(3, "res://src/data/decks/strike.csv", "res://src/data/decks/strike.csv")
+	var spec := ChoiceSpec.select_cards(m.state.players[0].hand, 0, 1, "Pick")
+	m.state.pending_choice = PendingChoice.new("card_effect", 0, {"spec": spec, "ui_shape": "select_cards"})
+	m._route_pending_choice()
+	assert_bool(m.get_node("CardSelectPanel").visible).is_true()
