@@ -13,6 +13,8 @@ signal clicked(card_view: CardView)
 
 @export var angle_max: float = 12.0
 @export var hover_scale: float = 1.8
+@export var hover_lift: float = -160.0
+@export var hover_shadow_offset: Vector2 = Vector2(8.0, 16.0)
 @export var spring: float = 150.0
 @export var damp: float = 10.0
 @export var velocity_multiplier: float = 1.0
@@ -35,9 +37,13 @@ var _instance: CardInstance
 var _face_down: bool = false
 var base_scale: float = 1.0   # table cards render scaled-down; hover is relative to this
 var _dragging: bool = false
+var _hovering: bool = false
+var _rest_position: Vector2
+var _shadow_y_offset: float = 0.0
 var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
 var _last_pos: Vector2
+var _drag_offset: Vector2 = Vector2.ZERO
 var _interactive: bool = true
 
 func setup(instance: CardInstance) -> void:
@@ -133,14 +139,20 @@ func set_base_scale(s: float) -> void:
 	scale = Vector2(s, s)
 
 func _process(delta: float) -> void:
-	_handle_shadow()
+	_handle_shadow(delta)
 	if _dragging:
+		global_position = get_global_mouse_position() - _drag_offset
 		_wobble(delta)
 
-func _handle_shadow() -> void:
+func _handle_shadow(delta: float) -> void:
 	var center := get_viewport_rect().size * 0.5
 	var dist := global_position.x - center.x
 	_shadow.position.x = lerp(0.0, -sign(dist) * 40.0, abs(dist / maxf(center.x, 1.0)))
+	var target_y := hover_shadow_offset.y if _hovering else 0.0
+	_shadow_y_offset = lerpf(_shadow_y_offset, target_y, 1.0 - exp(-12.0 * delta))
+	_shadow.position.y = _shadow_y_offset
+	if _hovering:
+		_shadow.position.x += hover_shadow_offset.x
 
 func _wobble(delta: float) -> void:
 	var velocity := (position - _last_pos) / maxf(delta, 0.0001)
@@ -156,18 +168,25 @@ func _on_mouse_entered() -> void:
 		return
 	hovered.emit(self)
 	z_index = 100
+	_hovering = true
+	_rest_position = position
 	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 	t.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4)
+	var t2 := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t2.tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2)
 
 func _on_mouse_exited() -> void:
 	if not _interactive or _dragging:
 		return
 	unhovered.emit(self)
 	z_index = 0
+	_hovering = false
 	_surface.material.set_shader_parameter("x_rot", 0.0)
 	_surface.material.set_shader_parameter("y_rot", 0.0)
 	var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 	t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45)
+	var t2 := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t2.tween_property(self, "position:y", _rest_position.y, 0.2)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _interactive:
@@ -175,6 +194,8 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
+			_drag_offset = get_global_mouse_position() - global_position
+			z_index = 100
 			_last_pos = position
 			_displacement = 0.0
 			_osc_velocity = 0.0
@@ -182,6 +203,7 @@ func _on_gui_input(event: InputEvent) -> void:
 		else:
 			if _dragging:
 				_dragging = false
+				z_index = 0
 				clicked.emit(self)
 				drag_released.emit(self, get_global_mouse_position())
 				var t := create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
