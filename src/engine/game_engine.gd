@@ -374,6 +374,9 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	ap.turn_counters["attacks_made"] += 1
 	emit(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
 		{"attacker": attacker_id, "player": state.active_player}))
+	if _request_met(attacker):
+		emit(GameEvent.new(Enums.EventType.REQUEST_MET,
+			{"player": state.active_player, "instance": attacker_id}))
 	_check_traps(state.bus.log[-1])
 	if state.phase == Enums.Phase.GAME_OVER:
 		return
