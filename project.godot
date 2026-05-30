@@ -10,9 +10,15 @@ config_version=5
 
 [application]
 
-config/name="New Game Project"
+config/name="TheCardGame"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
+run/main_scene="res://src/ui/menu/main_menu.tscn"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 
 [editor_plugins]
 

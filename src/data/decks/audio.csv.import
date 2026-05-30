@@ -6,10 +6,10 @@ uid="uid://duu7m45l33u24"
 
 [deps]
 
-files=["res://game/data/decks/audio.Type.translation", "res://game/data/decks/audio.Name.translation", "res://game/data/decks/audio.Cost.translation", "res://game/data/decks/audio.Damage.translation", "res://game/data/decks/audio.Health.translation", "res://game/data/decks/audio.Ability.translation", "res://game/data/decks/audio.Flavor Text.translation", "res://game/data/decks/audio.Image.translation"]
+files=["res://src/data/decks/audio.Type.translation", "res://src/data/decks/audio.Name.translation", "res://src/data/decks/audio.Cost.translation", "res://src/data/decks/audio.Damage.translation", "res://src/data/decks/audio.Health.translation", "res://src/data/decks/audio.Ability.translation", "res://src/data/decks/audio.Flavor Text.translation", "res://src/data/decks/audio.Image.translation"]
 
-source_file="res://game/data/decks/audio.csv"
-dest_files=["res://game/data/decks/audio.Type.translation", "res://game/data/decks/audio.Name.translation", "res://game/data/decks/audio.Cost.translation", "res://game/data/decks/audio.Damage.translation", "res://game/data/decks/audio.Health.translation", "res://game/data/decks/audio.Ability.translation", "res://game/data/decks/audio.Flavor Text.translation", "res://game/data/decks/audio.Image.translation"]
+source_file="res://src/data/decks/audio.csv"
+dest_files=["res://src/data/decks/audio.Type.translation", "res://src/data/decks/audio.Name.translation", "res://src/data/decks/audio.Cost.translation", "res://src/data/decks/audio.Damage.translation", "res://src/data/decks/audio.Health.translation", "res://src/data/decks/audio.Ability.translation", "res://src/data/decks/audio.Flavor Text.translation", "res://src/data/decks/audio.Image.translation"]
 
 [params]
 

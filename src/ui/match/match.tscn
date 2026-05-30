@@ -1,0 +1,131 @@
+[gd_scene format=3 uid="uid://rt5sodi1v357"]
+
+[ext_resource type="Script" uid="uid://bpgvknb1nff8x" path="res://src/ui/table/board_view.gd" id="1_board"]
+[ext_resource type="Script" uid="uid://cg1dqfuj051an" path="res://src/ui/table/hand_view.gd" id="2_hand"]
+[ext_resource type="Script" uid="uid://825rksniy2p7" path="res://src/ui/table/opponent_hand.gd" id="3_opp"]
+[ext_resource type="PackedScene" path="res://src/ui/table/pile_view.tscn" id="4_pile"]
+[ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="5_ticket"]
+[ext_resource type="Script" uid="uid://cfdcw38hhl2mu" path="res://src/ui/match/match.gd" id="6_match"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
+[ext_resource type="Script" uid="uid://cdyfwflmecq7i" path="res://src/ui/table/targeting_arrow.gd" id="8_arrow"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/mulligan_panel.tscn" id="9_mulligan"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/discard_panel.tscn" id="10_discard"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/leader_cost_prompt.tscn" id="11_leader"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/game_over_panel.tscn" id="12_gameover"]
+
+[node name="Match" type="Control" unique_id=1759707777]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_match")
+
+[node name="Table" type="Control" parent="." unique_id=1177751450]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OppBoard" type="Node2D" parent="Table" unique_id=1849305518]
+script = ExtResource("1_board")
+
+[node name="PlayerBoard" type="Node2D" parent="Table" unique_id=2082744938]
+script = ExtResource("1_board")
+
+[node name="PlayerHand" type="Node2D" parent="Table" unique_id=295156646]
+script = ExtResource("2_hand")
+
+[node name="OppHand" type="Node2D" parent="Table" unique_id=712101715]
+script = ExtResource("3_opp")
+
+[node name="PlayerDeck" parent="Table" unique_id=1762679969 instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 750.0
+offset_right = 1810.0
+offset_bottom = 960.0
+
+[node name="PlayerDiscard" parent="Table" unique_id=947836656 instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 530.0
+offset_right = 1810.0
+offset_bottom = 740.0
+
+[node name="PlayerLeader" parent="Table" unique_id=2142680860 instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 750.0
+offset_right = 260.0
+offset_bottom = 960.0
+
+[node name="OppDeck" parent="Table" unique_id=1394567074 instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 50.0
+offset_right = 1810.0
+offset_bottom = 260.0
+
+[node name="OppDiscard" parent="Table" unique_id=39958300 instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 270.0
+offset_right = 1810.0
+offset_bottom = 480.0
+
+[node name="OppLeader" parent="Table" unique_id=131738334 instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 50.0
+offset_right = 260.0
+offset_bottom = 260.0
+
+[node name="PlayerTickets" parent="Table" unique_id=1218761618 instance=ExtResource("5_ticket")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 980.0
+offset_right = 400.0
+offset_bottom = 1020.0
+
+[node name="DragLayer" type="Control" parent="." unique_id=593884590]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ArrowLayer" type="Node2D" parent="." unique_id=1316632249]
+script = ExtResource("8_arrow")
+
+[node name="EndTurnButton" type="Button" parent="." unique_id=259239340]
+layout_mode = 0
+offset_left = 1700.0
+offset_top = 900.0
+offset_right = 1900.0
+offset_bottom = 960.0
+text = "End Turn"
+
+[node name="FxLayer" type="Control" parent="." unique_id=373358044]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Banner" parent="." unique_id=1471180961 instance=ExtResource("7_banner")]
+
+[node name="MulliganPanel" parent="." instance=ExtResource("9_mulligan")]
+
+[node name="DiscardPanel" parent="." instance=ExtResource("10_discard")]
+
+[node name="LeaderCostPrompt" parent="." instance=ExtResource("11_leader")]
+
+[node name="GameOverPanel" parent="." instance=ExtResource("12_gameover")]

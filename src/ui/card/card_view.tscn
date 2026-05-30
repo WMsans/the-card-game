@@ -1,0 +1,189 @@
+[gd_scene format=3 uid="uid://ciay2k0asshw"]
+
+[ext_resource type="Script" uid="uid://bjw6oyoibhp72" path="res://src/ui/card/card_view.gd" id="1_cv"]
+[ext_resource type="Texture2D" uid="uid://kfj5y6vx3e2p" path="res://src/ui/assets/frames/leader.png" id="2_24qht"]
+[ext_resource type="Texture2D" uid="uid://c7w80x2tn3q7y" path="res://src/ui/assets/art/raccoon_raccoon.png" id="3_7p6om"]
+[ext_resource type="Script" uid="uid://leehmvr1x5lu" path="res://addons/AutoSizeText/ui/AutoSizeRichTextLabel.gd" id="4_7p6om"]
+[ext_resource type="Shader" uid="uid://uk16q5gignrx" path="res://src/ui/assets/shaders/dissolve.gdshader" id="5_3dqjh"]
+[ext_resource type="Shader" uid="uid://cw50pxx388iey" path="res://src/ui/assets/shaders/fake_3D.gdshader" id="6_1w3ji"]
+[ext_resource type="Texture2D" uid="uid://c5h36x8oq1dj1" path="res://src/ui/assets/shadow.png" id="7_ojgne"]
+[ext_resource type="Shader" uid="uid://bkx5ijghxv2fb" path="res://src/ui/card/circle_mask.gdshader" id="8_emblem"]
+
+[sub_resource type="ShaderMaterial" id="fake3d_mat"]
+resource_local_to_scene = true
+shader = ExtResource("6_1w3ji")
+shader_parameter/rect_size = Vector2(350, 490)
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 0.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+
+[sub_resource type="FastNoiseLite" id="noise_id"]
+frequency = 0.0021
+
+[sub_resource type="NoiseTexture2D" id="noise_tex_id"]
+noise = SubResource("noise_id")
+
+[sub_resource type="ShaderMaterial" id="dissolve_mat"]
+resource_local_to_scene = true
+shader = ExtResource("5_3dqjh")
+shader_parameter/dissolve_texture = SubResource("noise_tex_id")
+shader_parameter/dissolve_value = 1.0
+shader_parameter/burn_size = 0.03
+shader_parameter/burn_color = Color(1.5, 0.92, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_emblem"]
+resource_local_to_scene = true
+shader = ExtResource("8_emblem")
+
+[node name="CardView" type="Control" unique_id=1911854669]
+custom_minimum_size = Vector2(350, 490)
+layout_mode = 3
+anchors_preset = 0
+pivot_offset = Vector2(175, 245)
+script = ExtResource("1_cv")
+angle_max = 24.0
+
+[node name="Shadow" type="TextureRect" parent="." unique_id=321789905]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(1, 1, 1, 0.168627)
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 24.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_ojgne")
+expand_mode = 1
+
+[node name="CardSurface" type="SubViewportContainer" parent="." unique_id=813663903]
+material = SubResource("fake3d_mat")
+layout_mode = 0
+offset_right = 350.0
+offset_bottom = 490.0
+mouse_filter = 2
+stretch = true
+
+[node name="CardViewport" type="SubViewport" parent="CardSurface" unique_id=1748912959]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(350, 490)
+render_target_update_mode = 4
+
+[node name="Visuals" type="CanvasGroup" parent="CardSurface/CardViewport" unique_id=1466090251]
+material = SubResource("dissolve_mat")
+
+[node name="Frame" type="TextureRect" parent="CardSurface/CardViewport/Visuals" unique_id=511354926]
+offset_right = 350.0
+offset_bottom = 490.0
+texture = ExtResource("2_24qht")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ArtTexture" type="TextureRect" parent="CardSurface/CardViewport/Visuals" unique_id=1034160456]
+offset_left = 29.0
+offset_top = 88.0
+offset_right = 321.0
+offset_bottom = 252.0
+texture = ExtResource("3_7p6om")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="NameLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=1314120410]
+offset_left = 91.0
+offset_top = 22.0
+offset_right = 259.0
+offset_bottom = 69.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Raccon"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+clip_text = true
+
+[node name="DamageLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=591496339]
+offset_left = 35.0
+offset_top = 31.0
+offset_right = 67.0
+offset_bottom = 71.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=1707846226]
+offset_left = 273.0
+offset_top = 24.0
+offset_right = 329.0
+offset_bottom = 71.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TicketLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=899563464]
+offset_left = 41.0
+offset_top = 414.0
+offset_right = 69.0
+offset_bottom = 451.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiscardLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=881624921]
+offset_left = 273.0
+offset_top = 414.0
+offset_right = 319.0
+offset_bottom = 456.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AbilityText" type="RichTextLabel" parent="CardSurface/CardViewport/Visuals" unique_id=2099731696]
+offset_left = 29.0
+offset_top = 272.0
+offset_right = 321.0
+offset_bottom = 383.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+theme_override_font_sizes/bold_italics_font_size = 13
+theme_override_font_sizes/italics_font_size = 13
+theme_override_font_sizes/mono_font_size = 13
+bbcode_enabled = true
+text = "While discarded, RUMMAGE 2 at the start of your turn. Once per turn, you may Discard any number of cards in your Hand to deal that amount of Damage to a Unit. Return to your Hand on Deck Reshuffles. RUMMAGE: Draw from the bottom of your Discard Pile."
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("4_7p6om")
+watch_text_change = true
+max_font_size = 14
+metadata/_custom_type_script = "uid://leehmvr1x5lu"
+
+[node name="FlavorLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=742218111]
+offset_left = 101.0
+offset_top = 391.0
+offset_right = 249.0
+offset_bottom = 463.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 11
+text = "\"Stand ready for my arrival.\""
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="LeaderEmblem" type="TextureRect" parent="CardSurface/CardViewport" unique_id=133246350]
+material = SubResource("ShaderMaterial_emblem")
+offset_left = 259.0
+offset_top = 398.0
+offset_right = 330.0
+offset_bottom = 469.0
+expand_mode = 1
+stretch_mode = 6

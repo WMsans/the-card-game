@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/ui/table/table_view.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/ui/table/board_view.gd" id="2_board"]
+[ext_resource type="Script" path="res://src/ui/table/hand_view.gd" id="3_hand"]
+[ext_resource type="Script" path="res://src/ui/table/opponent_hand.gd" id="4_opp"]
+[ext_resource type="PackedScene" path="res://src/ui/table/pile_view.tscn" id="5_pile"]
+[ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="6_ticket"]
+
+[node name="TableView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="OppBoard" type="Node2D" parent="."]
+script = ExtResource("2_board")
+
+[node name="PlayerBoard" type="Node2D" parent="."]
+script = ExtResource("2_board")
+
+[node name="PlayerHand" type="Node2D" parent="."]
+script = ExtResource("3_hand")
+
+[node name="OppHand" type="Node2D" parent="."]
+script = ExtResource("4_opp")
+
+[node name="PlayerDeck" parent="." instance=ExtResource("5_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 750.0
+offset_right = 1810.0
+offset_bottom = 960.0
+
+[node name="PlayerDiscard" parent="." instance=ExtResource("5_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 530.0
+offset_right = 1810.0
+offset_bottom = 740.0
+
+[node name="PlayerLeader" parent="." instance=ExtResource("5_pile")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 750.0
+offset_right = 260.0
+offset_bottom = 960.0
+
+[node name="OppDeck" parent="." instance=ExtResource("5_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 50.0
+offset_right = 1810.0
+offset_bottom = 260.0
+
+[node name="OppDiscard" parent="." instance=ExtResource("5_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 270.0
+offset_right = 1810.0
+offset_bottom = 480.0
+
+[node name="OppLeader" parent="." instance=ExtResource("5_pile")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 50.0
+offset_right = 260.0
+offset_bottom = 260.0
+
+[node name="PlayerTickets" parent="." instance=ExtResource("6_ticket")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 980.0
+offset_right = 400.0
+offset_bottom = 1020.0
