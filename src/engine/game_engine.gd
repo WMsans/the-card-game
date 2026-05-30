@@ -2,9 +2,46 @@ class_name GameEngine
 extends RefCounted
 
 var state: GameState
+var _queue: Array = []
+var _resolving: bool = false
+var _suspended: bool = false
 
 func _init(game_state: GameState) -> void:
 	state = game_state
+
+func emit(event: GameEvent) -> void:
+	_queue.append({"kind": "event", "event": event})
+	_pump()
+
+func _push(item: Dictionary) -> void:
+	_queue.append(item)
+
+func _pump() -> void:
+	if _resolving:
+		return
+	_resolving = true
+	_drain()
+
+func _drain() -> void:
+	while not _queue.is_empty():
+		if _suspended:
+			return
+		var item: Dictionary = _queue.pop_front()
+		match item["kind"]:
+			"event":
+				state.bus.publish(item["event"])
+				_dispatch_triggers(item["event"])
+			"react":
+				item["card"].script.react(item["card"], item["event"], _ctx_for(item["pidx"]))
+			"call":
+				item["fn"].call()
+	_resolving = false
+
+func _dispatch_triggers(_event: GameEvent) -> void:
+	pass
+
+func _ctx_for(_pidx: int):
+	return null
 
 func _draw(player_idx: int, n: int = 1) -> void:
 	var ps := state.players[player_idx]
