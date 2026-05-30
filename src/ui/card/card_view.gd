@@ -15,8 +15,8 @@ signal clicked(card_view: CardView)
 @export var hover_scale: float = 1.8
 @export var hover_lift: float = -160.0
 @export var hover_shadow_offset: Vector2 = Vector2(8.0, 16.0)
-@export var spring: float = 280.0
-@export var damp: float = 28.0
+@export var spring: float = 800.0
+@export var damp: float = 8.0
 @export var velocity_multiplier: float = 1.0
 
 @onready var _surface: SubViewportContainer = $CardSurface
