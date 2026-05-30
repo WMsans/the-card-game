@@ -39,6 +39,7 @@ var base_scale: float = 1.0   # table cards render scaled-down; hover is relativ
 var _dragging: bool = false
 var _hovering: bool = false
 var _rest_position: Vector2
+var _rest_rotation: float
 var _shadow_y_offset: float = 0.0
 var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
@@ -218,6 +219,11 @@ func _on_gui_input(event: InputEvent) -> void:
 			# because moving the pivot to the grab point leaves that point fixed.
 			pivot_offset = (get_global_mouse_position() - global_position) / scale
 			z_index = 100
+			# Don't recapture _rest_position here: hover already lifted the card by
+			# hover_lift, so `position` is the raised spot, not the hand slot. The hand
+			# slot was stored in _rest_position by _on_mouse_entered before the lift, so
+			# leave it intact or the release tween lands the card too high.
+			_rest_rotation = rotation
 			_last_pos = position
 			_displacement = 0.0
 			_osc_velocity = 0.0
@@ -246,9 +252,11 @@ func _on_gui_input(event: InputEvent) -> void:
 				drag_released.emit(self, get_global_mouse_position())
 				if _tween_grab and _tween_grab.is_running():
 					_tween_grab.kill()
-				# Satisfying release: elastic scale drop
+				# Satisfying release: elastic scale drop + return to rest
 				var t := create_tween()
 				t.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+				t.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+				t.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	elif event is InputEventMouseMotion and not _dragging:
 		var lx := remap(event.position.x, 0.0, size.x, 0.0, 1.0)
 		var ly := remap(event.position.y, 0.0, size.y, 0.0, 1.0)
