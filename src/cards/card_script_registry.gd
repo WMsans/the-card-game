@@ -15,8 +15,10 @@ static func _build() -> void:
 	if _built:
 		return
 	_built = true
+	_register("strike", 1, BattleBjorn.new())
 	_register("strike", 2, StrikeRequestForm.new())
 	_register("strike", 3, StrikeRequestForm.new())
+	_register("strike", 9, GrayAlien.new())
 
 static func get_script_for(deck: String, id: int) -> CardScript:
 	_build()
