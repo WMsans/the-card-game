@@ -24,8 +24,10 @@ func render(cards: Array, player: int) -> void:
 		cv.setup(inst)
 		cv.set_base_scale(BoardLayout.CARD_SCALE)
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, player)
+		var rest_pos := t.origin - BoardLayout.CARD_PIVOT
+		cv.set_rest(rest_pos, t.get_rotation())
 		var tw := cv.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(cv, "position", t.origin - BoardLayout.CARD_PIVOT, 0.25)
+		tw.parallel().tween_property(cv, "position", rest_pos, 0.25)
 		tw.parallel().tween_property(cv, "rotation", t.get_rotation(), 0.25)
 	for iid in card_views.keys():
 		if not seen.has(iid):
