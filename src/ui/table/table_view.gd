@@ -28,3 +28,5 @@ func render() -> void:
 	($OppDeck as Node).set_count(opp.deck.size())
 	($OppDiscard as Node).set_count(opp.discard.size())
 	($PlayerTickets as Node).set_tickets(you.tickets_tapped, you.tickets_total)
+	($PlayerLeader as Node).set_count(1 if you.leader else 0)
+	($OppLeader as Node).set_count(1 if opp.leader else 0)
