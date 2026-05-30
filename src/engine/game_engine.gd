@@ -74,6 +74,18 @@ func _owner_of(unit: CardInstance) -> int:
 			return i
 	return -1
 
+func _fire_trap(card: CardInstance) -> void:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	if not ps.set_traps.has(card):
+		return
+	ps.set_traps.erase(card)
+	card.zone = Enums.Zone.DISCARD
+	ps.discard.append(card)
+	emit(GameEvent.new(Enums.EventType.TRAP_FIRED, {"player": owner, "instance": card.instance_id}))
+
 func _request_met(card: CardInstance) -> bool:
 	var owner := _owner_of(card)
 	if owner < 0:
