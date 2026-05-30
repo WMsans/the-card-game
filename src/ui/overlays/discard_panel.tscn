@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://ciay2k0asshw" path="res://src/ui/card/card_view.tscn" id="2_cv"]
 
 [node name="DiscardPanel" type="CanvasLayer"]
+visible = false
 script = ExtResource("1_script")
 
 [node name="Panel" type="Panel" parent="."]

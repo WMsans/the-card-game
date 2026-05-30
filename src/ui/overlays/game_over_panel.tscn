@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/ui/overlays/game_over_panel.gd" id="1_script"]
 
 [node name="GameOverPanel" type="CanvasLayer"]
+visible = false
 script = ExtResource("1_script")
 
 [node name="Panel" type="Panel" parent="."]
