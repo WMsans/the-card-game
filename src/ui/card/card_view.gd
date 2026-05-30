@@ -43,7 +43,6 @@ var _shadow_y_offset: float = 0.0
 var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
 var _last_pos: Vector2
-var _drag_offset: Vector2 = Vector2.ZERO
 var _interactive: bool = true
 var _tween_hover: Tween
 var _tween_unhover: Tween
@@ -146,7 +145,9 @@ func _process(delta: float) -> void:
 	if _dragging:
 		# Exact, same-frame follow: the card stays pinned under the cursor at the
 		# exact point it was grabbed (no recenter snap). This is what reads as snappy.
-		global_position = get_global_mouse_position() - _drag_offset
+		# pivot_offset is the grab point, so keeping it under the mouse also makes the
+		# wobble rotation spin around the cursor instead of the top-left corner.
+		global_position = get_global_mouse_position() - pivot_offset
 		_wobble(delta)
 
 func _handle_shadow(delta: float) -> void:
@@ -210,9 +211,12 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
-			# Grab-relative offset: keep the card exactly where it was picked up
-			# so it doesn't snap-jump to recenter under the cursor.
-			_drag_offset = get_global_mouse_position() - global_position
+			# Grab-relative pivot: keep the card exactly where it was picked up so it
+			# doesn't snap-jump to recenter, AND make drag rotation pivot around the
+			# cursor. pivot_offset is in local (unscaled) space, so divide the
+			# screen-space grab vector by the current scale. The card doesn't jump
+			# because moving the pivot to the grab point leaves that point fixed.
+			pivot_offset = (get_global_mouse_position() - global_position) / scale
 			z_index = 100
 			_last_pos = position
 			_displacement = 0.0
@@ -233,6 +237,10 @@ func _on_gui_input(event: InputEvent) -> void:
 				_dragging = false
 				_hovering = false
 				z_index = 0
+				# Restore the top-left pivot for hover/hand layout, compensating
+				# position so the card doesn't jump when the rotation center moves.
+				global_position += (Vector2.ONE - scale) * pivot_offset
+				pivot_offset = Vector2.ZERO
 				clicked.emit(self)
 				drag_released.emit(self, get_global_mouse_position())
 				if _tween_grab and _tween_grab.is_running():
