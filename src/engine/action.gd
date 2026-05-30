@@ -25,5 +25,8 @@ static func end_turn() -> Action:
 static func activate_trap(instance_id: int) -> Action:
 	return Action.new(Enums.ActionType.ACTIVATE_TRAP, {"instance_id": instance_id})
 
+static func activate_ability(instance_id: int, ability_id: String) -> Action:
+	return Action.new(Enums.ActionType.ACTIVATE_ABILITY, {"instance_id": instance_id, "ability_id": ability_id})
+
 static func resolve_choice(data: Dictionary) -> Action:
 	return Action.new(Enums.ActionType.RESOLVE_CHOICE, data)

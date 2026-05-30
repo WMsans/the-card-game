@@ -49,3 +49,14 @@ func test_play_leader_by_discard_cost_mills_deck() -> void:
 	assert_array(ps.board).contains([ci])
 	assert_int(ps.tickets_tapped).is_equal(0)
 	assert_int(ps.deck.size()).is_equal(deck_before - 4)
+
+class CastBattlecry extends CardScript:
+	func on_cast(card, ctx) -> void: ctx.draw(1)
+
+func test_on_cast_battlecry_runs_when_played() -> void:
+	var eng := _ready_engine()
+	var ci := _give(eng, TestFactory.minion(1, 1, 1, 210))
+	ci.card_script = CastBattlecry.new()
+	var hand_before := eng.state.active().hand.size()
+	eng.apply(Action.play_card(ci.instance_id))
+	assert_int(eng.state.active().hand.size()).is_equal(hand_before)

@@ -288,6 +288,8 @@ func apply(action: Action) -> void:
 			_declare_attack(action.params["attacker_id"], action.params["target"])
 		Enums.ActionType.ACTIVATE_TRAP:
 			pass
+		Enums.ActionType.ACTIVATE_ABILITY:
+			_activate_ability(action.params["instance_id"], action.params["ability_id"])
 		_:
 			push_error("Unhandled action type %d" % action.type)
 
@@ -315,6 +317,9 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 			ps.set_traps.append(card)
 	emit(GameEvent.new(Enums.EventType.CARD_PLAYED,
 		{"player": state.active_player, "instance": instance_id, "card_type": def.type}))
+	if def.type != Enums.CardType.TRAP and card.card_script != null:
+		_push({"kind": "call", "fn": func(): card.card_script.on_cast(card, _ctx_for(state.active_player))})
+		_pump()
 
 func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
 	for c in ps.hand:
@@ -476,6 +481,14 @@ func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
 			return c
 	return null
 
+func _activate_ability(instance_id: int, ability_id: String) -> void:
+	var ps := state.active()
+	var card := _find_on_board(ps, instance_id)
+	if card == null or card.card_script == null:
+		return
+	_push({"kind": "call", "fn": func(): card.card_script.activate(card, ability_id, _ctx_for(state.active_player))})
+	_pump()
+
 func _check_traps(event: GameEvent) -> void:
 	var defender_idx := state.opponent()
 	for trap in state.players[defender_idx].set_traps:
@@ -508,5 +521,10 @@ func get_legal_actions() -> Array:
 		out.append(Action.declare_attack(u.instance_id, {"deck": true}))
 		for d in opp.board:
 			out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+	for u in ps.board:
+		if u.card_script == null:
+			continue
+		for ab in u.card_script.activated_abilities(u, _ctx_for(state.active_player)):
+			out.append(Action.activate_ability(u.instance_id, ab["id"]))
 	out.append(Action.end_turn())
 	return out
