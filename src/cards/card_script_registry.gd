@@ -15,7 +15,8 @@ static func _build() -> void:
 	if _built:
 		return
 	_built = true
-	# Strike registrations are added in Phase 8.
+	_register("strike", 2, StrikeRequestForm.new())
+	_register("strike", 3, StrikeRequestForm.new())
 
 static func get_script_for(deck: String, id: int) -> CardScript:
 	_build()
