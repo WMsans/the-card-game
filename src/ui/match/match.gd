@@ -132,6 +132,16 @@ func _resolve_attack_target(target: Dictionary) -> void:
 	else:
 		render_all()
 
+func _cancel_attack() -> void:
+	_selected_attacker = -1
+	_arrow.end()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _selected_attacker != -1 and event is InputEventMouseButton \
+			and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		_cancel_attack()
+		get_viewport().set_input_as_handled()
+
 func legal_attacker_ids() -> Array:
 	var legal: Array = engine.get_legal_actions()
 	var ids: Array = []
