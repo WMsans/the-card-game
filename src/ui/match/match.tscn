@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://src/ui/overlays/leader_cost_prompt.tscn" id="11_leader"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/game_over_panel.tscn" id="12_gameover"]
 [ext_resource type="Script" path="res://src/ui/table/drop_zone_overlay.gd" id="13_dropzone"]
+[ext_resource type="Theme" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -30,6 +31,51 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="FeltFrame" type="Panel" parent="Table" unique_id=512000001]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 220.0
+offset_right = 1620.0
+offset_bottom = 800.0
+mouse_filter = 2
+theme = ExtResource("14_theme")
+
+[node name="PlayerLeaderStation" type="Panel" parent="Table" unique_id=512000002]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 730.0
+offset_right = 290.0
+offset_bottom = 1040.0
+mouse_filter = 2
+theme = ExtResource("14_theme")
+
+[node name="PlayerPileStation" type="Panel" parent="Table" unique_id=512000003]
+layout_mode = 0
+offset_left = 1630.0
+offset_top = 510.0
+offset_right = 1840.0
+offset_bottom = 980.0
+mouse_filter = 2
+theme = ExtResource("14_theme")
+
+[node name="OppLeaderStation" type="Panel" parent="Table" unique_id=512000004]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 40.0
+offset_right = 290.0
+offset_bottom = 350.0
+mouse_filter = 2
+theme = ExtResource("14_theme")
+
+[node name="OppPileStation" type="Panel" parent="Table" unique_id=512000005]
+layout_mode = 0
+offset_left = 1630.0
+offset_top = 40.0
+offset_right = 1840.0
+offset_bottom = 510.0
+mouse_filter = 2
+theme = ExtResource("14_theme")
 
 [node name="OppBoard" type="Node2D" parent="Table" unique_id=1849305518]
 script = ExtResource("1_board")
