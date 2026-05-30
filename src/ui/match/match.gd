@@ -7,6 +7,7 @@ var engine: GameEngine
 var _selected_attacker: int = -1
 var _deck0_path: String
 var _deck1_path: String
+var _dragging_id: int = -1
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -25,10 +26,12 @@ var _deck1_path: String
 @onready var _discard = $DiscardPanel
 @onready var _leader_prompt = $LeaderCostPrompt
 @onready var _game_over = $GameOverPanel
+@onready var _drop_zones: DropZoneOverlay = $DropZoneLayer
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
 	hand_view.card_drag_released.connect(_on_hand_card_drag_released)
+	hand_view.card_drag_started.connect(_on_hand_card_drag_started)
 	player_board.unit_clicked.connect(handle_unit_clicked)
 	opp_board.unit_clicked.connect(handle_unit_clicked)
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
@@ -206,11 +209,48 @@ func legal_play_ids() -> Array:
 	return ids
 
 func _on_hand_card_drag_released(instance_id: int, _at: Vector2) -> void:
+	_dragging_id = -1
+	_drop_zones.clear()
+	_tickets.clear_preview()
 	handle_drop(instance_id, "play_zone")
+
+func _on_hand_card_drag_started(instance_id: int) -> void:
+	_dragging_id = instance_id
+	if DragClassifier.advertises_zone(state, instance_id, HUMAN):
+		_drop_zones.show_zones(_zone_rects_for(instance_id))
+
+func _zone_rects_for(instance_id: int) -> Array:
+	var inst := _find_hand_inst(instance_id)
+	if inst != null and inst.definition.type == Enums.CardType.MINION:
+		return [Rect2(360, 520, 1200, 260)]
+	return [Rect2(360, 360, 1200, 420)]
+
+func _find_hand_inst(instance_id: int) -> CardInstance:
+	for c in state.players[HUMAN].hand:
+		if c.instance_id == instance_id:
+			return c
+	return null
 
 func _process(_delta: float) -> void:
 	if _selected_attacker != -1:
 		_arrow.point_at(get_global_mouse_position())
+	if _dragging_id != -1:
+		_update_drag_feedback()
+
+func _update_drag_feedback() -> void:
+	var cls := DragClassifier.classify(state, engine.get_legal_actions(), _dragging_id, HUMAN)
+	var zstate := DropZoneOverlay.ZoneState.NEUTRAL
+	if cls == DragClassifier.State.ACCEPTABLE:
+		zstate = DropZoneOverlay.ZoneState.ACCEPTABLE
+	elif cls == DragClassifier.State.UNAFFORDABLE:
+		zstate = DropZoneOverlay.ZoneState.UNAFFORDABLE
+	_drop_zones.set_hover(get_global_mouse_position(), zstate)
+	if cls == DragClassifier.State.ACCEPTABLE and _drop_zones.is_hovering_zone():
+		var inst := _find_hand_inst(_dragging_id)
+		if inst != null:
+			_tickets.preview_cost(inst.definition.ticket_cost)
+	else:
+		_tickets.clear_preview()
 
 func _play_flourishes(events: Array) -> void:
 	Flourishes.play(self, events)
