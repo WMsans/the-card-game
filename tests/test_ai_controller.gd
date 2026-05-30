@@ -35,3 +35,21 @@ func test_mulligan_choice_discards_exactly_two() -> void:
 	var act := AiController.choice_action(en)
 	assert_int(act.type).is_equal(Enums.ActionType.MULLIGAN)
 	assert_int(act.params["indices"].size()).is_equal(2)
+
+func test_ai_resolves_select_cards_with_minimum() -> void:
+	var state := GameState.new(4)
+	var eng := GameEngine.new(state)
+	eng.setup(TestFactory.simple_deck(), TestFactory.simple_deck())
+	var spec := ChoiceSpec.select_cards([], 0, 3, "x")
+	state.pending_choice = PendingChoice.new("card_effect", 0, {"spec": spec, "ui_shape": "select_cards"})
+	var a := AiController.choice_action(eng)
+	assert_int(a.type).is_equal(Enums.ActionType.RESOLVE_CHOICE)
+	assert_array(a.params["indices"]).is_equal([])     # min 0 -> pick none
+
+func test_ai_resolves_choose_option_picks_first() -> void:
+	var state := GameState.new(4)
+	var eng := GameEngine.new(state)
+	var spec := ChoiceSpec.choose_option(["A", "B"], "x")
+	state.pending_choice = PendingChoice.new("card_effect", 0, {"spec": spec, "ui_shape": "choose_option"})
+	var a := AiController.choice_action(eng)
+	assert_int(a.params["option"]).is_equal(0)

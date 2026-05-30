@@ -1,6 +1,8 @@
 class_name GameEngine
 extends RefCounted
 
+const EffectContextClass = preload("res://src/cards/effect_context.gd")
+
 var state: GameState
 var _queue: Array = []
 var _resolving: bool = false
@@ -25,6 +27,7 @@ func _pump() -> void:
 func _drain() -> void:
 	while not _queue.is_empty():
 		if _suspended:
+			_resolving = false
 			return
 		var item: Dictionary = _queue.pop_front()
 		match item["kind"]:
@@ -41,7 +44,7 @@ func _dispatch_triggers(event: GameEvent) -> void:
 	var jobs: Array = []
 	for pidx in [state.active_player, state.opponent()]:
 		for card in _trigger_candidates(state.players[pidx]):
-			var s = card.card_script
+			var s: CardScript = card.card_script
 			if s == null:
 				continue
 			if not s.reacts_to().has(event.type):
@@ -60,7 +63,8 @@ func _trigger_candidates(ps: PlayerState) -> Array:
 	return out
 
 func _ctx_for(pidx: int):
-	return EffectContext.new(self, pidx)
+	return EffectContextClass.new(self, pidx)
+
 
 func _owner_of(unit: CardInstance) -> int:
 	for i in range(state.players.size()):
@@ -69,6 +73,18 @@ func _owner_of(unit: CardInstance) -> int:
 				or ps.set_traps.has(unit) or ps.deck.has(unit):
 			return i
 	return -1
+
+func _fire_trap(card: CardInstance) -> void:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	if not ps.set_traps.has(card):
+		return
+	ps.set_traps.erase(card)
+	card.zone = Enums.Zone.DISCARD
+	ps.discard.append(card)
+	emit(GameEvent.new(Enums.EventType.TRAP_FIRED, {"player": owner, "instance": card.instance_id}))
 
 func _request_met(card: CardInstance) -> bool:
 	var owner := _owner_of(card)
@@ -79,6 +95,57 @@ func _request_met(card: CardInstance) -> bool:
 	if card.card_script == null or not card.card_script.has_request():
 		return false
 	return card.card_script.condition_met(card, _ctx_for(owner))
+
+func _request_choice(card: CardInstance, spec: ChoiceSpec, tag: String, asked_player: int) -> void:
+	state.pending_choice = PendingChoice.new("card_effect", asked_player, {
+		"spec": spec,
+		"ui_shape": spec.ui_shape,
+		"resume_card": card.instance_id,
+		"resume_tag": tag,
+		"resume_owner": _owner_of(card),
+	})
+	_suspended = true
+
+func _find_anywhere(instance_id: int) -> CardInstance:
+	for ps in state.players:
+		for zone in [ps.board, ps.hand, ps.discard, ps.set_traps, ps.deck]:
+			for c in zone:
+				if c.instance_id == instance_id:
+					return c
+	return null
+
+func _resolve_card_effect(params: Dictionary) -> void:
+	var pc := state.pending_choice
+	var data := pc.data
+	var spec: ChoiceSpec = data["spec"]
+	var card := _find_anywhere(data["resume_card"])
+	var owner: int = data["resume_owner"]
+	var result := _build_choice_result(spec, params)
+	state.pending_choice = null
+	_suspended = false
+	if card != null and card.card_script != null:
+		card.card_script.resume(card, data["resume_tag"], result, _ctx_for(owner))
+	if not _suspended:
+		_pump()
+
+func _build_choice_result(spec: ChoiceSpec, params: Dictionary) -> Dictionary:
+	match spec.ui_shape:
+		"select_cards":
+			var picked: Array = []
+			for i in params.get("indices", []):
+				picked.append(spec.cards[i])
+			return {"cards": picked}
+		"select_target":
+			var targets: Array = []
+			for id in params.get("target_ids", []):
+				for u in spec.cards:
+					if u.instance_id == id:
+						targets.append(u)
+			return {"targets": targets}
+		"choose_option":
+			return {"option": params.get("option", 0)}
+		_:
+			return {}
 
 func _draw(player_idx: int, n: int = 1) -> void:
 	var ps := state.players[player_idx]
@@ -195,6 +262,10 @@ func _start_turn() -> void:
 		ps.tickets_total = min(10, ps.tickets_total + 2)
 	ps.turns_taken += 1
 	ps.reset_turn_counters()
+	for p in state.players:
+		for u in p.board:
+			u.vars.erase("immortal_this_turn")
+			u.vars.erase("opt_used_this_turn")
 	emit(GameEvent.new(Enums.EventType.TURN_STARTED, {"player": state.active_player}))
 	_draw(state.active_player, 1)
 	if state.phase == Enums.Phase.GAME_OVER:
@@ -217,6 +288,8 @@ func apply(action: Action) -> void:
 			_declare_attack(action.params["attacker_id"], action.params["target"])
 		Enums.ActionType.ACTIVATE_TRAP:
 			pass
+		Enums.ActionType.ACTIVATE_ABILITY:
+			_activate_ability(action.params["instance_id"], action.params["ability_id"])
 		_:
 			push_error("Unhandled action type %d" % action.type)
 
@@ -244,6 +317,9 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 			ps.set_traps.append(card)
 	emit(GameEvent.new(Enums.EventType.CARD_PLAYED,
 		{"player": state.active_player, "instance": instance_id, "card_type": def.type}))
+	if def.type != Enums.CardType.TRAP and card.card_script != null:
+		_push({"kind": "call", "fn": func(): card.card_script.on_cast(card, _ctx_for(state.active_player))})
+		_pump()
 
 func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
 	for c in ps.hand:
@@ -262,6 +338,9 @@ func _end_turn() -> void:
 
 func _apply_resolve_choice(params: Dictionary) -> void:
 	var pc := state.pending_choice
+	if pc.kind == "card_effect":
+		_resolve_card_effect(params)
+		return
 	if pc.kind == "discard_to_limit":
 		var ps := state.players[pc.player]
 		var indices: Array = params["indices"].duplicate()
@@ -291,35 +370,21 @@ func _finish_end_turn() -> void:
 func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	var ap := state.active()
 	var attacker: CardInstance = _find_on_board(ap, attacker_id)
-	if attacker == null:
-		return
 	attacker.tapped = true
 	ap.turn_counters["attacks_made"] += 1
 	emit(GameEvent.new(Enums.EventType.UNIT_ATTACKED,
-		{"attacker": attacker_id, "player": state.active_player,
-		 "target_unit": target.get("unit", -1), "target_deck": target.get("deck", false)}))
-	if attacker.card_script != null and attacker.card_script.has_request() and _request_met(attacker):
-		attacker.current_damage += 2
-		attacker.current_health += 2
+		{"attacker": attacker_id, "player": state.active_player, "target_unit": target.get("unit", -1)}))
+	if _request_met(attacker):
 		emit(GameEvent.new(Enums.EventType.REQUEST_MET,
 			{"player": state.active_player, "instance": attacker_id}))
-	_push({"kind": "call", "fn": func(): _resolve_combat(attacker_id, target)})
-	_pump()
-
-func _resolve_combat(attacker_id: int, target: Dictionary) -> void:
+	_check_traps(state.bus.log[-1])
 	if state.phase == Enums.Phase.GAME_OVER:
-		return
-	var ap := state.active()
-	var attacker: CardInstance = _find_on_board(ap, attacker_id)
-	if attacker == null:
 		return
 	if target.get("deck", false):
 		_deck_damage(state.opponent(), attacker.current_damage)
 		return
 	var opp := state.players[state.opponent()]
 	var defender: CardInstance = _find_on_board(opp, target["unit"])
-	if defender == null:
-		return
 	var r := Combat.compute(attacker, defender)
 	defender.current_health -= r["dmg_to_def"]
 	attacker.current_health -= r["dmg_to_atk"]
@@ -333,6 +398,8 @@ func _resolve_combat(attacker_id: int, target: Dictionary) -> void:
 		_kill(state.active_player, attacker)
 
 func _kill(owner_idx: int, unit: CardInstance) -> void:
+	if unit.vars.get("immortal_this_turn", false):
+		return
 	var owner := state.players[owner_idx]
 	owner.board.erase(unit)
 	unit.zone = Enums.Zone.DISCARD
@@ -342,11 +409,97 @@ func _kill(owner_idx: int, unit: CardInstance) -> void:
 	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
 
+func _damage_unit(unit: CardInstance, n: int) -> void:
+	unit.current_health -= n
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED, {"target": unit.instance_id, "amount": n}))
+	if unit.current_health <= 0:
+		_kill_unit(unit)
+
+func _kill_unit(unit: CardInstance) -> void:
+	var owner := _owner_of(unit)
+	if owner >= 0 and state.players[owner].board.has(unit):
+		_kill(owner, unit)
+
+func _discard_from_hand(card: CardInstance) -> void:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	if not ps.hand.has(card):
+		return
+	ps.hand.erase(card)
+	card.zone = Enums.Zone.DISCARD
+	ps.discard.append(card)
+	ps.turn_counters["cards_discarded"] += 1
+	emit(GameEvent.new(Enums.EventType.CARD_DISCARDED, {"player": owner, "instance": card.instance_id}))
+
+func _search_deck(pidx: int, pred: Callable) -> CardInstance:
+	for c in state.players[pidx].deck:
+		if pred.call(c):
+			return c
+	return null
+
+func _draw_specific(pidx: int, card: CardInstance) -> void:
+	var ps := state.players[pidx]
+	if not ps.deck.has(card):
+		return
+	ps.deck.erase(card)
+	card.zone = Enums.Zone.HAND
+	ps.hand.append(card)
+	emit(GameEvent.new(Enums.EventType.CARD_DRAWN, {"player": pidx, "instance": card.instance_id}))
+
+func _summon_free(pidx: int, card: CardInstance) -> void:
+	var ps := state.players[pidx]
+	if ps.hand.has(card):
+		ps.hand.erase(card)
+	card.zone = Enums.Zone.BOARD
+	card.tapped = true
+	ps.board.append(card)
+	emit(GameEvent.new(Enums.EventType.CARD_PLAYED,
+		{"player": pidx, "instance": card.instance_id, "card_type": card.definition.type}))
+
+func _put_on_deck_top(unit: CardInstance) -> void:
+	var owner := _owner_of(unit)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	ps.board.erase(unit)
+	unit.reset_stats()
+	unit.zone = Enums.Zone.DECK
+	ps.deck.push_front(unit)
+
+func _steal_top_discard(thief: int, victim: int) -> CardInstance:
+	var vps := state.players[victim]
+	if vps.discard.is_empty():
+		return null
+	var card: CardInstance = vps.discard.pop_back()
+	card.vars["stolen_from"] = victim
+	card.zone = Enums.Zone.HAND
+	state.players[thief].hand.append(card)
+	return card
+
 func _find_on_board(ps: PlayerState, instance_id: int) -> CardInstance:
 	for c in ps.board:
 		if c.instance_id == instance_id:
 			return c
 	return null
+
+func _activate_ability(instance_id: int, ability_id: String) -> void:
+	var ps := state.active()
+	var card := _find_on_board(ps, instance_id)
+	if card == null or card.card_script == null:
+		return
+	_push({"kind": "call", "fn": func(): card.card_script.activate(card, ability_id, _ctx_for(state.active_player))})
+	_pump()
+
+func _check_traps(event: GameEvent) -> void:
+	var defender_idx := state.opponent()
+	for trap in state.players[defender_idx].set_traps:
+		if _trap_condition_met(trap, event):
+			pass
+
+func _trap_condition_met(_trap: CardInstance, _event: GameEvent) -> bool:
+	return false
 
 func get_legal_actions() -> Array:
 	var out: Array = []
@@ -371,5 +524,10 @@ func get_legal_actions() -> Array:
 		out.append(Action.declare_attack(u.instance_id, {"deck": true}))
 		for d in opp.board:
 			out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+	for u in ps.board:
+		if u.card_script == null:
+			continue
+		for ab in u.card_script.activated_abilities(u, _ctx_for(state.active_player)):
+			out.append(Action.activate_ability(u.instance_id, ab["id"]))
 	out.append(Action.end_turn())
 	return out

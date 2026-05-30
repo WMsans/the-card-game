@@ -11,6 +11,7 @@ var tickets_total: int = 0
 var tickets_tapped: int = 0
 var reshuffles_remaining: int = 4
 var turns_taken: int = 0
+var all_requests_met_this_turn: bool = false
 var turn_counters: Dictionary = {}
 var all_requests_met_this_turn: bool = false
 

@@ -9,11 +9,12 @@
 [ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
 [ext_resource type="Script" uid="uid://cdyfwflmecq7i" path="res://src/ui/table/targeting_arrow.gd" id="8_arrow"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/mulligan_panel.tscn" id="9_mulligan"]
-[ext_resource type="PackedScene" path="res://src/ui/overlays/discard_panel.tscn" id="10_discard"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/card_select_panel.tscn" id="10_select"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/leader_cost_prompt.tscn" id="11_leader"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/game_over_panel.tscn" id="12_gameover"]
 [ext_resource type="Script" path="res://src/ui/table/drop_zone_overlay.gd" id="13_dropzone"]
 [ext_resource type="Theme" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/option_prompt.tscn" id="15_option"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -181,8 +182,10 @@ mouse_filter = 2
 
 [node name="MulliganPanel" parent="." instance=ExtResource("9_mulligan")]
 
-[node name="DiscardPanel" parent="." instance=ExtResource("10_discard")]
+[node name="CardSelectPanel" parent="." instance=ExtResource("10_select")]
 
 [node name="LeaderCostPrompt" parent="." instance=ExtResource("11_leader")]
 
 [node name="GameOverPanel" parent="." instance=ExtResource("12_gameover")]
+
+[node name="OptionPrompt" parent="." instance=ExtResource("15_option")]
