@@ -213,9 +213,11 @@ func legal_play_ids() -> Array:
 
 func _on_hand_card_drag_released(instance_id: int, _at: Vector2) -> void:
 	_dragging_id = -1
+	var in_zone := _drop_zones.is_hovering_zone()
 	_drop_zones.clear()
 	_tickets.clear_preview()
-	handle_drop(instance_id, "play_zone")
+	if in_zone:
+		handle_drop(instance_id, "play_zone")
 
 func _on_hand_card_drag_started(instance_id: int) -> void:
 	_dragging_id = instance_id
