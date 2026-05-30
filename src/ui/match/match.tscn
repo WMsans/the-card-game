@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/ui/table/board_view.gd" id="1_board"]
+[ext_resource type="Script" path="res://src/ui/table/hand_view.gd" id="2_hand"]
+[ext_resource type="Script" path="res://src/ui/table/opponent_hand.gd" id="3_opp"]
+[ext_resource type="PackedScene" path="res://src/ui/table/pile_view.tscn" id="4_pile"]
+[ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="5_ticket"]
+[ext_resource type="Script" path="res://src/ui/match/match.gd" id="6_match"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
+[ext_resource type="Script" path="res://src/ui/table/targeting_arrow.gd" id="8_arrow"]
+
+[node name="Match" type="Control"]
+script = ExtResource("6_match")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Table" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OppBoard" type="Node2D" parent="Table"]
+script = ExtResource("1_board")
+
+[node name="PlayerBoard" type="Node2D" parent="Table"]
+script = ExtResource("1_board")
+
+[node name="PlayerHand" type="Node2D" parent="Table"]
+script = ExtResource("2_hand")
+
+[node name="OppHand" type="Node2D" parent="Table"]
+script = ExtResource("3_opp")
+
+[node name="PlayerDeck" parent="Table" instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 750.0
+offset_right = 1810.0
+offset_bottom = 960.0
+
+[node name="PlayerDiscard" parent="Table" instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 530.0
+offset_right = 1810.0
+offset_bottom = 740.0
+
+[node name="PlayerLeader" parent="Table" instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 750.0
+offset_right = 260.0
+offset_bottom = 960.0
+
+[node name="OppDeck" parent="Table" instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 50.0
+offset_right = 1810.0
+offset_bottom = 260.0
+
+[node name="OppDiscard" parent="Table" instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 1660.0
+offset_top = 270.0
+offset_right = 1810.0
+offset_bottom = 480.0
+
+[node name="OppLeader" parent="Table" instance=ExtResource("4_pile")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 50.0
+offset_right = 260.0
+offset_bottom = 260.0
+
+[node name="PlayerTickets" parent="Table" instance=ExtResource("5_ticket")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 980.0
+offset_right = 400.0
+offset_bottom = 1020.0
+
+[node name="DragLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ArrowLayer" type="Node2D" parent="."]
+script = ExtResource("8_arrow")
+
+[node name="EndTurnButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1700.0
+offset_top = 900.0
+offset_right = 1900.0
+offset_bottom = 960.0
+text = "End Turn"
+
+[node name="FxLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Banner" parent="." instance=ExtResource("7_banner")]
