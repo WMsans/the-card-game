@@ -43,6 +43,8 @@ static func _build() -> void:
 	_register("writing", 12, MelonZombie.new())
 	_register("writing", 13, MercenaryTrader.new())
 	_register("writing", 14, MercenaryTrader.new())
+	_register("writing", 9, MelonZombieWarlock.new())
+	_register("writing", 10, MelonZombieWarlock.new())
 	_register("writing", 15, CitrusSacrifice.new())
 	_register("writing", 16, CitrusSacrifice.new())
 
