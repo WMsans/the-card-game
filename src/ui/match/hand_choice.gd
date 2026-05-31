@@ -24,6 +24,7 @@ func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
 	JuicyButton.apply(_confirm)
 	var _min_btn: Button = $MinimizeButton
+	_min_btn.theme = THEME
 	JuicyButton.apply(_min_btn)
 	_min_btn.pressed.connect(func(): minimize_requested.emit())
 

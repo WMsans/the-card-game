@@ -2,6 +2,8 @@ extends CanvasLayer
 
 signal expand_pressed
 
+const THEME := preload("res://src/ui/theme/game_theme.tres")
+
 @onready var _tab: HBoxContainer = $Tab
 @onready var _title: Label = $Tab/Title
 @onready var _expand_btn: Button = $Tab/ExpandButton
@@ -11,6 +13,7 @@ var _tween: Tween
 func _ready() -> void:
 	_tab.scale = Vector2.ZERO
 	_tab.visible = false
+	_tab.theme = THEME
 	_expand_btn.pressed.connect(_on_expand_pressed)
 	JuicyButton.apply(_expand_btn)
 

@@ -20,6 +20,11 @@ func test_expand_pressed_signal() -> void:
 	bar._on_expand_pressed()
 	assert_bool(got["emitted"]).is_true()
 
+func test_expand_button_has_game_theme() -> void:
+	var bar = _inst()
+	var tab: HBoxContainer = bar.find_child("Tab") as HBoxContainer
+	assert_that(tab.theme).is_not_null()
+
 func test_hide_bar_hides_tab() -> void:
 	var bar = _inst()
 	bar.show_bar("Test")
