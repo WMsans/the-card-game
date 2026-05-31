@@ -47,6 +47,8 @@ static func _build() -> void:
 	_register("raccoon", 9, Coyote.new())
 	_register("raccoon", 10, TrashCannon.new())
 	_register("raccoon", 11, TrashCannon.new())
+	_register("raccoon", 12, TrashDay.new())
+	_register("raccoon", 13, TrashDay.new())
 	_register("raccoon", 16, Trashalanche.new())
 	_register("raccoon", 17, Trashalanche.new())
 	_register("raccoon", 14, TrashToTreasure.new())
