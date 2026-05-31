@@ -31,6 +31,7 @@ var _target_candidates: Array = []
 @onready var _game_over = $GameOverPanel
 @onready var _drop_zones: DropZoneOverlay = $DropZoneLayer
 @onready var _option_prompt = $OptionPrompt
+@onready var _trap_reveal = $TrapRevealOverlay
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -42,6 +43,7 @@ func _ready() -> void:
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
 	_option_prompt.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
+	_trap_reveal.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
 	theme = THEME
@@ -96,6 +98,8 @@ func _post_action() -> void:
 func _route_pending_choice() -> void:
 	var pc := state.pending_choice
 	if pc.player != HUMAN:
+		if pc.kind == "intercept":
+			await _show_readonly_intercept(pc)
 		await get_tree().create_timer(0.2).timeout
 		apply_action(AiController.choice_action(engine))
 		return
@@ -105,6 +109,12 @@ func _route_pending_choice() -> void:
 		"discard_to_limit":
 			var n: int = pc.data["count"]
 			_select.show_selection(state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
+		"intercept":
+			var spec: ChoiceSpec = pc.data["spec"]
+			_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, true)
+		"trash_choice":
+			var spec2: ChoiceSpec = pc.data["spec"]
+			_option_prompt.show_options(spec2.labels, spec2.title)
 		"card_effect":
 			_route_card_effect(pc)
 
@@ -117,6 +127,12 @@ func _route_card_effect(pc: PendingChoice) -> void:
 			_option_prompt.show_options(spec.labels, spec.title)
 		"select_target":
 			_begin_target_selection(spec)
+
+func _show_readonly_intercept(pc: PendingChoice) -> void:
+	var spec: ChoiceSpec = pc.data["spec"]
+	_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, false)
+	await get_tree().create_timer(0.8).timeout
+	_trap_reveal.dismiss()
 
 func _begin_target_selection(spec: ChoiceSpec) -> void:
 	_target_candidates = []

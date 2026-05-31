@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://src/ui/table/drop_zone_overlay.gd" id="13_dropzone"]
 [ext_resource type="Theme" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/option_prompt.tscn" id="15_option"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/trap_reveal_overlay.tscn" id="16_trap_reveal"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -189,3 +190,5 @@ mouse_filter = 2
 [node name="GameOverPanel" parent="." instance=ExtResource("12_gameover")]
 
 [node name="OptionPrompt" parent="." instance=ExtResource("15_option")]
+
+[node name="TrapRevealOverlay" parent="." instance=ExtResource("16_trap_reveal")]
