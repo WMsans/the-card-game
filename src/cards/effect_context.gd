@@ -39,3 +39,5 @@ func request_met(card: CardInstance) -> bool: return engine._request_met(card)
 func emit(event: GameEvent) -> void: engine.emit(event)
 func request_choice(card: CardInstance, spec, tag: String, asked_player: int = -1) -> void:
 	engine._request_choice(card, spec, tag, asked_player if asked_player >= 0 else pidx)
+
+func gain_orange(player: int) -> void: engine._gain_orange(player)

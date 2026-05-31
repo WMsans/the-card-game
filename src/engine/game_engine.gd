@@ -337,11 +337,30 @@ func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
 func _end_turn() -> void:
 	state.phase = Enums.Phase.END
 	var ps := state.active()
-	if ps.hand.size() > 5:
+	if ps.hand.size() > _hand_limit(ps):
 		state.pending_choice = PendingChoice.new(
-			"discard_to_limit", state.active_player, {"count": ps.hand.size() - 5})
+			"discard_to_limit", state.active_player, {"count": ps.hand.size() - _hand_limit(ps)})
 		return
 	_finish_end_turn()
+
+func _gain_orange(player_idx: int) -> void:
+	var ps := state.players[player_idx]
+	var held := 0
+	for c in ps.hand:
+		if OrangeToken.is_orange(c):
+			held += 1
+	if held >= OrangeToken.MAX_HELD:
+		return
+	var ci := state.make_instance(OrangeToken.DEF)
+	ci.zone = Enums.Zone.HAND
+	ps.hand.append(ci)
+
+func _hand_limit(ps: PlayerState) -> int:
+	var oranges := 0
+	for c in ps.hand:
+		if OrangeToken.is_orange(c):
+			oranges += 1
+	return 5 + oranges
 
 func _apply_resolve_choice(params: Dictionary) -> void:
 	var pc := state.pending_choice
