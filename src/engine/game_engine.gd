@@ -136,6 +136,34 @@ func _resolve_card_effect(params: Dictionary) -> void:
 	if not _suspended:
 		_pump()
 
+func _resolve_intercept(params: Dictionary) -> void:
+	var d := state.pending_choice.data
+	var option: int = params.get("option", 1)
+	var trap := _find_anywhere(d["trap_id"])
+	state.pending_choice = null
+	_suspended = false
+	match d["op"]:
+		"deck_damage":
+			if option == 0 and trap != null and trap.card_script != null:
+				_fire_trap(trap)
+				var remaining: int = trap.card_script.deck_damage_on_fire(
+					trap, d["player"], d["amount"], _ctx_for(d["player"]))
+				_apply_deck_damage(d["player"], remaining)
+			else:
+				_apply_deck_damage(d["player"], d["amount"])
+		"kill":
+			var unit := _find_anywhere(d["unit_id"])
+			if option == 0 and trap != null and trap.card_script != null and unit != null:
+				_fire_trap(trap)
+				var prevented: bool = trap.card_script.kill_on_fire(
+					trap, unit, _ctx_for(d["owner"]))
+				if not prevented:
+					_apply_kill(d["owner"], unit)
+			elif unit != null:
+				_apply_kill(d["owner"], unit)
+	if not _suspended:
+		_pump()
+
 func _build_choice_result(spec: ChoiceSpec, params: Dictionary) -> Dictionary:
 	match spec.ui_shape:
 		"select_cards":
@@ -183,7 +211,28 @@ func _mill(player_idx: int, n: int) -> void:
 			{"player": player_idx, "instance": card.instance_id}))
 
 func _deck_damage(player_idx: int, amount: int) -> void:
-	_mill(player_idx, amount)
+	_push({"kind": "call", "fn": func(): _begin_deck_damage(player_idx, amount)})
+	_pump()
+
+func _begin_deck_damage(player_idx: int, amount: int) -> void:
+	var ps := state.players[player_idx]
+	for trap in ps.set_traps:
+		if trap.card_script != null and trap.card_script.can_intercept_deck_damage(
+				trap, player_idx, amount, _ctx_for(player_idx)):
+			state.pending_choice = PendingChoice.new("intercept", player_idx, {
+				"op": "deck_damage", "trap_id": trap.instance_id,
+				"player": player_idx, "amount": amount,
+				"spec": ChoiceSpec.intercept(trap,
+					"Your Deck will take %d damage" % amount, ["Fire", "Decline"]),
+				"ui_shape": "intercept",
+			})
+			_suspended = true
+			return
+	_apply_deck_damage(player_idx, amount)
+
+func _apply_deck_damage(player_idx: int, amount: int) -> void:
+	if amount > 0:
+		_mill(player_idx, amount)
 	emit(GameEvent.new(Enums.EventType.DECK_DAMAGED,
 		{"player": player_idx, "amount": amount}))
 
@@ -368,6 +417,9 @@ func _hand_limit(ps: PlayerState) -> int:
 
 func _apply_resolve_choice(params: Dictionary) -> void:
 	var pc := state.pending_choice
+	if pc.kind == "intercept":
+		_resolve_intercept(params)
+		return
 	if pc.kind == "card_effect":
 		_resolve_card_effect(params)
 		return
@@ -438,6 +490,9 @@ func _kill(owner_idx: int, unit: CardInstance) -> void:
 	owner.turn_counters["units_died"] += 1
 	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
+
+func _apply_kill(_owner_idx: int, _unit: CardInstance) -> void:
+	_kill(_owner_idx, _unit)
 
 func _damage_unit(unit: CardInstance, n: int) -> void:
 	unit.current_health -= n
