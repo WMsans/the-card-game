@@ -204,6 +204,9 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 		return false
 	return true
 
+func _harmonize(player_idx: int) -> void:
+	emit(GameEvent.new(Enums.EventType.HARMONIZE, {"player": player_idx}))
+
 func _lose(player_idx: int) -> void:
 	state.winner = 1 - player_idx
 	state.phase = Enums.Phase.GAME_OVER
