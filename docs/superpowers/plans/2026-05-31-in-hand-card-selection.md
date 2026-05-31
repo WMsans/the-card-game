@@ -8,6 +8,8 @@
 
 **Tech Stack:** Godot 4 / GDScript, GdUnit4 tests (`extends GdUnitTestSuite`, files `tests/test_*.gd`).
 
+**Depends on:** the Card Flight Transitions layer (`docs/superpowers/specs/2026-05-31-card-flight-transitions-design.md` / `docs/superpowers/plans/2026-05-31-card-flight-transitions.md`). Implement this plan **after** that layer ships. Two consequences: (1) the staging animations below call the shared `CardFlight.move_to` mover instead of hand-rolled tweens, so the "fly to middle" feels identical to a draw landing; (2) the flight plan rewrites `hand_view.gd`, so `render` already has the signature `render(cards: Array, player: int, plan: Array = [])` — the additions in Task 2 graft onto that version (the `var card_views := {}` line and the `var n := cards.size()` line it references both still exist there).
+
 **Test command (headless, one suite):**
 ```bash
 godot --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests/<suite>.gd
@@ -188,7 +190,7 @@ git commit -m "feat: StagedSelection helper for in-hand card choices"
 - Modify: `src/ui/table/hand_view.gd`
 - Test: `tests/test_hand_view_reflow.gd` (create)
 
-**Context:** `hand_view.render(cards, player)` lays out every hand card by index using `BoardLayout.slot(Enums.Zone.HAND, i, n, player)` and positions each `CardView` at `t.origin - BoardLayout.CARD_PIVOT`. We add `set_choice_excluded(ids)` so the controller can have the hand reflow over only the non-excluded cards (excluded = staged-in-the-middle), while the controller itself positions the staged cards. `hand_view` is always the human hand (player 0); the opponent uses a separate `opponent_hand.gd`.
+**Context:** `hand_view.render(cards, player, plan := [])` (the Card Flight version) lays out every hand card by index using `BoardLayout.slot(Enums.Zone.HAND, i, n, player)` and positions each `CardView` at `t.origin - BoardLayout.CARD_PIVOT`. We add `set_choice_excluded(ids)` so the controller can have the hand reflow over only the non-excluded cards (excluded = staged-in-the-middle), while the controller itself positions the staged cards. The reflow uses the shared `CardFlight.move_to` mover so it matches the rest of the game's motion. `hand_view` is always the human hand (player 0); the opponent uses a separate `opponent_hand.gd`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -249,7 +251,7 @@ var _player: int = 0
 var _excluded: Array = []     # instance_ids currently staged elsewhere (not laid out here)
 ```
 
-Then in `render(cards, player)`, add these lines at the very top of the function body (before `var n := cards.size()`):
+Then in `render(cards, player, plan := [])`, add these lines at the very top of the function body (before `var n := cards.size()`):
 
 ```gdscript
 	_player = player
@@ -279,9 +281,7 @@ func set_choice_excluded(ids: Array) -> void:
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, _player)
 		var rest_pos := t.origin - BoardLayout.CARD_PIVOT
 		cv.set_rest(rest_pos, t.get_rotation())
-		var tw := cv.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(cv, "position", rest_pos, 0.2)
-		tw.parallel().tween_property(cv, "rotation", t.get_rotation(), 0.2)
+		CardFlight.move_to(cv, rest_pos, t.get_rotation())
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -475,9 +475,7 @@ func _restage() -> void:
 		var pos := Vector2(_stage_x(i, n), STAGE_Y) - BoardLayout.CARD_PIVOT
 		cv.z_index = 50 + i
 		cv.set_rest(pos, 0.0)
-		var tw := cv.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(cv, "position", pos, 0.2)
-		tw.parallel().tween_property(cv, "rotation", 0.0, 0.2)
+		CardFlight.move_to(cv, pos, 0.0, float(i) * CardFlight.STAGGER)
 
 func _stage_x(index: int, count: int) -> float:
 	var total := STAGE_SLOT_W * float(count)
