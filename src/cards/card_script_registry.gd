@@ -36,6 +36,7 @@ static func _build() -> void:
 	_register("strike", 19, WrongMascot.new())
 	_register("strike", 20, WrongMascot.new())
 	_register("strike", 21, StrikeSocial.new())
+	_register("writing", 1, Shelley.new())
 	_register("writing", OrangeToken.ID, OrangeCard.new())
 	_register("writing", 4, CitrusWerewolf.new())
 	_register("writing", 5, CitrusWerewolf.new())
