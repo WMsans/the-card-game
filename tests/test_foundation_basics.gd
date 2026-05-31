@@ -57,3 +57,11 @@ func test_untap_and_set_taunt_verbs() -> void:
 	assert_bool(u.tapped).is_false()
 	ctx.set_taunt(u)
 	assert_bool(u.vars.get("taunt", false)).is_true()
+
+func test_intercept_spec_carries_trap_and_options() -> void:
+	var trap := CardInstance.new(9, TestFactory.trap(4, 9))
+	var spec := ChoiceSpec.intercept(trap, "Your Deck will take 6 damage", ["Fire", "Decline"])
+	assert_str(spec.ui_shape).is_equal("intercept")
+	assert_object(spec.cards[0]).is_same(trap)
+	assert_str(spec.title).is_equal("Your Deck will take 6 damage")
+	assert_array(spec.labels).is_equal(["Fire", "Decline"])

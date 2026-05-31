@@ -32,3 +32,11 @@ static func choose_option(labels: Array, title: String) -> ChoiceSpec:
 	s.labels = labels
 	s.title = title
 	return s
+
+static func intercept(trap_card, context: String, options: Array) -> ChoiceSpec:
+	var s := ChoiceSpec.new()
+	s.ui_shape = "intercept"
+	s.cards = [trap_card]
+	s.labels = options
+	s.title = context
+	return s
