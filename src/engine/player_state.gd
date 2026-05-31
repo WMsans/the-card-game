@@ -27,4 +27,5 @@ func reset_turn_counters() -> void:
 		"cards_discarded": 0,
 		"attacks_made": 0,
 		"units_died": 0,
+		"rummages_made": 0,
 	}
