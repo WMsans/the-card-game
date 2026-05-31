@@ -39,6 +39,8 @@ static func _build() -> void:
 	_register("writing", OrangeToken.ID, OrangeCard.new())
 	_register("raccoon", 2, Rat.new())
 	_register("raccoon", 3, Rat.new())
+	_register("raccoon", 4, Opossum.new())
+	_register("raccoon", 5, Opossum.new())
 
 static func get_script_for(deck: String, id: int) -> CardScript:
 	_build()
