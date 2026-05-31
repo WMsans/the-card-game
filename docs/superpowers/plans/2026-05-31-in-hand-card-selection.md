@@ -8,6 +8,8 @@
 
 **Tech Stack:** Godot 4 / GDScript, GdUnit4 tests (`extends GdUnitTestSuite`, files `tests/test_*.gd`).
 
+**Depends on:** the Card Flight Transitions layer (`docs/superpowers/specs/2026-05-31-card-flight-transitions-design.md`). Implement this plan **after** that layer ships — the staging animations below call the shared `CardFlight.move_to` mover instead of hand-rolled tweens.
+
 **Test command (headless, one suite):**
 ```bash
 godot --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests/<suite>.gd
@@ -279,9 +281,7 @@ func set_choice_excluded(ids: Array) -> void:
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, _player)
 		var rest_pos := t.origin - BoardLayout.CARD_PIVOT
 		cv.set_rest(rest_pos, t.get_rotation())
-		var tw := cv.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(cv, "position", rest_pos, 0.2)
-		tw.parallel().tween_property(cv, "rotation", t.get_rotation(), 0.2)
+		CardFlight.move_to(cv, rest_pos, t.get_rotation())
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -475,9 +475,7 @@ func _restage() -> void:
 		var pos := Vector2(_stage_x(i, n), STAGE_Y) - BoardLayout.CARD_PIVOT
 		cv.z_index = 50 + i
 		cv.set_rest(pos, 0.0)
-		var tw := cv.create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(cv, "position", pos, 0.2)
-		tw.parallel().tween_property(cv, "rotation", 0.0, 0.2)
+		CardFlight.move_to(cv, pos, 0.0, float(i) * CardFlight.STAGGER)
 
 func _stage_x(index: int, count: int) -> float:
 	var total := STAGE_SLOT_W * float(count)
