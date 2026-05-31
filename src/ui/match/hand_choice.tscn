@@ -24,3 +24,10 @@ offset_top = 680.0
 offset_right = 1060.0
 offset_bottom = 730.0
 text = "Confirm"
+
+[node name="MinimizeButton" type="Button" parent="."]
+offset_left = 1080.0
+offset_top = 680.0
+offset_right = 1160.0
+offset_bottom = 730.0
+text = "−"

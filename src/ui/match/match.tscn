@@ -19,6 +19,7 @@
 [ext_resource type="Script" uid="uid://cd6fl004v7gen" path="res://src/ui/match/card_flight_layer.gd" id="17_flight"]
 [ext_resource type="PackedScene" path="res://src/ui/match/hand_choice.tscn" id="18_hand_choice"]
 [ext_resource type="PackedScene" path="res://src/ui/table/pile_overlay.tscn" id="19_pileoverlay"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/minimize_bar.tscn" id="20_minbar"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -202,3 +203,5 @@ mouse_filter = 2
 [node name="HandChoice" parent="." unique_id=1367267191 instance=ExtResource("18_hand_choice")]
 
 [node name="PileOverlay" parent="." instance=ExtResource("19_pileoverlay")]
+
+[node name="MinimizeBar" parent="." instance=ExtResource("20_minbar")]

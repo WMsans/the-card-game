@@ -2,6 +2,7 @@ class_name MulliganPanel
 extends CanvasLayer
 
 signal confirmed(indices: Array)
+signal minimize_requested
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 const REQUIRED := 2
@@ -16,6 +17,9 @@ func _ready() -> void:
 	_confirm.pressed.connect(confirm)
 	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
 	JuicyButton.apply(_confirm)
+	var _min_btn: Button = $Panel/MinimizeButton
+	JuicyButton.apply(_min_btn)
+	_min_btn.pressed.connect(func(): minimize_requested.emit())
 
 func show_hand(hand: Array) -> void:
 	if not is_node_ready():
@@ -61,3 +65,9 @@ func _update() -> void:
 		if not _discardable.has(i):
 			continue
 		cv.set_highlight(CardHighlight.State.SELECTED if _selected.has(i) else CardHighlight.State.NONE)
+
+func get_animatable_nodes() -> Array[Node]:
+	return [$Panel/Label, _row, _confirm]
+
+func get_dim_node() -> Control:
+	return $Panel

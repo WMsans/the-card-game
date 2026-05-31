@@ -2,6 +2,10 @@ extends Control
 
 const HUMAN := 0
 const THEME := preload("res://src/ui/theme/game_theme.tres")
+const MINIMIZE_STAGGER := 0.05
+const MINIMIZE_DURATION := 0.25
+const EXPAND_DURATION := 0.35
+const DIM_FADE_DURATION := 0.3
 
 var state: GameState
 var engine: GameEngine
@@ -13,6 +17,11 @@ var _targeting_for_choice: bool = false
 var _target_candidates: Array = []
 var _director := CombatDirector.new()
 var _anim_busy: bool = false
+var _minimized_overlay: CanvasLayer = null
+# tracked for future re-entrancy guards and integration tests
+var _active_overlay: CanvasLayer = null
+var _rest_transforms: Dictionary = {}
+var _tweens: Array[Tween] = []
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -37,6 +46,7 @@ var _anim_busy: bool = false
 @onready var _flight = $Table/CardFlightLayer
 @onready var _hand_choice = $HandChoice
 @onready var _pile_overlay = $PileOverlay
+@onready var _minimize_bar = $MinimizeBar
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -51,13 +61,20 @@ func _ready() -> void:
 	_player_deck.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DECK, HUMAN))
 	_player_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, HUMAN))
 	_opp_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, 1 - HUMAN))
-	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
-	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_mulligan.confirmed.connect(func(idx): _active_overlay = null; apply_action(Action.mulligan(idx)))
+	_select.confirmed.connect(func(idx): _active_overlay = null; apply_action(Action.resolve_choice({"indices": idx})))
 	_hand_choice.confirmed.connect(_on_hand_choice_confirmed)
-	_option_prompt.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
-	_trap_reveal.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
+	_option_prompt.picked.connect(func(i): _active_overlay = null; apply_action(Action.resolve_choice({"option": i})))
+	_trap_reveal.picked.connect(func(i): _active_overlay = null; apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
+	_select.minimize_requested.connect(_on_overlay_minimize.bind(_select))
+	_hand_choice.minimize_requested.connect(_on_overlay_minimize.bind(_hand_choice))
+	_option_prompt.minimize_requested.connect(_on_overlay_minimize.bind(_option_prompt))
+	_trap_reveal.minimize_requested.connect(_on_overlay_minimize.bind(_trap_reveal))
+	_leader_prompt.minimize_requested.connect(_on_overlay_minimize.bind(_leader_prompt))
+	_mulligan.minimize_requested.connect(_on_overlay_minimize.bind(_mulligan))
+	_minimize_bar.expand_pressed.connect(_on_overlay_expand)
 	theme = THEME
 	JuicyButton.apply(_end_turn)
 
@@ -183,15 +200,19 @@ func _route_pending_choice() -> void:
 				if c.definition.type == Enums.CardType.LEADER:
 					excluded.append(c.instance_id)
 			_hand_choice.start(hand_view, hand, 2, 2, "Choose 2 cards to discard", excluded)
+			_active_overlay = _hand_choice
 		"discard_to_limit":
 			var n: int = pc.data["count"]
 			_hand_choice.start(hand_view, state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
+			_active_overlay = _hand_choice
 		"intercept":
 			var spec: ChoiceSpec = pc.data["spec"]
 			_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, true)
+			_active_overlay = _trap_reveal
 		"trash_choice":
 			var spec2: ChoiceSpec = pc.data["spec"]
 			_option_prompt.show_options(spec2.labels, spec2.title, pc.data.get("source_card"))
+			_active_overlay = _option_prompt
 		"card_effect":
 			_route_card_effect(pc)
 
@@ -201,12 +222,16 @@ func _route_card_effect(pc: PendingChoice) -> void:
 		"select_cards":
 			if _is_hand_pool(spec.cards):
 				_hand_choice.start(hand_view, spec.cards, spec.min_n, spec.max_n, spec.title)
+				_active_overlay = _hand_choice
 			else:
 				_select.show_selection(spec.cards, spec.min_n, spec.max_n, spec.title)
+				_active_overlay = _select
 		"choose_option":
 			_option_prompt.show_options(spec.labels, spec.title, pc.data.get("source_card"))
+			_active_overlay = _option_prompt
 		"select_target":
 			_begin_target_selection(spec)
+			_active_overlay = null
 
 func _is_hand_pool(cards: Array) -> bool:
 	if cards.is_empty():
@@ -240,11 +265,13 @@ func _run_ai_turn() -> void:
 
 func _show_game_over() -> void:
 	_game_over.show_result(state.winner, HUMAN)
+	_active_overlay = _game_over
 
 static func _deck_color_from(path: String) -> String:
 	return path.get_file().replace(".csv", "")
 
 func _on_play_again() -> void:
+	_active_overlay = null
 	_game_over.visible = false
 	start_game(randi(), _deck0_path, _deck1_path)
 
@@ -255,6 +282,7 @@ func _on_end_turn_pressed() -> void:
 		apply_action(Action.end_turn())
 
 func _on_hand_choice_confirmed(indices: Array) -> void:
+	_active_overlay = null
 	match state.pending_choice.kind:
 		"mulligan":
 			apply_action(Action.mulligan(indices))
@@ -292,7 +320,9 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	var by_discard: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, true)
 	if by_tickets != null and by_discard != null:
 		_leader_prompt.show_prompt()
+		_active_overlay = _leader_prompt
 		var handler := func(by_disc: bool):
+			_active_overlay = null
 			if by_disc:
 				apply_action(by_discard)
 			else:
@@ -440,3 +470,123 @@ func _play_flourishes(events: Array) -> void:
 		if e.type == Enums.EventType.TURN_STARTED:
 			$Banner.show_turn(e.data["player"] == HUMAN)
 			_director.reset_ramp()
+
+func _on_overlay_minimize(overlay: CanvasLayer) -> void:
+	if _minimized_overlay != null:
+		return
+	for tw in _tweens:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	_tweens.clear()
+	_minimized_overlay = overlay
+	var dim: Control = overlay.get_dim_node()
+	var tab: Control = _minimize_bar.find_child("Tab")
+	if tab == null:
+		return
+	var tab_pos := tab.global_position
+	var nodes: Array[Node] = overlay.get_animatable_nodes()
+	_rest_transforms.clear()
+	for node in nodes:
+		if node == null:
+			continue
+		_rest_transforms[node.get_instance_id()] = {
+			"position": node.global_position,
+			"scale": node.scale
+		}
+
+	for i in range(nodes.size()):
+		var node: Node = nodes[nodes.size() - 1 - i]
+		if node == null:
+			continue
+		var tw := node.create_tween()
+		_tweens.push_back(tw)
+		tw.tween_interval(MINIMIZE_STAGGER * float(i))
+		tw.parallel().tween_property(node, "global_position", tab_pos, MINIMIZE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(node, "scale", Vector2.ZERO, MINIMIZE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+	if dim != null:
+		if dim is ColorRect:
+			_rest_transforms["dim_color"] = dim.color
+		else:
+			_rest_transforms["dim_modulate"] = dim.modulate
+		var tw := dim.create_tween()
+		_tweens.push_back(tw)
+		if dim is ColorRect:
+			tw.tween_property(dim, "color:a", 0.0, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
+		else:
+			tw.tween_property(dim, "modulate:a", 0.0, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
+
+	var final_tw := create_tween()
+	_tweens.push_back(final_tw)
+	final_tw.tween_interval(MINIMIZE_DURATION + MINIMIZE_STAGGER * float(nodes.size()))
+	final_tw.tween_callback(func():
+		for node in nodes:
+			if node != null:
+				node.visible = false
+		if dim != null:
+			dim.visible = false
+		_minimize_bar.show_bar(_overlay_title(overlay))
+	)
+
+func _on_overlay_expand() -> void:
+	var overlay := _minimized_overlay
+	if overlay == null:
+		return
+	for tw in _tweens:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	_tweens.clear()
+	_minimize_bar.hide_bar()
+	var dim: Control = overlay.get_dim_node()
+	var nodes: Array[Node] = overlay.get_animatable_nodes()
+	var tab: Control = _minimize_bar.find_child("Tab")
+	if tab == null:
+		return
+	var tab_pos := tab.global_position
+
+	if dim != null:
+		dim.visible = true
+		var tw := dim.create_tween()
+		_tweens.push_back(tw)
+		if dim is ColorRect:
+			var orig_color: Color = _rest_transforms.get("dim_color", Color(0, 0, 0, 0.55))
+			dim.color = Color(orig_color, 0.0)
+			tw.tween_property(dim, "color:a", orig_color.a, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
+		else:
+			var orig_mod: Color = _rest_transforms.get("dim_modulate", Color(1, 1, 1, 1.0))
+			dim.modulate = Color(orig_mod, 0.0)
+			tw.tween_property(dim, "modulate:a", orig_mod.a, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
+
+	for i in range(nodes.size()):
+		var node: Node = nodes[i]
+		if node == null:
+			continue
+		var rest := _rest_transforms.get(node.get_instance_id(), {"position": node.global_position, "scale": Vector2.ONE})
+		var rest_pos: Vector2 = rest["position"]
+		var rest_scale: Vector2 = rest["scale"]
+		node.visible = true
+		node.global_position = tab_pos
+		node.scale = Vector2.ZERO
+		var tw := node.create_tween()
+		_tweens.push_back(tw)
+		tw.tween_interval(MINIMIZE_STAGGER * float(i))
+		tw.parallel().tween_property(node, "global_position", rest_pos, EXPAND_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(node, "scale", rest_scale, EXPAND_DURATION).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+	_minimized_overlay = null
+	_rest_transforms.clear()
+
+func _overlay_title(overlay: CanvasLayer) -> String:
+	var label: Label = overlay.find_child("Title")
+	if label != null:
+		return label.text
+	label = overlay.find_child("Label")
+	if label != null:
+		return label.text
+	label = overlay.find_child("TrapName")
+	if label != null:
+		return label.text
+	label = overlay.find_child("PromptLabel")
+	if label != null:
+		return label.text
+	return "Choose"

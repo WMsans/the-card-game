@@ -2,6 +2,7 @@
 extends CanvasLayer
 
 signal picked(option: int)
+signal minimize_requested
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
@@ -38,5 +39,16 @@ func press_option(i: int) -> void:
 func buttons_visible() -> bool:
 	return _buttons.visible
 
+func _ready() -> void:
+	var _min_btn: Button = $Center/Panel/Margin/VBox/MinimizeButton
+	JuicyButton.apply(_min_btn)
+	_min_btn.pressed.connect(func(): minimize_requested.emit())
+
 func dismiss() -> void:
 	visible = false
+
+func get_animatable_nodes() -> Array[Node]:
+	return [_name, $Center/Panel/Margin/VBox/Body, _buttons]
+
+func get_dim_node() -> ColorRect:
+	return $Dim

@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal confirmed(indices: Array)
+signal minimize_requested
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
@@ -15,6 +16,9 @@ var _max: int = 0
 func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
 	JuicyButton.apply(_confirm)
+	var _min_btn: Button = $Center/Panel/Margin/VBox/Buttons/MinimizeButton
+	JuicyButton.apply(_min_btn)
+	_min_btn.pressed.connect(func(): minimize_requested.emit())
 
 func show_selection(cards: Array, min_n: int, max_n: int, title: String) -> void:
 	if not is_node_ready(): await ready
@@ -52,3 +56,9 @@ func _update() -> void:
 	for i in _row.get_child_count():
 		var cv: CardView = _row.get_child(i)
 		cv.set_highlight(CardHighlight.State.SELECTED if _selected.has(i) else CardHighlight.State.NONE)
+
+func get_animatable_nodes() -> Array[Node]:
+	return [_label, _row, $Center/Panel/Margin/VBox/Buttons]
+
+func get_dim_node() -> ColorRect:
+	return $Dim

@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal confirmed(indices: Array)
+signal minimize_requested
 
 const THEME := preload("res://src/ui/theme/game_theme.tres")
 const STAGE_SLOT_W := 180.0
@@ -20,6 +21,9 @@ func _ready() -> void:
 	_confirm.theme = THEME
 	_confirm.pressed.connect(_confirm_pressed)
 	JuicyButton.apply(_confirm)
+	var _min_btn: Button = $MinimizeButton
+	JuicyButton.apply(_min_btn)
+	_min_btn.pressed.connect(func(): minimize_requested.emit())
 
 func start(hand_view, source_cards: Array, min_n: int, max_n: int, title: String, excluded_ids: Array = []) -> void:
 	if not is_node_ready():
@@ -103,3 +107,9 @@ func _deactivate() -> void:
 	_sel = null
 	_active = false
 	visible = false
+
+func get_animatable_nodes() -> Array[Node]:
+	return [_title, _confirm]
+
+func get_dim_node() -> Control:
+	return null
