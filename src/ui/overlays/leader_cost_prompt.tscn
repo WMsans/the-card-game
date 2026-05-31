@@ -47,3 +47,11 @@ offset_top = 110.0
 offset_right = 380.0
 offset_bottom = 160.0
 text = "Discard Instead"
+
+[node name="MinimizeButton" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 110.0
+offset_right = 480.0
+offset_bottom = 160.0
+text = "−"

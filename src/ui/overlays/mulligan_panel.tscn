@@ -38,3 +38,11 @@ offset_top = 580.0
 offset_right = 700.0
 offset_bottom = 630.0
 text = "Confirm"
+
+[node name="MinimizeButton" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 720.0
+offset_top = 580.0
+offset_right = 780.0
+offset_bottom = 630.0
+text = "−"

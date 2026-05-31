@@ -53,3 +53,33 @@ func test_game_over_shows_winner_text() -> void:
 	assert_str(p.find_child("ResultLabel").text).is_equal("You Win")
 	p.show_result(1, 0)
 	assert_str(p.find_child("ResultLabel").text).is_equal("You Lose")
+
+func test_card_select_emits_minimize_requested() -> void:
+	var p = _inst("res://src/ui/overlays/card_select_panel.tscn")
+	p.show_selection(_hand(3), 0, 1, "Pick")
+	var got := {"called": false}
+	p.minimize_requested.connect(func(): got["called"] = true)
+	p.minimize_requested.emit()
+	assert_bool(got["called"]).is_true()
+
+func test_card_select_animatable_nodes() -> void:
+	var p = _inst("res://src/ui/overlays/card_select_panel.tscn")
+	p.show_selection(_hand(3), 0, 1, "Pick")
+	var nodes: Array[Node] = p.get_animatable_nodes()
+	assert_int(nodes.size()).is_equal(3)
+
+func test_hand_choice_animatable_nodes() -> void:
+	var p = _inst("res://src/ui/match/hand_choice.tscn")
+	var nodes: Array[Node] = p.get_animatable_nodes()
+	assert_int(nodes.size()).is_equal(2)
+
+func test_option_prompt_animatable_nodes() -> void:
+	var p = _inst("res://src/ui/overlays/option_prompt.tscn")
+	p.show_options(["A", "B"], "Choose", null)
+	var nodes: Array[Node] = p.get_animatable_nodes()
+	assert_int(nodes.size()).is_greater_equal(2)
+
+func test_trap_reveal_animatable_nodes() -> void:
+	var p = _inst("res://src/ui/overlays/trap_reveal_overlay.tscn")
+	var nodes: Array[Node] = p.get_animatable_nodes()
+	assert_int(nodes.size()).is_equal(3)
