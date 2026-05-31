@@ -16,6 +16,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
+[node name="OppHand" type="Node2D" parent="."]
+script = ExtResource("4_opp")
+
 [node name="OppBoard" type="Node2D" parent="."]
 script = ExtResource("2_board")
 
@@ -24,9 +27,6 @@ script = ExtResource("2_board")
 
 [node name="PlayerHand" type="Node2D" parent="."]
 script = ExtResource("3_hand")
-
-[node name="OppHand" type="Node2D" parent="."]
-script = ExtResource("4_opp")
 
 [node name="PlayerDeck" parent="." instance=ExtResource("5_pile")]
 layout_mode = 0

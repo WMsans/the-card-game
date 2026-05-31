@@ -81,6 +81,9 @@ offset_bottom = 510.0
 mouse_filter = 2
 theme = ExtResource("14_theme")
 
+[node name="OppHand" type="Node2D" parent="Table" unique_id=712101715]
+script = ExtResource("3_opp")
+
 [node name="OppBoard" type="Node2D" parent="Table" unique_id=1849305518]
 script = ExtResource("1_board")
 
@@ -89,9 +92,6 @@ script = ExtResource("1_board")
 
 [node name="PlayerHand" type="Node2D" parent="Table" unique_id=295156646]
 script = ExtResource("2_hand")
-
-[node name="OppHand" type="Node2D" parent="Table" unique_id=712101715]
-script = ExtResource("3_opp")
 
 [node name="PlayerDeck" parent="Table" unique_id=1762679969 instance=ExtResource("4_pile")]
 layout_mode = 0
