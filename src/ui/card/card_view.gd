@@ -52,6 +52,7 @@ var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
 var _last_pos: Vector2
 var _interactive: bool = true
+var lift_on_hover: bool = false
 var _tween_hover: Tween
 var _tween_unhover: Tween
 var _tween_grab: Tween
@@ -215,7 +216,8 @@ func _on_mouse_entered() -> void:
 		_tween_tilt.kill()
 	_tween_hover = create_tween()
 	_tween_hover.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	if lift_on_hover:
+		_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
 func _on_mouse_exited() -> void:
 	if not _interactive or _dragging or _active_drag != null:
@@ -229,7 +231,8 @@ func _on_mouse_exited() -> void:
 		_tween_unhover.kill()
 	_tween_unhover = create_tween()
 	_tween_unhover.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	_tween_unhover.parallel().tween_property(self, "position:y", _rest_position.y, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	if lift_on_hover:
+		_tween_unhover.parallel().tween_property(self, "position:y", _rest_position.y, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	if _tween_tilt and _tween_tilt.is_running():
 		_tween_tilt.kill()
 	_tween_tilt = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)

@@ -22,6 +22,7 @@ func render(cards: Array, player: int) -> void:
 			cv.drag_released.connect(func(_cv: CardView, at: Vector2): card_drag_released.emit(iid, at))
 			cv.drag_started.connect(func(_cv: CardView): card_drag_started.emit(iid))
 		cv.setup(inst)
+		cv.lift_on_hover = true
 		cv.set_base_scale(BoardLayout.CARD_SCALE)
 		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, player)
 		var rest_pos := t.origin - BoardLayout.CARD_PIVOT
