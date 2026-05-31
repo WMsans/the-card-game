@@ -17,6 +17,9 @@ const CARD_PIVOT := CARD_SIZE * 0.5   # top-left -> center offset (matches scene
 
 const BOARD_SLOT_W := 240.0
 const HAND_SLOT_W := 180.0
+# Past this many cards the hand keeps the same total span and the cards
+# overlap (Balatro-style densifying) instead of spreading ever wider (STS).
+const HAND_MAX_CARDS := 6
 const TAP_ANGLE := deg_to_rad(15.0)
 const FAN_ANGLE := deg_to_rad(4.0)
 
@@ -24,6 +27,13 @@ static func _row_x(index: int, count: int, slot_w: float) -> float:
 	var total := slot_w * float(count)
 	var start := CENTER_X - total * 0.5 + slot_w * 0.5
 	return start + slot_w * float(index)
+
+# Hand cards densify once the count exceeds HAND_MAX_CARDS so the row never
+# grows wider than HAND_MAX_CARDS slots; cards overlap to fit instead.
+static func _hand_slot_w(count: int) -> float:
+	if count <= HAND_MAX_CARDS:
+		return HAND_SLOT_W
+	return HAND_SLOT_W * float(HAND_MAX_CARDS) / float(count)
 
 static func slot(zone: int, index: int, count: int, player: int, tapped: bool = false) -> Transform2D:
 	var pos := Vector2.ZERO
@@ -34,7 +44,7 @@ static func slot(zone: int, index: int, count: int, player: int, tapped: bool = 
 				PLAYER_BOARD_Y if player == 0 else OPP_BOARD_Y)
 			rot = TAP_ANGLE if tapped else 0.0
 		Enums.Zone.HAND:
-			pos = Vector2(_row_x(index, count, HAND_SLOT_W),
+			pos = Vector2(_row_x(index, count, _hand_slot_w(count)),
 				PLAYER_HAND_Y if player == 0 else OPP_HAND_Y)
 			var mid := float(count - 1) * 0.5
 			rot = (float(index) - mid) * FAN_ANGLE * (1.0 if player == 0 else -1.0)
