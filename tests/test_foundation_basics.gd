@@ -28,6 +28,25 @@ func test_default_hooks_return_neutral_values() -> void:
 	assert_bool(s.kill_on_fire(null, null, null)).is_false()
 	assert_str(s.trash_replacement_for(null, null, null)).is_equal("")
 
+class HandReactor extends CardScript:
+	func reacts_to() -> Array: return [Enums.EventType.CARD_RUMMAGED]
+	func active_zones() -> Array: return [Enums.Zone.HAND]
+	func react(card: CardInstance, _event: GameEvent, _ctx) -> void:
+		card.vars["reacted"] = true
+
+func test_hand_cards_can_react_when_active_zone_includes_hand() -> void:
+	var state := GameState.new(2)
+	var eng := GameEngine.new(state)
+	eng.setup(TestFactory.simple_deck(), TestFactory.simple_deck())
+	eng.apply(Action.mulligan([])); eng.apply(Action.mulligan([]))
+	var me := eng.state.active_player
+	var c := eng.state.make_instance(TestFactory.minion(1, 1, 1, 1))
+	c.card_script = HandReactor.new()
+	c.zone = Enums.Zone.HAND
+	eng.state.players[me].hand.append(c)
+	eng.emit(GameEvent.new(Enums.EventType.CARD_RUMMAGED, {"player": me, "instance": c.instance_id}))
+	assert_bool(c.vars.get("reacted", false)).is_true()
+
 func test_untap_and_set_taunt_verbs() -> void:
 	var state := GameState.new(1)
 	var eng := GameEngine.new(state)

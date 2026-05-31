@@ -60,6 +60,7 @@ func _trigger_candidates(ps: PlayerState) -> Array:
 	out.append_array(ps.board)
 	out.append_array(ps.set_traps)
 	out.append_array(ps.discard)
+	out.append_array(ps.hand)
 	return out
 
 func _ctx_for(pidx: int):
