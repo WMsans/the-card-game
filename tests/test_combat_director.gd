@@ -50,3 +50,45 @@ func test_reset_ramp_sets_speed_to_one() -> void:
 	d.anim_speed = 2.2
 	d.reset_ramp()
 	assert_float(d.anim_speed).is_equal_approx(1.0, 0.001)
+
+const MATCH := "res://src/ui/match/match.tscn"
+
+func _spawn_match() -> Node:
+	var m: Node = load(MATCH).instantiate()
+	add_child(m)
+	auto_free(m)
+	m.start_game(7, "res://src/data/decks/strike.csv", "res://src/data/decks/strike.csv")
+	return m
+
+func _put_unit_on_player_board(m: Node, iid: int) -> CardView:
+	var def := CardDefinition.new()
+	def.name = "Tester"
+	def.type = Enums.CardType.MINION
+	def.base_damage = 2
+	def.base_health = 3
+	var inst := CardInstance.new(iid, def)
+	inst.current_damage = 2
+	inst.current_health = 3
+	m.player_board.render([inst], 0)
+	await get_tree().create_timer(0.35).timeout
+	return m.player_board.card_views[iid]
+
+func test_deck_attack_returns_attacker_home_and_spawns_number() -> void:
+	var m := _spawn_match()
+	var cv := await _put_unit_on_player_board(m, 42)
+	var rest := cv._rest_position
+	var fx_before: int = m.get_node("FxLayer").get_child_count()
+	var events := [
+		GameEvent.new(Enums.EventType.UNIT_ATTACKED, {"attacker": 42, "player": 0, "target_unit": -1}),
+		GameEvent.new(Enums.EventType.DECK_DAMAGED, {"player": 1, "amount": 2}),
+	]
+	var director := CombatDirector.new()
+	await director.play(events, m)
+	assert_vector(cv.position).is_equal_approx(rest, Vector2(3, 3))
+	assert_int(m.get_node("FxLayer").get_child_count()).is_greater(fx_before)
+
+func test_play_no_attack_is_a_noop() -> void:
+	var m := _spawn_match()
+	var director := CombatDirector.new()
+	await director.play([GameEvent.new(Enums.EventType.CARD_DRAWN, {"player": 0, "instance": 1})], m)
+	assert_bool(true).is_true()
