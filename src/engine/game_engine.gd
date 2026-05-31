@@ -258,6 +258,14 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 		_lose(player_idx)
 		return false
 	ps.reshuffles_remaining -= 1
+	var returners: Array = []
+	for c in ps.discard:
+		if c.card_script != null and c.card_script.returns_on_reshuffle():
+			returners.append(c)
+	for c in returners:
+		ps.discard.erase(c)
+		c.zone = Enums.Zone.HAND
+		ps.hand.append(c)
 	ps.deck.append_array(ps.discard)
 	ps.discard.clear()
 	for c in ps.deck:

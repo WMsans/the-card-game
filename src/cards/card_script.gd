@@ -47,6 +47,9 @@ func apply_trash_replacement(_card: CardInstance, _target: CardInstance, _ctx) -
 # Bass Clef: while on board, all units take double damage.
 func doubles_all_damage() -> bool: return false
 
+# When this card would be reshuffled from discard, instead return to owner's hand.
+func returns_on_reshuffle() -> bool: return false
+
 # Dispatch hints.
 func reacts_to() -> Array: return []                                  # event types
 func active_zones() -> Array: return [Enums.Zone.BOARD, Enums.Zone.TRAP_SET]
