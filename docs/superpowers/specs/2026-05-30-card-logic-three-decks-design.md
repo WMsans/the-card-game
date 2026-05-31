@@ -179,7 +179,7 @@ Behavior is keyed by the source CSV id (`src/data/decks/<deck>.csv`). Paired dup
 
 | id(s) | Name | Type | Behavior |
 |---|---|---|---|
-| 1 | Plop, Grand Conductor | Leader | `on_cast` → `harmonize()` (all other Units). Own HARMONIZE effect: deal 6 deck damage to the enemy Deck. Second line "HARMONIZE: Trigger HARMONIZE effects for this turn" → see Rulings §6. |
+| 1 | Plop, Grand Conductor | Leader | `on_cast` → `harmonize()` (harmonizes all other Units). Own HARMONIZE effect: deal 6 deck damage to the enemy Deck (once). The "HARMONIZE: Trigger HARMONIZE effects for this turn" line is keyword reminder text, not a separate effect (Rulings §6). Played from hand like a unit (10 tickets / discard 5). |
 | 2,3 | Quarter Note | Minion | HARMONIZE → +2 Damage (once). `is_note`. |
 | 4,5 | Half Note | Minion | HARMONIZE → +1 Damage, +2 Health (once). `is_note`. |
 | 6,7 | Eighth Note | Minion | HARMONIZE → +3 Damage (once). `is_note`. |
@@ -223,7 +223,7 @@ All confirmed with the project owner during design.
 3. **Trash replacement choice:** when multiple "may instead" replacements apply to one trash (unit self-return / Shelley / Warlock), the owner is **prompted to choose** which to apply, or to just KO the unit — the same interactive treatment as the interceptor traps. A single applicable replacement is offered as a yes/no choice. At most one replacement resolves per trash.
 4. **Clef "one active":** a second Clef cannot be played while one is on the board (excluded from legal actions). No auto-bounce on play.
 5. **ORANGE is a token card,** not a counter (§3.4). "Gain 1 ORANGE" mints an Orange spell card into hand. Cap of 5 held per player; excess mints are wasted. Orange's fee reduction targets **any** hand card and is playable even with no other targets.
-6. **Plop's second HARMONIZE line** ("HARMONIZE: Trigger HARMONIZE effects for this turn"): interpreted as — when Plop is harmonized, it triggers an additional `harmonize()` this turn (a one-shot re-harmonize), guarded against infinite recursion by Plop's own per-turn lock. Implemented conservatively so it cannot loop.
+6. **Plop's second HARMONIZE line** ("HARMONIZE: Trigger HARMONIZE effects for this turn") is **keyword reminder text** explaining what HARMONIZE does — the same way other leaders restate their keyword — not a second effect. Plop has exactly one HARMONIZE effect (deal 6 deck damage) plus its on-cast "HARMONIZE all other Units." No self-retrigger.
 7. **Avatar's opponent trash selection:** the opponent trashes `that many` of their own Units; the opponent is the choosing player for which of their Units are trashed (interactive choice asked of the opponent). If the opponent has fewer Units than the count, they trash as many as they have.
 8. **Raccoon leader's two modes:** the "discard hand cards → deal damage" ability is an **activated** ability available while the Raccoon is on the **board**; the rummage-2 and return-on-reshuffle effects are **passives that work while it is in the discard pile**.
 9. **Bottom of the discard pile** = index 0 (front) of the `discard` array, consistent across RUMMAGE draws and Safety Net's redirect.
@@ -282,6 +282,6 @@ Each workstream ends with the full suite green before the next begins.
 ## 9. Risks
 
 - **Suspendable pipeline (§3.1)** is the largest refactor and touches the core combat loop. Mitigation: build and test it first in isolation, with a regression test asserting unchanged behavior when no interceptor is present.
-- **Re-entrancy / infinite loops** in HARMONIZE (Plop self-retrigger, Bass Clef "harmonize on survive" reacting to harmonize-induced damage) and RUMMAGE bonuses. Mitigation: per-turn / per-card locks and explicit recursion guards, covered by tests.
+- **Re-entrancy / infinite loops** in HARMONIZE (e.g. Bass Clef "harmonize on survive" reacting to harmonize-induced damage) and RUMMAGE bonuses. Mitigation: per-turn / per-card locks and explicit recursion guards, covered by tests.
 - **Trash replacement chain** interacting with the kill pipeline and with traps. Mitigation: resolve replacements before the unit enters the kill pipeline; test each priority path.
 - **Orange token** is a card with no CSV row; ensure database/registry/serialization paths tolerate a synthetic definition. Mitigation: registry/load test for `writing:100`.
