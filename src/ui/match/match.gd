@@ -561,7 +561,7 @@ func _on_overlay_expand() -> void:
 		var node: Node = nodes[i]
 		if node == null:
 			continue
-		var rest := _rest_transforms.get(node.get_instance_id(), {"position": node.global_position, "scale": Vector2.ONE})
+		var rest: Dictionary = _rest_transforms.get(node.get_instance_id(), {"position": node.global_position, "scale": Vector2.ONE})
 		var rest_pos: Vector2 = rest["position"]
 		var rest_scale: Vector2 = rest["scale"]
 		node.visible = true
