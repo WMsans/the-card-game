@@ -49,4 +49,4 @@ grow_vertical = 2
 
 [node name="Grid" type="GridContainer" parent="Scroll"]
 layout_mode = 2
-columns = 6
+columns = 8

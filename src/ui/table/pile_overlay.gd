@@ -2,7 +2,7 @@ class_name PileOverlay
 extends Control
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
-const CARD_SIZE := Vector2(350, 490)
+const CARD_SIZE := BoardLayout.CARD_SIZE * BoardLayout.CARD_SCALE
 const MAX_FLY_WINDOW := 1.0
 
 @onready var _backdrop: ColorRect = $Backdrop
@@ -32,6 +32,7 @@ func open(cards: Array[CardInstance], from_pos: Vector2, title: String) -> void:
 	for inst in PileSort.sorted(cards):
 		var cv: CardView = CARD_VIEW.instantiate()
 		cv.custom_minimum_size = CARD_SIZE
+		cv.set_base_scale(BoardLayout.CARD_SCALE)
 		cv.select_only = true
 		cv.modulate.a = 0.0
 		_grid.add_child(cv)
