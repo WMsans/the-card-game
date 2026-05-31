@@ -21,7 +21,7 @@ func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
 	JuicyButton.apply(_confirm)
 
-func start(hand_view, source_cards: Array, min_n: int, max_n: int, title: String) -> void:
+func start(hand_view, source_cards: Array, min_n: int, max_n: int, title: String, excluded_ids: Array = []) -> void:
 	if not is_node_ready():
 		await ready
 	if _active:
@@ -30,15 +30,17 @@ func start(hand_view, source_cards: Array, min_n: int, max_n: int, title: String
 	var source_ids: Array = []
 	for c in source_cards:
 		source_ids.append(c.instance_id)
-	_sel = StagedSelection.new(source_ids, min_n, max_n)
+	_sel = StagedSelection.new(source_ids, min_n, max_n, excluded_ids)
 	_title.text = title
 	_locked = []
 	for id in _hand_view.card_views.keys():
 		var cv: CardView = _hand_view.card_views[id]
-		cv.set_interactive(false)
+		cv.select_only = true
 		_locked.append(id)
 	_handlers = {}
 	for id in source_ids:
+		if excluded_ids.has(id):
+			continue
 		var cv: CardView = _hand_view.card_views.get(id)
 		if cv == null:
 			continue
@@ -94,7 +96,7 @@ func _deactivate() -> void:
 	for id in _locked:
 		var cv: CardView = _hand_view.card_views.get(id)
 		if cv != null:
-			cv.set_interactive(true)
+			cv.select_only = false
 	_locked.clear()
 	if _hand_view != null:
 		_hand_view.set_choice_excluded([])

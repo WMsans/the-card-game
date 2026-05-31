@@ -8,16 +8,20 @@ extends RefCounted
 var source_ids: Array       # instance_ids, index-aligned to the source card list
 var min_n: int
 var max_n: int
+var excluded: Array = []   # instance_ids that cannot be selected but count for indexing
 var staged: Array = []      # instance_ids in selection order
 
-func _init(p_source_ids: Array, p_min: int, p_max: int) -> void:
+func _init(p_source_ids: Array, p_min: int, p_max: int, p_excluded: Array = []) -> void:
 	source_ids = p_source_ids
 	min_n = p_min
 	max_n = p_max
+	excluded = p_excluded
 
 # Select / deselect / replace-rightmost. Returns {"added": id|-1, "removed": id|-1}
 # so the caller knows which card to fly to center and which to return to hand.
 func toggle(id: int) -> Dictionary:
+	if excluded.has(id):
+		return {"added": -1, "removed": -1}
 	if staged.has(id):
 		staged.erase(id)
 		return {"added": -1, "removed": id}

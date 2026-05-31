@@ -26,7 +26,7 @@ func show_selection(cards: Array, min_n: int, max_n: int, title: String) -> void
 	for c in _row.get_children(): c.queue_free()
 	for i in range(cards.size()):
 		var cv: CardView = CARD_VIEW.instantiate()
-		cv.set_interactive(false)
+		cv.select_only = true
 		_row.add_child(cv)
 		cv.setup(cards[i])
 		var idx := i

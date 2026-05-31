@@ -7,6 +7,9 @@ extends GdUnitTestSuite
 func _sel(min_n: int, max_n: int) -> StagedSelection:
 	return StagedSelection.new([10, 20, 30, 40], min_n, max_n)
 
+func _sel_excluded(min_n: int, max_n: int, excluded: Array) -> StagedSelection:
+	return StagedSelection.new([10, 20, 30, 40], min_n, max_n, excluded)
+
 func test_select_appends_under_max() -> void:
 	var s := _sel(0, 2)
 	s.toggle(10)
@@ -65,4 +68,20 @@ func test_to_indices_after_replace() -> void:
 	s.toggle(10)   # index 0
 	s.toggle(20)   # index 1
 	s.toggle(40)   # replaces 20 -> staged [10, 40] -> indices [0, 3]
+	assert_array(s.to_indices()).is_equal([0, 3])
+
+func test_excluded_id_cannot_be_toggled() -> void:
+	var s := _sel_excluded(0, 2, [20])
+	s.toggle(10)
+	var result := s.toggle(20)
+	assert_array(s.staged).is_equal([10])
+	assert_int(result["added"]).is_equal(-1)
+	assert_int(result["removed"]).is_equal(-1)
+
+func test_excluded_id_not_staged_via_replace() -> void:
+	var s := _sel_excluded(0, 2, [20])
+	s.toggle(10)
+	s.toggle(30)
+	s.toggle(40)
+	assert_array(s.staged).is_equal([10, 40])
 	assert_array(s.to_indices()).is_equal([0, 3])

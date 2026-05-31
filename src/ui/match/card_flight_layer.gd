@@ -20,9 +20,9 @@ func take_leaver(cv: CardView, to_pos: Vector2, delay: float = 0.0) -> void:
 	tw.finished.connect(cv.queue_free)
 
 # Spawn a fresh face-down traveler for a pile->pile move. `inst` may be the real
-# card (mill, so the flip reveals it) or null (reshuffle placeholder).
+# card (mill) or null (reshuffle placeholder). Pile-to-pile transitions never flip.
 func spawn_traveler(inst: CardInstance, from_pos: Vector2, to_pos: Vector2,
-		flip_on_land: bool, delay: float = 0.0) -> CardView:
+		delay: float = 0.0) -> CardView:
 	var cv: CardView = CARD_VIEW.instantiate()
 	add_child(cv)
 	cv.set_interactive(false)
@@ -34,8 +34,5 @@ func spawn_traveler(inst: CardInstance, from_pos: Vector2, to_pos: Vector2,
 	if delay > 0.0:
 		tw.tween_interval(delay)
 	tw.tween_property(cv, "position", to_pos, CardFlight.FLY_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	if flip_on_land:
-		tw.tween_callback(cv.flip_to_face_up)
-		tw.tween_interval(0.25)   # let the flip play before freeing
 	tw.tween_callback(cv.queue_free)
 	return cv

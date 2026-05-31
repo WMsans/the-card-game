@@ -12,9 +12,9 @@ func _spawn() -> Node:
 func test_spawn_traveler_adds_then_self_frees() -> void:
 	var m := _spawn()
 	var inst: CardInstance = m.state.players[0].deck[0]
-	var cv: CardView = m._flight.spawn_traveler(inst, Vector2(1700, 800), Vector2(1700, 600), true, 0.0)
+	var cv: CardView = m._flight.spawn_traveler(inst, Vector2(1700, 800), Vector2(1700, 600), 0.0)
 	assert_int(m._flight.get_child_count()).is_greater(0)
-	await get_tree().create_timer(CardFlight.FLY_TIME + 0.6).timeout
+	await get_tree().create_timer(CardFlight.FLY_TIME + 0.2).timeout
 	assert_bool(is_instance_valid(cv)).is_false()
 
 func test_take_leaver_reparents_and_frees() -> void:

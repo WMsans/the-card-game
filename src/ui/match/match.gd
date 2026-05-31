@@ -47,7 +47,7 @@ func _ready() -> void:
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
-	_hand_choice.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_hand_choice.confirmed.connect(_on_hand_choice_confirmed)
 	_option_prompt.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_trap_reveal.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
@@ -127,11 +127,11 @@ func _spawn_pile_travelers(plan: Array) -> void:
 			continue
 		if e["from"] == Enums.Zone.DECK and e["to"] == Enums.Zone.DISCARD:
 			_flight.spawn_traveler(_find_card(e["instance_id"]), e["from_pos"], e["to_pos"],
-				true, float(mill_i) * 0.05)
+				float(mill_i) * 0.05)
 			mill_i += 1
 		elif e["from"] == Enums.Zone.DISCARD and e["to"] == Enums.Zone.DECK:
 			if resh_i < 5:
-				_flight.spawn_traveler(null, e["from_pos"], e["to_pos"], false, float(resh_i) * 0.04)
+				_flight.spawn_traveler(null, e["from_pos"], e["to_pos"], float(resh_i) * 0.04)
 				resh_i += 1
 
 func _on_card_departed(cv: CardView, to_pos: Vector2) -> void:
@@ -167,7 +167,12 @@ func _route_pending_choice() -> void:
 		return
 	match pc.kind:
 		"mulligan":
-			_mulligan.show_hand(state.players[HUMAN].hand)
+			var hand := state.players[HUMAN].hand
+			var excluded := []
+			for c in hand:
+				if c.definition.type == Enums.CardType.LEADER:
+					excluded.append(c.instance_id)
+			_hand_choice.start(hand_view, hand, 2, 2, "Choose 2 cards to discard", excluded)
 		"discard_to_limit":
 			var n: int = pc.data["count"]
 			_hand_choice.start(hand_view, state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
@@ -236,6 +241,13 @@ func _on_play_again() -> void:
 func _on_end_turn_pressed() -> void:
 	if state.active_player == HUMAN and state.pending_choice == null:
 		apply_action(Action.end_turn())
+
+func _on_hand_choice_confirmed(indices: Array) -> void:
+	match state.pending_choice.kind:
+		"mulligan":
+			apply_action(Action.mulligan(indices))
+		_:
+			apply_action(Action.resolve_choice({"indices": indices}))
 
 func _refresh_highlights() -> void:
 	if engine == null:

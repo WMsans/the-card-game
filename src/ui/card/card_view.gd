@@ -52,6 +52,7 @@ var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
 var _last_pos: Vector2
 var _interactive: bool = true
+var select_only: bool = false
 var lift_on_hover: bool = false
 var _tween_hover: Tween
 var _tween_unhover: Tween
@@ -241,6 +242,8 @@ func _on_mouse_exited() -> void:
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _interactive:
+		return
+	if select_only and event is InputEventMouseButton:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
