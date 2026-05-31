@@ -41,6 +41,8 @@ static func _build() -> void:
 	_register("audio", 3, QuarterNote.new())
 	_register("audio", 4, HalfNote.new())
 	_register("audio", 5, HalfNote.new())
+	_register("audio", 6, EighthNote.new())
+	_register("audio", 7, EighthNote.new())
 
 static func get_script_for(deck: String, id: int) -> CardScript:
 	_build()
