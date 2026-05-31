@@ -17,6 +17,7 @@ func _on_expand_pressed() -> void:
 
 func show_bar(title_text: String) -> void:
 	_title.text = title_text
+	visible = true
 	_tab.visible = true
 	var tw := _tab.create_tween()
 	_tab.scale = Vector2.ZERO
@@ -25,4 +26,7 @@ func show_bar(title_text: String) -> void:
 func hide_bar() -> void:
 	var tw := _tab.create_tween()
 	tw.tween_property(_tab, "scale", Vector2.ZERO, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func(): _tab.visible = false)
+	tw.tween_callback(func():
+		_tab.visible = false
+		visible = false
+	)
