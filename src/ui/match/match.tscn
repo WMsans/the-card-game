@@ -16,6 +16,7 @@
 [ext_resource type="Theme" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/option_prompt.tscn" id="15_option"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/trap_reveal_overlay.tscn" id="16_trap_reveal"]
+[ext_resource type="Script" path="res://src/ui/match/card_flight_layer.gd" id="17_flight"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -139,6 +140,9 @@ offset_left = 110.0
 offset_top = 980.0
 offset_right = 400.0
 offset_bottom = 1020.0
+
+[node name="CardFlightLayer" type="Node2D" parent="Table"]
+script = ExtResource("17_flight")
 
 [node name="DragLayer" type="Control" parent="." unique_id=593884590]
 layout_mode = 1

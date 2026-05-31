@@ -32,6 +32,7 @@ var _target_candidates: Array = []
 @onready var _drop_zones: DropZoneOverlay = $DropZoneLayer
 @onready var _option_prompt = $OptionPrompt
 @onready var _trap_reveal = $TrapRevealOverlay
+@onready var _flight = $Table/CardFlightLayer
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
