@@ -67,3 +67,24 @@ func test_close_frees_cards_and_hides() -> void:
 	assert_int(grid.get_child_count()).is_equal(0)
 	assert_bool(o.visible).is_false()
 	assert_bool(o.is_open()).is_false()
+
+func test_cards_land_at_their_grid_slots() -> void:
+	var o := _overlay()
+	o.open(_three_cards(), Vector2(1700, 800), "Your Deck")
+	await get_tree().create_timer(1.2).timeout
+	var grid: GridContainer = o.find_child("Grid") as GridContainer
+	for cv in grid.get_children():
+		assert_bool(cv._rest_set).is_true()
+		assert_vector(cv.position).is_equal_approx(cv._rest_position, Vector2(2, 2))
+
+func test_cards_start_offset_from_their_slot() -> void:
+	var o := _overlay()
+	o.open(_three_cards(), Vector2(1700, 800), "Your Deck")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var grid: GridContainer = o.find_child("Grid") as GridContainer
+	var moved := false
+	for cv in grid.get_children():
+		if cv.position.distance_to(cv._rest_position) > 5.0:
+			moved = true
+	assert_bool(moved).is_true()
