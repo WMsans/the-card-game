@@ -2,6 +2,10 @@ extends Control
 
 const HUMAN := 0
 const THEME := preload("res://src/ui/theme/game_theme.tres")
+const MINIMIZE_STAGGER := 0.05
+const MINIMIZE_DURATION := 0.25
+const EXPAND_DURATION := 0.35
+const DIM_FADE_DURATION := 0.3
 
 var state: GameState
 var engine: GameEngine
@@ -14,8 +18,10 @@ var _target_candidates: Array = []
 var _director := CombatDirector.new()
 var _anim_busy: bool = false
 var _minimized_overlay: CanvasLayer = null
+# tracked for future re-entrancy guards and integration tests
 var _active_overlay: CanvasLayer = null
 var _rest_transforms: Dictionary = {}
+var _tweens: Array[Tween] = []
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -442,12 +448,13 @@ func _play_flourishes(events: Array) -> void:
 			$Banner.show_turn(e.data["player"] == HUMAN)
 			_director.reset_ramp()
 
-const MINIMIZE_STAGGER := 0.05
-const MINIMIZE_DURATION := 0.25
-const EXPAND_DURATION := 0.35
-const DIM_FADE_DURATION := 0.3
-
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
+	if _minimized_overlay != null:
+		return
+	for tw in _tweens:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	_tweens.clear()
 	_minimized_overlay = overlay
 	var dim: Control = overlay.get_dim_node()
 	var tab: Control = _minimize_bar.find_child("Tab")
@@ -469,18 +476,25 @@ func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 		if node == null:
 			continue
 		var tw := node.create_tween()
+		_tweens.push_back(tw)
 		tw.tween_interval(MINIMIZE_STAGGER * float(i))
 		tw.parallel().tween_property(node, "global_position", tab_pos, MINIMIZE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 		tw.parallel().tween_property(node, "scale", Vector2.ZERO, MINIMIZE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 	if dim != null:
+		if dim is ColorRect:
+			_rest_transforms["dim_color"] = dim.color
+		else:
+			_rest_transforms["dim_modulate"] = dim.modulate
 		var tw := dim.create_tween()
+		_tweens.push_back(tw)
 		if dim is ColorRect:
 			tw.tween_property(dim, "color:a", 0.0, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
 		else:
 			tw.tween_property(dim, "modulate:a", 0.0, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
 
 	var final_tw := create_tween()
+	_tweens.push_back(final_tw)
 	final_tw.tween_interval(MINIMIZE_DURATION + MINIMIZE_STAGGER * float(nodes.size()))
 	final_tw.tween_callback(func():
 		for node in nodes:
@@ -495,6 +509,10 @@ func _on_overlay_expand() -> void:
 	var overlay := _minimized_overlay
 	if overlay == null:
 		return
+	for tw in _tweens:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	_tweens.clear()
 	_minimize_bar.hide_bar()
 	var dim: Control = overlay.get_dim_node()
 	var nodes: Array[Node] = overlay.get_animatable_nodes()
@@ -506,12 +524,15 @@ func _on_overlay_expand() -> void:
 	if dim != null:
 		dim.visible = true
 		var tw := dim.create_tween()
+		_tweens.push_back(tw)
 		if dim is ColorRect:
-			dim.color = Color(0, 0, 0, 0.0)
-			tw.tween_property(dim, "color:a", 0.55, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
+			var orig_color: Color = _rest_transforms.get("dim_color", Color(0, 0, 0, 0.55))
+			dim.color = Color(orig_color, 0.0)
+			tw.tween_property(dim, "color:a", orig_color.a, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
 		else:
-			dim.modulate = Color(1, 1, 1, 0.0)
-			tw.tween_property(dim, "modulate:a", 1.0, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
+			var orig_mod: Color = _rest_transforms.get("dim_modulate", Color(1, 1, 1, 1.0))
+			dim.modulate = Color(orig_mod, 0.0)
+			tw.tween_property(dim, "modulate:a", orig_mod.a, DIM_FADE_DURATION).set_trans(Tween.TRANS_CUBIC)
 
 	for i in range(nodes.size()):
 		var node: Node = nodes[i]
@@ -524,6 +545,7 @@ func _on_overlay_expand() -> void:
 		node.global_position = tab_pos
 		node.scale = Vector2.ZERO
 		var tw := node.create_tween()
+		_tweens.push_back(tw)
 		tw.tween_interval(MINIMIZE_STAGGER * float(i))
 		tw.parallel().tween_property(node, "global_position", rest_pos, EXPAND_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.parallel().tween_property(node, "scale", rest_scale, EXPAND_DURATION).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
