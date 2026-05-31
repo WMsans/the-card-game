@@ -43,6 +43,11 @@ static func choice_action(engine: GameEngine) -> Action:
 					return Action.resolve_choice({"option": 0})
 				_:
 					return Action.resolve_choice({"indices": []})
+		"intercept":
+			return Action.resolve_choice({"option": 1})
+		"trash_choice":
+			var spec: ChoiceSpec = pc.data["spec"]
+			return Action.resolve_choice({"option": spec.labels.size() - 1})
 		_:
 			return Action.resolve_choice({"indices": []})
 

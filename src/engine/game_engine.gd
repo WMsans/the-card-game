@@ -60,11 +60,19 @@ func _trigger_candidates(ps: PlayerState) -> Array:
 	out.append_array(ps.board)
 	out.append_array(ps.set_traps)
 	out.append_array(ps.discard)
+	out.append_array(ps.hand)
 	return out
 
 func _ctx_for(pidx: int):
 	return EffectContextClass.new(self, pidx)
 
+func effective_cost(card: CardInstance, player_idx: int) -> int:
+	var base := card.definition.ticket_cost
+	var modd := 0
+	if card.card_script != null:
+		modd = card.card_script.cost_modifier(card, _ctx_for(player_idx))
+	var fee: int = card.vars.get("fee_modifier", 0)
+	return max(0, base + modd + fee)
 
 func _owner_of(unit: CardInstance) -> int:
 	for i in range(state.players.size()):
@@ -128,6 +136,34 @@ func _resolve_card_effect(params: Dictionary) -> void:
 	if not _suspended:
 		_pump()
 
+func _resolve_intercept(params: Dictionary) -> void:
+	var d := state.pending_choice.data
+	var option: int = params.get("option", 1)
+	var trap := _find_anywhere(d["trap_id"])
+	state.pending_choice = null
+	_suspended = false
+	match d["op"]:
+		"deck_damage":
+			if option == 0 and trap != null and trap.card_script != null:
+				_fire_trap(trap)
+				var remaining: int = trap.card_script.deck_damage_on_fire(
+					trap, d["player"], d["amount"], _ctx_for(d["player"]))
+				_apply_deck_damage(d["player"], remaining)
+			else:
+				_apply_deck_damage(d["player"], d["amount"])
+		"kill":
+			var unit := _find_anywhere(d["unit_id"])
+			if option == 0 and trap != null and trap.card_script != null and unit != null:
+				_fire_trap(trap)
+				var prevented: bool = trap.card_script.kill_on_fire(
+					trap, unit, _ctx_for(d["owner"]))
+				if not prevented:
+					_apply_kill(d["owner"], unit)
+			elif unit != null:
+				_apply_kill(d["owner"], unit)
+	if not _suspended:
+		_pump()
+
 func _build_choice_result(spec: ChoiceSpec, params: Dictionary) -> Dictionary:
 	match spec.ui_shape:
 		"select_cards":
@@ -175,7 +211,28 @@ func _mill(player_idx: int, n: int) -> void:
 			{"player": player_idx, "instance": card.instance_id}))
 
 func _deck_damage(player_idx: int, amount: int) -> void:
-	_mill(player_idx, amount)
+	_push({"kind": "call", "fn": func(): _begin_deck_damage(player_idx, amount)})
+	_pump()
+
+func _begin_deck_damage(player_idx: int, amount: int) -> void:
+	var ps := state.players[player_idx]
+	for trap in ps.set_traps:
+		if trap.card_script != null and trap.card_script.can_intercept_deck_damage(
+				trap, player_idx, amount, _ctx_for(player_idx)):
+			state.pending_choice = PendingChoice.new("intercept", player_idx, {
+				"op": "deck_damage", "trap_id": trap.instance_id,
+				"player": player_idx, "amount": amount,
+				"spec": ChoiceSpec.intercept(trap,
+					"Your Deck will take %d damage" % amount, ["Fire", "Decline"]),
+				"ui_shape": "intercept",
+			})
+			_suspended = true
+			return
+	_apply_deck_damage(player_idx, amount)
+
+func _apply_deck_damage(player_idx: int, amount: int) -> void:
+	if amount > 0:
+		_mill(player_idx, amount)
 	emit(GameEvent.new(Enums.EventType.DECK_DAMAGED,
 		{"player": player_idx, "amount": amount}))
 
@@ -196,6 +253,9 @@ func _reshuffle_or_lose(player_idx: int) -> bool:
 		_lose(player_idx)
 		return false
 	return true
+
+func _harmonize(player_idx: int) -> void:
+	emit(GameEvent.new(Enums.EventType.HARMONIZE, {"player": player_idx}))
 
 func _lose(player_idx: int) -> void:
 	state.winner = 1 - player_idx
@@ -301,7 +361,7 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 	if def.type == Enums.CardType.LEADER and pay_by_discard:
 		_mill(state.active_player, def.alt_discard_cost)
 	else:
-		ps.tickets_tapped += def.ticket_cost
+		ps.tickets_tapped += effective_cost(card, state.active_player)
 	ps.hand.erase(card)
 	ps.turn_counters["cards_played"] += 1
 	match def.type:
@@ -330,14 +390,39 @@ func _find_in_hand(ps: PlayerState, instance_id: int) -> CardInstance:
 func _end_turn() -> void:
 	state.phase = Enums.Phase.END
 	var ps := state.active()
-	if ps.hand.size() > 5:
+	if ps.hand.size() > _hand_limit(ps):
 		state.pending_choice = PendingChoice.new(
-			"discard_to_limit", state.active_player, {"count": ps.hand.size() - 5})
+			"discard_to_limit", state.active_player, {"count": ps.hand.size() - _hand_limit(ps)})
 		return
 	_finish_end_turn()
 
+func _gain_orange(player_idx: int) -> void:
+	var ps := state.players[player_idx]
+	var held := 0
+	for c in ps.hand:
+		if OrangeToken.is_orange(c):
+			held += 1
+	if held >= OrangeToken.MAX_HELD:
+		return
+	var ci := state.make_instance(OrangeToken.DEF)
+	ci.zone = Enums.Zone.HAND
+	ps.hand.append(ci)
+
+func _hand_limit(ps: PlayerState) -> int:
+	var oranges := 0
+	for c in ps.hand:
+		if OrangeToken.is_orange(c):
+			oranges += 1
+	return 5 + oranges
+
 func _apply_resolve_choice(params: Dictionary) -> void:
 	var pc := state.pending_choice
+	if pc.kind == "intercept":
+		_resolve_intercept(params)
+		return
+	if pc.kind == "trash_choice":
+		_resolve_trash_choice(params)
+		return
 	if pc.kind == "card_effect":
 		_resolve_card_effect(params)
 		return
@@ -393,18 +478,45 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
 	if r["def_dies"]:
-		_kill(state.opponent(), defender)
+		_kill(state.opponent(), defender, "battle")
 	if r["atk_dies"]:
-		_kill(state.active_player, attacker)
+		_kill(state.active_player, attacker, "battle")
 
-func _kill(owner_idx: int, unit: CardInstance) -> void:
+func _kill(owner_idx: int, unit: CardInstance, reason: String = "effect") -> void:
+	_push({"kind": "call", "fn": func(): _begin_kill(owner_idx, unit, reason)})
+	_pump()
+
+func _begin_kill(owner_idx: int, unit: CardInstance, reason: String) -> void:
 	if unit.vars.get("immortal_this_turn", false):
 		return
+	if not state.players[owner_idx].board.has(unit):
+		return
+	for trap in state.players[owner_idx].set_traps:
+		if trap.card_script != null and trap.card_script.can_intercept_kill(
+				trap, unit, reason, _ctx_for(owner_idx)):
+			state.pending_choice = PendingChoice.new("intercept", owner_idx, {
+				"op": "kill", "trap_id": trap.instance_id,
+				"owner": owner_idx, "unit_id": unit.instance_id,
+				"spec": ChoiceSpec.intercept(trap,
+					"%s would be killed" % unit.definition.name, ["Fire", "Decline"]),
+				"ui_shape": "intercept",
+			})
+			_suspended = true
+			return
+	_apply_kill(owner_idx, unit)
+
+func _apply_kill(owner_idx: int, unit: CardInstance) -> void:
 	var owner := state.players[owner_idx]
+	if not owner.board.has(unit):
+		return
 	owner.board.erase(unit)
 	unit.zone = Enums.Zone.DISCARD
 	unit.reset_stats()
-	owner.discard.append(unit)
+	if unit.vars.get("discard_to_bottom", false):
+		unit.vars.erase("discard_to_bottom")
+		owner.discard.push_front(unit)
+	else:
+		owner.discard.append(unit)
 	owner.turn_counters["units_died"] += 1
 	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
@@ -419,6 +531,80 @@ func _kill_unit(unit: CardInstance) -> void:
 	var owner := _owner_of(unit)
 	if owner >= 0 and state.players[owner].board.has(unit):
 		_kill(owner, unit)
+
+func _trash(unit: CardInstance) -> void:
+	var owner := _owner_of(unit)
+	if owner < 0:
+		return
+	emit(GameEvent.new(Enums.EventType.UNIT_TRASHED,
+		{"owner": owner, "instance": unit.instance_id}))
+	_push({"kind": "call", "fn": func(): _begin_trash(owner, unit)})
+	_pump()
+
+func _collect_trash_replacements(owner_idx: int, unit: CardInstance) -> Array:
+	var out: Array = []
+	var ctx: EffectContext = _ctx_for(owner_idx)
+	var ps: PlayerState = state.players[owner_idx]
+	var sources: Array = [unit]
+	if ps.leader != null and ps.leader != unit:
+		sources.append(ps.leader)
+	for u in ps.board:
+		if u != unit:
+			sources.append(u)
+	for src in sources:
+		if src.card_script == null:
+			continue
+		var label: String = src.card_script.trash_replacement_for(src, unit, ctx)
+		if label != "":
+			out.append({"label": label, "card": src})
+	return out
+
+func _begin_trash(owner_idx: int, unit: CardInstance) -> void:
+	if not state.players[owner_idx].board.has(unit):
+		return
+	var reps := _collect_trash_replacements(owner_idx, unit)
+	if reps.is_empty():
+		_trash_kill(owner_idx, unit)
+		return
+	var labels: Array = []
+	for r in reps:
+		labels.append(r["label"])
+	labels.append("Just KO it")
+	state.pending_choice = PendingChoice.new("trash_choice", owner_idx, {
+		"unit_id": unit.instance_id, "owner": owner_idx, "reps": reps,
+		"spec": ChoiceSpec.choose_option(labels, "TRASH %s — replace?" % unit.definition.name),
+		"ui_shape": "choose_option",
+	})
+	_suspended = true
+
+func _trash_kill(owner_idx: int, unit: CardInstance) -> void:
+	var ps := state.players[owner_idx]
+	if not ps.board.has(unit):
+		return
+	ps.board.erase(unit)
+	unit.zone = Enums.Zone.DISCARD
+	unit.reset_stats()
+	ps.discard.append(unit)
+	ps.turn_counters["units_died"] += 1
+	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
+		{"owner": owner_idx, "instance": unit.instance_id}))
+
+func _resolve_trash_choice(params: Dictionary) -> void:
+	var d := state.pending_choice.data
+	var reps: Array = d["reps"]
+	var option: int = params.get("option", reps.size())
+	var unit := _find_anywhere(d["unit_id"])
+	var owner: int = d["owner"]
+	state.pending_choice = null
+	_suspended = false
+	if unit != null:
+		if option < reps.size():
+			var rep = reps[option]
+			rep["card"].card_script.apply_trash_replacement(rep["card"], unit, _ctx_for(owner))
+		else:
+			_trash_kill(owner, unit)
+	if not _suspended:
+		_pump()
 
 func _discard_from_hand(card: CardInstance) -> void:
 	var owner := _owner_of(card)
@@ -468,6 +654,37 @@ func _put_on_deck_top(unit: CardInstance) -> void:
 	unit.zone = Enums.Zone.DECK
 	ps.deck.push_front(unit)
 
+func _rummage(player_idx: int, n: int) -> void:
+	var ps := state.players[player_idx]
+	var bonus := 0
+	for u in ps.board:
+		if u.card_script != null:
+			bonus += u.card_script.rummage_bonus(u, _ctx_for(player_idx))
+	var total := n + bonus
+	ps.turn_counters["rummages_made"] += 1
+	emit(GameEvent.new(Enums.EventType.RUMMAGE_PERFORMED,
+		{"player": player_idx, "count": total}))
+	for i in range(total):
+		if ps.discard.is_empty():
+			break
+		var card: CardInstance = ps.discard.pop_front()
+		card.zone = Enums.Zone.HAND
+		ps.hand.append(card)
+		emit(GameEvent.new(Enums.EventType.CARD_RUMMAGED,
+			{"player": player_idx, "instance": card.instance_id}))
+
+func _to_deck_bottom(card: CardInstance) -> void:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	ps.board.erase(card)
+	ps.hand.erase(card)
+	ps.discard.erase(card)
+	card.reset_stats()
+	card.zone = Enums.Zone.DECK
+	ps.deck.append(card)
+
 func _steal_top_discard(thief: int, victim: int) -> CardInstance:
 	var vps := state.players[victim]
 	if vps.discard.is_empty():
@@ -501,6 +718,19 @@ func _check_traps(event: GameEvent) -> void:
 func _trap_condition_met(_trap: CardInstance, _event: GameEvent) -> bool:
 	return false
 
+func _taunt_units(player_idx: int) -> Array:
+	var out: Array = []
+	for u in state.players[player_idx].board:
+		if u.vars.get("taunt", false):
+			out.append(u)
+	return out
+
+func _has_clef_on_board(player_idx: int) -> bool:
+	for u in state.players[player_idx].board:
+		if u.card_script != null and u.card_script.is_clef():
+			return true
+	return false
+
 func get_legal_actions() -> Array:
 	var out: Array = []
 	if state.phase == Enums.Phase.GAME_OVER:
@@ -512,18 +742,26 @@ func get_legal_actions() -> Array:
 	var ps := state.active()
 	for c in ps.hand:
 		var def := c.definition
-		if ps.available_tickets() >= def.ticket_cost:
+		var is_clef := c.card_script != null and c.card_script.is_clef()
+		if is_clef and _has_clef_on_board(state.active_player):
+			continue
+		if ps.available_tickets() >= effective_cost(c, state.active_player):
 			out.append(Action.play_card(c.instance_id))
 		if def.type == Enums.CardType.LEADER \
 				and ps.deck.size() + ps.discard.size() >= def.alt_discard_cost:
 			out.append(Action.play_card(c.instance_id, {"pay_by_discard": true}))
 	var opp := state.players[state.opponent()]
+	var taunts := _taunt_units(state.opponent())
 	for u in ps.board:
 		if u.tapped or not u.is_unit():
 			continue
-		out.append(Action.declare_attack(u.instance_id, {"deck": true}))
-		for d in opp.board:
-			out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+		if taunts.is_empty():
+			out.append(Action.declare_attack(u.instance_id, {"deck": true}))
+			for d in opp.board:
+				out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+		else:
+			for d in taunts:
+				out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
 	for u in ps.board:
 		if u.card_script == null:
 			continue
