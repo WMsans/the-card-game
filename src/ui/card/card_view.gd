@@ -311,3 +311,11 @@ func dissolve() -> Tween:
 	t.tween_property(_visuals.material, "shader_parameter/dissolve_value", 0.0, 0.8).from(1.0)
 	t.parallel().tween_property(_shadow, "self_modulate:a", 0.0, 0.8)
 	return t
+
+func flip_to_face_up() -> Tween:
+	_surface.pivot_offset = _surface.size * 0.5
+	var t := _surface.create_tween()
+	t.tween_property(_surface, "scale:x", 0.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	t.tween_callback(func(): set_face_down(false))
+	t.tween_property(_surface, "scale:x", 1.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	return t
