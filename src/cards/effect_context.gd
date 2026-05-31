@@ -31,6 +31,9 @@ func end_turn() -> void: engine._end_turn()
 func fire_trap(card: CardInstance) -> void: engine._fire_trap(card)
 func set_unit_flag(unit: CardInstance, flag: String) -> void: unit.vars[flag] = true
 
+func add_fee_modifier(card: CardInstance, delta: int) -> void:
+	card.vars["fee_modifier"] = int(card.vars.get("fee_modifier", 0)) + delta
+
 func request_met(card: CardInstance) -> bool: return engine._request_met(card)
 
 func emit(event: GameEvent) -> void: engine.emit(event)

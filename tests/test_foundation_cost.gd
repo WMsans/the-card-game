@@ -25,3 +25,13 @@ func test_effective_cost_never_negative() -> void:
 	for i in range(5):
 		place_on_board(eng, me, TestFactory.minion(1, 1, 1, 300 + i))
 	assert_int(eng.effective_cost(card, me)).is_equal(0)
+
+func test_add_fee_modifier_stacks_and_reduces_cost() -> void:
+	var eng := fresh_engine()
+	var me := eng.state.active_player
+	var ctx := EffectContext.new(eng, me)
+	var def := TestFactory.minion(5, 1, 1, 11)
+	var card := eng.state.make_instance(def)
+	ctx.add_fee_modifier(card, -1)
+	ctx.add_fee_modifier(card, -1)
+	assert_int(eng.effective_cost(card, me)).is_equal(3)
