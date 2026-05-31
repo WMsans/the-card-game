@@ -420,6 +420,9 @@ func _apply_resolve_choice(params: Dictionary) -> void:
 	if pc.kind == "intercept":
 		_resolve_intercept(params)
 		return
+	if pc.kind == "trash_choice":
+		_resolve_trash_choice(params)
+		return
 	if pc.kind == "card_effect":
 		_resolve_card_effect(params)
 		return
@@ -528,6 +531,80 @@ func _kill_unit(unit: CardInstance) -> void:
 	var owner := _owner_of(unit)
 	if owner >= 0 and state.players[owner].board.has(unit):
 		_kill(owner, unit)
+
+func _trash(unit: CardInstance) -> void:
+	var owner := _owner_of(unit)
+	if owner < 0:
+		return
+	emit(GameEvent.new(Enums.EventType.UNIT_TRASHED,
+		{"owner": owner, "instance": unit.instance_id}))
+	_push({"kind": "call", "fn": func(): _begin_trash(owner, unit)})
+	_pump()
+
+func _collect_trash_replacements(owner_idx: int, unit: CardInstance) -> Array:
+	var out: Array = []
+	var ctx: EffectContext = _ctx_for(owner_idx)
+	var ps: PlayerState = state.players[owner_idx]
+	var sources: Array = [unit]
+	if ps.leader != null and ps.leader != unit:
+		sources.append(ps.leader)
+	for u in ps.board:
+		if u != unit:
+			sources.append(u)
+	for src in sources:
+		if src.card_script == null:
+			continue
+		var label: String = src.card_script.trash_replacement_for(src, unit, ctx)
+		if label != "":
+			out.append({"label": label, "card": src})
+	return out
+
+func _begin_trash(owner_idx: int, unit: CardInstance) -> void:
+	if not state.players[owner_idx].board.has(unit):
+		return
+	var reps := _collect_trash_replacements(owner_idx, unit)
+	if reps.is_empty():
+		_trash_kill(owner_idx, unit)
+		return
+	var labels: Array = []
+	for r in reps:
+		labels.append(r["label"])
+	labels.append("Just KO it")
+	state.pending_choice = PendingChoice.new("trash_choice", owner_idx, {
+		"unit_id": unit.instance_id, "owner": owner_idx, "reps": reps,
+		"spec": ChoiceSpec.choose_option(labels, "TRASH %s — replace?" % unit.definition.name),
+		"ui_shape": "choose_option",
+	})
+	_suspended = true
+
+func _trash_kill(owner_idx: int, unit: CardInstance) -> void:
+	var ps := state.players[owner_idx]
+	if not ps.board.has(unit):
+		return
+	ps.board.erase(unit)
+	unit.zone = Enums.Zone.DISCARD
+	unit.reset_stats()
+	ps.discard.append(unit)
+	ps.turn_counters["units_died"] += 1
+	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
+		{"owner": owner_idx, "instance": unit.instance_id}))
+
+func _resolve_trash_choice(params: Dictionary) -> void:
+	var d := state.pending_choice.data
+	var reps: Array = d["reps"]
+	var option: int = params.get("option", reps.size())
+	var unit := _find_anywhere(d["unit_id"])
+	var owner: int = d["owner"]
+	state.pending_choice = null
+	_suspended = false
+	if unit != null:
+		if option < reps.size():
+			var rep = reps[option]
+			rep["card"].card_script.apply_trash_replacement(rep["card"], unit, _ctx_for(owner))
+		else:
+			_trash_kill(owner, unit)
+	if not _suspended:
+		_pump()
 
 func _discard_from_hand(card: CardInstance) -> void:
 	var owner := _owner_of(card)

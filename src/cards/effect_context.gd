@@ -31,6 +31,7 @@ func end_turn() -> void: engine._end_turn()
 func fire_trap(card: CardInstance) -> void: engine._fire_trap(card)
 func set_unit_flag(unit: CardInstance, flag: String) -> void: unit.vars[flag] = true
 func harmonize() -> void: engine._harmonize(pidx)
+func trash(unit: CardInstance) -> void: engine._trash(unit)
 func untap(unit: CardInstance) -> void: unit.tapped = false
 func set_taunt(unit: CardInstance) -> void: unit.vars["taunt"] = true
 func to_deck_bottom(card: CardInstance) -> void: engine._to_deck_bottom(card)
