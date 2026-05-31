@@ -23,3 +23,12 @@ func test_reset_stats_restores_base() -> void:
 func test_is_unit() -> void:
 	var inst := CardInstance.new(1, _make_def())
 	assert_bool(inst.is_unit()).is_true()
+
+func test_instance_has_vars_and_default_script() -> void:
+	var d := CardDefinition.new()
+	d.deck_color = "Test"
+	d.id = 1
+	var ci := CardInstance.new(7, d)
+	assert_object(ci.vars).is_not_null()
+	assert_int(ci.vars.size()).is_equal(0)
+	assert_object(ci.card_script).is_null()   # raw CardInstance.new does not resolve script

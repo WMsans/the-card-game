@@ -9,11 +9,15 @@
 [ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
 [ext_resource type="Script" uid="uid://cdyfwflmecq7i" path="res://src/ui/table/targeting_arrow.gd" id="8_arrow"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/mulligan_panel.tscn" id="9_mulligan"]
-[ext_resource type="PackedScene" path="res://src/ui/overlays/discard_panel.tscn" id="10_discard"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/card_select_panel.tscn" id="10_select"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/leader_cost_prompt.tscn" id="11_leader"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/game_over_panel.tscn" id="12_gameover"]
-[ext_resource type="Script" path="res://src/ui/table/drop_zone_overlay.gd" id="13_dropzone"]
-[ext_resource type="Theme" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
+[ext_resource type="Script" uid="uid://buc1vkxm2e5t4" path="res://src/ui/table/drop_zone_overlay.gd" id="13_dropzone"]
+[ext_resource type="Theme" uid="uid://0icwp3i8uuhc" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/option_prompt.tscn" id="15_option"]
+[ext_resource type="PackedScene" path="res://src/ui/overlays/trap_reveal_overlay.tscn" id="16_trap_reveal"]
+[ext_resource type="Script" uid="uid://cd6fl004v7gen" path="res://src/ui/match/card_flight_layer.gd" id="17_flight"]
+[ext_resource type="PackedScene" path="res://src/ui/match/hand_choice.tscn" id="18_hand_choice"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -138,6 +142,9 @@ offset_top = 980.0
 offset_right = 400.0
 offset_bottom = 1020.0
 
+[node name="CardFlightLayer" type="Node2D" parent="Table" unique_id=789826257]
+script = ExtResource("17_flight")
+
 [node name="DragLayer" type="Control" parent="." unique_id=593884590]
 layout_mode = 1
 anchors_preset = 15
@@ -162,10 +169,10 @@ script = ExtResource("8_arrow")
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=259239340]
 layout_mode = 0
-offset_left = 1700.0
-offset_top = 900.0
-offset_right = 1900.0
-offset_bottom = 960.0
+offset_left = 1634.0
+offset_top = 1001.0
+offset_right = 1834.0
+offset_bottom = 1061.0
 text = "End Turn"
 
 [node name="FxLayer" type="Control" parent="." unique_id=373358044]
@@ -179,10 +186,16 @@ mouse_filter = 2
 
 [node name="Banner" parent="." unique_id=1471180961 instance=ExtResource("7_banner")]
 
-[node name="MulliganPanel" parent="." instance=ExtResource("9_mulligan")]
+[node name="MulliganPanel" parent="." unique_id=470011808 instance=ExtResource("9_mulligan")]
 
-[node name="DiscardPanel" parent="." instance=ExtResource("10_discard")]
+[node name="CardSelectPanel" parent="." unique_id=671150273 instance=ExtResource("10_select")]
 
-[node name="LeaderCostPrompt" parent="." instance=ExtResource("11_leader")]
+[node name="LeaderCostPrompt" parent="." unique_id=1078641395 instance=ExtResource("11_leader")]
 
-[node name="GameOverPanel" parent="." instance=ExtResource("12_gameover")]
+[node name="GameOverPanel" parent="." unique_id=1293036184 instance=ExtResource("12_gameover")]
+
+[node name="OptionPrompt" parent="." unique_id=1712494367 instance=ExtResource("15_option")]
+
+[node name="TrapRevealOverlay" parent="." unique_id=137814282 instance=ExtResource("16_trap_reveal")]
+
+[node name="HandChoice" parent="." unique_id=1367267191 instance=ExtResource("18_hand_choice")]

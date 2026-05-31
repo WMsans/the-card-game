@@ -67,3 +67,30 @@ func test_tapped_unit_cannot_attack() -> void:
 	var attacks := eng.get_legal_actions().filter(
 		func(a: Action): return a.type == Enums.ActionType.DECLARE_ATTACK)
 	assert_array(attacks).is_empty()
+
+class TapAbility extends CardScript:
+	func activated_abilities(card, ctx) -> Array:
+		if card.tapped: return []
+		return [{"id": "go", "label": "Go"}]
+	func activate(card, ability_id, ctx) -> void:
+		if ability_id == "go": card.tapped = true
+
+func test_activated_ability_listed_and_applied() -> void:
+	var state := GameState.new(15)
+	var eng := GameEngine.new(state)
+	eng.setup(TestFactory.simple_deck(), TestFactory.simple_deck())
+	eng.apply(Action.mulligan([]))
+	eng.apply(Action.mulligan([]))
+	var u := state.make_instance(TestFactory.minion(1, 1, 1, 610))
+	u.card_script = TapAbility.new()
+	u.zone = Enums.Zone.BOARD
+	u.tapped = false
+	state.active().board.append(u)
+	var legal := eng.get_legal_actions()
+	var has_ability := false
+	for a in legal:
+		if a.type == Enums.ActionType.ACTIVATE_ABILITY and a.params["instance_id"] == u.instance_id:
+			has_ability = true
+	assert_bool(has_ability).is_true()
+	eng.apply(Action.activate_ability(u.instance_id, "go"))
+	assert_bool(u.tapped).is_true()

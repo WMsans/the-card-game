@@ -52,6 +52,8 @@ var _displacement: float = 0.0
 var _osc_velocity: float = 0.0
 var _last_pos: Vector2
 var _interactive: bool = true
+var select_only: bool = false
+var lift_on_hover: bool = false
 var _tween_hover: Tween
 var _tween_unhover: Tween
 var _tween_grab: Tween
@@ -215,7 +217,8 @@ func _on_mouse_entered() -> void:
 		_tween_tilt.kill()
 	_tween_hover = create_tween()
 	_tween_hover.tween_property(self, "scale", Vector2(hover_scale, hover_scale) * base_scale, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	if lift_on_hover:
+		_tween_hover.parallel().tween_property(self, "position:y", _rest_position.y + hover_lift, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
 func _on_mouse_exited() -> void:
 	if not _interactive or _dragging or _active_drag != null:
@@ -229,7 +232,8 @@ func _on_mouse_exited() -> void:
 		_tween_unhover.kill()
 	_tween_unhover = create_tween()
 	_tween_unhover.tween_property(self, "scale", Vector2.ONE * base_scale, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	_tween_unhover.parallel().tween_property(self, "position:y", _rest_position.y, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	if lift_on_hover:
+		_tween_unhover.parallel().tween_property(self, "position:y", _rest_position.y, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	if _tween_tilt and _tween_tilt.is_running():
 		_tween_tilt.kill()
 	_tween_tilt = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
@@ -238,6 +242,8 @@ func _on_mouse_exited() -> void:
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _interactive:
+		return
+	if select_only and event is InputEventMouseButton:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
@@ -307,4 +313,12 @@ func dissolve() -> Tween:
 	var t := create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(_visuals.material, "shader_parameter/dissolve_value", 0.0, 0.8).from(1.0)
 	t.parallel().tween_property(_shadow, "self_modulate:a", 0.0, 0.8)
+	return t
+
+func flip_to_face_up() -> Tween:
+	_surface.pivot_offset = _surface.size * 0.5
+	var t := _surface.create_tween()
+	t.tween_property(_surface, "scale:x", 0.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	t.tween_callback(func(): set_face_down(false))
+	t.tween_property(_surface, "scale:x", 1.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	return t

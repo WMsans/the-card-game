@@ -9,6 +9,7 @@ var phase: int = Enums.Phase.SETUP
 var rng: SeededRng
 var bus: EventBus
 var pending_choice: PendingChoice = null
+var turn_flags: Dictionary = {}
 var winner: int = -1
 var _next_instance_id: int = 1
 
@@ -25,5 +26,6 @@ func active() -> PlayerState:
 
 func make_instance(def: CardDefinition) -> CardInstance:
 	var ci := CardInstance.new(_next_instance_id, def)
+	ci.card_script = CardScriptRegistry.get_script_for(def.deck_color, def.id)
 	_next_instance_id += 1
 	return ci

@@ -11,6 +11,7 @@ var tickets_total: int = 0
 var tickets_tapped: int = 0
 var reshuffles_remaining: int = 4
 var turns_taken: int = 0
+var all_requests_met_this_turn: bool = false
 var turn_counters: Dictionary = {}
 
 func _init() -> void:
@@ -20,9 +21,11 @@ func available_tickets() -> int:
 	return tickets_total - tickets_tapped
 
 func reset_turn_counters() -> void:
+	all_requests_met_this_turn = false
 	turn_counters = {
 		"cards_played": 0,
 		"cards_discarded": 0,
 		"attacks_made": 0,
 		"units_died": 0,
+		"rummages_made": 0,
 	}

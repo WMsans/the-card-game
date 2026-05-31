@@ -9,6 +9,8 @@ var _selected_attacker: int = -1
 var _deck0_path: String
 var _deck1_path: String
 var _dragging_id: int = -1
+var _targeting_for_choice: bool = false
+var _target_candidates: Array = []
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -24,10 +26,14 @@ var _dragging_id: int = -1
 @onready var _end_turn: Button = $EndTurnButton
 @onready var _arrow: Node2D = $ArrowLayer
 @onready var _mulligan: MulliganPanel = $MulliganPanel
-@onready var _discard = $DiscardPanel
+@onready var _select = $CardSelectPanel
 @onready var _leader_prompt = $LeaderCostPrompt
 @onready var _game_over = $GameOverPanel
 @onready var _drop_zones: DropZoneOverlay = $DropZoneLayer
+@onready var _option_prompt = $OptionPrompt
+@onready var _trap_reveal = $TrapRevealOverlay
+@onready var _flight = $Table/CardFlightLayer
+@onready var _hand_choice = $HandChoice
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -35,9 +41,15 @@ func _ready() -> void:
 	hand_view.card_drag_started.connect(_on_hand_card_drag_started)
 	player_board.unit_clicked.connect(handle_unit_clicked)
 	opp_board.unit_clicked.connect(handle_unit_clicked)
+	hand_view.card_departed.connect(_on_card_departed)
+	player_board.card_departed.connect(_on_card_departed)
+	opp_board.card_departed.connect(_on_card_departed)
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
-	_discard.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_hand_choice.confirmed.connect(_on_hand_choice_confirmed)
+	_option_prompt.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
+	_trap_reveal.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
 	theme = THEME
@@ -55,19 +67,22 @@ func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void
 	_post_action()
 
 func apply_action(action: Action) -> void:
+	var before := _snapshot_zones()
 	var from := state.bus.log.size()
 	engine.apply(action)
 	var events := state.bus.log.slice(from)
-	render_all()
+	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
+	render_all(plan)
+	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
 	_post_action()
 
-func render_all() -> void:
+func render_all(plan: Array = []) -> void:
 	var you := state.players[HUMAN]
 	var opp := state.players[1 - HUMAN]
-	player_board.render(you.board, 0)
-	opp_board.render(opp.board, 1)
-	hand_view.render(you.hand, 0)
+	player_board.render(you.board, 0, plan)
+	opp_board.render(opp.board, 1, plan)
+	hand_view.render(you.hand, 0, plan)
 	opp_hand.set_count(opp.hand.size())
 	_player_deck.set_count(you.deck.size())
 	_player_discard.set_count(you.discard.size())
@@ -76,6 +91,59 @@ func render_all() -> void:
 	_player_leader.set_count(1 if you.leader else 0)
 	_opp_leader.set_count(1 if opp.leader else 0)
 	_tickets.set_tickets(you.tickets_tapped, you.tickets_total)
+
+func _snapshot_zones() -> Dictionary:
+	var snap := {}
+	for p in range(state.players.size()):
+		var ps: PlayerState = state.players[p]
+		for c in ps.deck:
+			snap[c.instance_id] = {"zone": Enums.Zone.DECK, "player": p}
+		for c in ps.hand:
+			snap[c.instance_id] = {"zone": Enums.Zone.HAND, "player": p}
+		for c in ps.board:
+			snap[c.instance_id] = {"zone": Enums.Zone.BOARD, "player": p}
+		for c in ps.discard:
+			snap[c.instance_id] = {"zone": Enums.Zone.DISCARD, "player": p}
+	return snap
+
+func _enrich(raw: Array) -> Array:
+	var out: Array = []
+	for t in raw:
+		var e: Dictionary = t.duplicate()
+		if t["from"] == Enums.Zone.DECK or t["from"] == Enums.Zone.DISCARD:
+			e["from_pos"] = FlightAnchors.of(t["from"], t["player"], self) - BoardLayout.CARD_PIVOT
+		if t["to"] == Enums.Zone.DECK or t["to"] == Enums.Zone.DISCARD:
+			e["to_pos"] = FlightAnchors.of(t["to"], t["player"], self) - BoardLayout.CARD_PIVOT
+		out.append(e)
+	return out
+
+func _spawn_pile_travelers(plan: Array) -> void:
+	var mill_i := 0
+	var resh_i := 0
+	for e in plan:
+		var from_pile: bool = e["from"] == Enums.Zone.DECK or e["from"] == Enums.Zone.DISCARD
+		var to_pile: bool = e["to"] == Enums.Zone.DECK or e["to"] == Enums.Zone.DISCARD
+		if not (from_pile and to_pile):
+			continue
+		if e["from"] == Enums.Zone.DECK and e["to"] == Enums.Zone.DISCARD:
+			_flight.spawn_traveler(_find_card(e["instance_id"]), e["from_pos"], e["to_pos"],
+				float(mill_i) * 0.05)
+			mill_i += 1
+		elif e["from"] == Enums.Zone.DISCARD and e["to"] == Enums.Zone.DECK:
+			if resh_i < 5:
+				_flight.spawn_traveler(null, e["from_pos"], e["to_pos"], float(resh_i) * 0.04)
+				resh_i += 1
+
+func _on_card_departed(cv: CardView, to_pos: Vector2) -> void:
+	_flight.take_leaver(cv, to_pos)
+
+func _find_card(iid: int) -> CardInstance:
+	for p in state.players:
+		for coll in [p.deck, p.hand, p.board, p.discard]:
+			for c in coll:
+				if c.instance_id == iid:
+					return c
+	return null
 
 func _post_action() -> void:
 	_refresh_highlights()
@@ -92,14 +160,67 @@ func _post_action() -> void:
 func _route_pending_choice() -> void:
 	var pc := state.pending_choice
 	if pc.player != HUMAN:
+		if pc.kind == "intercept":
+			await _show_readonly_intercept(pc)
 		await get_tree().create_timer(0.2).timeout
 		apply_action(AiController.choice_action(engine))
 		return
 	match pc.kind:
 		"mulligan":
-			_mulligan.show_hand(state.players[HUMAN].hand)
+			var hand := state.players[HUMAN].hand
+			var excluded := []
+			for c in hand:
+				if c.definition.type == Enums.CardType.LEADER:
+					excluded.append(c.instance_id)
+			_hand_choice.start(hand_view, hand, 2, 2, "Choose 2 cards to discard", excluded)
 		"discard_to_limit":
-			_discard.show_hand(state.players[HUMAN].hand, pc.data["count"])
+			var n: int = pc.data["count"]
+			_hand_choice.start(hand_view, state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
+		"intercept":
+			var spec: ChoiceSpec = pc.data["spec"]
+			_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, true)
+		"trash_choice":
+			var spec2: ChoiceSpec = pc.data["spec"]
+			_option_prompt.show_options(spec2.labels, spec2.title)
+		"card_effect":
+			_route_card_effect(pc)
+
+func _route_card_effect(pc: PendingChoice) -> void:
+	var spec: ChoiceSpec = pc.data["spec"]
+	match spec.ui_shape:
+		"select_cards":
+			if _is_hand_pool(spec.cards):
+				_hand_choice.start(hand_view, spec.cards, spec.min_n, spec.max_n, spec.title)
+			else:
+				_select.show_selection(spec.cards, spec.min_n, spec.max_n, spec.title)
+		"choose_option":
+			_option_prompt.show_options(spec.labels, spec.title)
+		"select_target":
+			_begin_target_selection(spec)
+
+func _is_hand_pool(cards: Array) -> bool:
+	if cards.is_empty():
+		return false
+	var hand_ids := {}
+	for c in state.players[HUMAN].hand:
+		hand_ids[c.instance_id] = true
+	for c in cards:
+		if not hand_ids.has(c.instance_id):
+			return false
+	return true
+
+func _show_readonly_intercept(pc: PendingChoice) -> void:
+	var spec: ChoiceSpec = pc.data["spec"]
+	_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, false)
+	await get_tree().create_timer(0.8).timeout
+	_trap_reveal.dismiss()
+
+func _begin_target_selection(spec: ChoiceSpec) -> void:
+	_target_candidates = []
+	for u in spec.cards:
+		_target_candidates.append(u.instance_id)
+	_targeting_for_choice = true
+	_refresh_highlights()
 
 func _run_ai_turn() -> void:
 	await get_tree().create_timer(0.35).timeout
@@ -121,6 +242,13 @@ func _on_end_turn_pressed() -> void:
 	if state.active_player == HUMAN and state.pending_choice == null:
 		apply_action(Action.end_turn())
 
+func _on_hand_choice_confirmed(indices: Array) -> void:
+	match state.pending_choice.kind:
+		"mulligan":
+			apply_action(Action.mulligan(indices))
+		_:
+			apply_action(Action.resolve_choice({"indices": indices}))
+
 func _refresh_highlights() -> void:
 	if engine == null:
 		return
@@ -138,6 +266,13 @@ func _refresh_highlights() -> void:
 	for iid in player_board.card_views:
 		var cv: CardView = player_board.card_views[iid]
 		cv.set_attackable(attacker_ids.has(iid))
+	if _targeting_for_choice:
+		for iid in player_board.card_views:
+			var cv: CardView = player_board.card_views[iid]
+			cv.set_highlight(CardHighlight.State.SELECTABLE if _target_candidates.has(iid) else CardHighlight.State.NONE)
+		for iid in opp_board.card_views:
+			var cv: CardView = opp_board.card_views[iid]
+			cv.set_highlight(CardHighlight.State.SELECTABLE if _target_candidates.has(iid) else CardHighlight.State.NONE)
 
 func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	var legal: Array = engine.get_legal_actions()
@@ -162,6 +297,11 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	return false
 
 func handle_unit_clicked(instance_id: int) -> void:
+	if _targeting_for_choice:
+		if _target_candidates.has(instance_id):
+			_targeting_for_choice = false
+			apply_action(Action.resolve_choice({"target_ids": [instance_id]}))
+		return
 	if _selected_attacker == -1:
 		if instance_id in legal_attacker_ids():
 			_selected_attacker = instance_id

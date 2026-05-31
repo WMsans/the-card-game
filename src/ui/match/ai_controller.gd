@@ -25,6 +25,29 @@ static func choice_action(engine: GameEngine) -> Action:
 			for i in range(n):
 				idx.append(i)
 			return Action.resolve_choice({"indices": idx})
+		"card_effect":
+			var spec: ChoiceSpec = pc.data["spec"]
+			match spec.ui_shape:
+				"select_cards":
+					var idx: Array = []
+					for i in range(spec.min_n):
+						idx.append(i)
+					return Action.resolve_choice({"indices": idx})
+				"select_target":
+					var ids: Array = []
+					var need: int = max(spec.min_n, 0)
+					for i in range(min(need, spec.cards.size())):
+						ids.append(spec.cards[i].instance_id)
+					return Action.resolve_choice({"target_ids": ids})
+				"choose_option":
+					return Action.resolve_choice({"option": 0})
+				_:
+					return Action.resolve_choice({"indices": []})
+		"intercept":
+			return Action.resolve_choice({"option": 1})
+		"trash_choice":
+			var spec: ChoiceSpec = pc.data["spec"]
+			return Action.resolve_choice({"option": spec.labels.size() - 1})
 		_:
 			return Action.resolve_choice({"indices": []})
 

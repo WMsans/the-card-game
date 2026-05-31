@@ -8,7 +8,7 @@
 [ext_resource type="Shader" uid="uid://cw50pxx388iey" path="res://src/ui/assets/shaders/fake_3D.gdshader" id="6_1w3ji"]
 [ext_resource type="Texture2D" uid="uid://c5h36x8oq1dj1" path="res://src/ui/assets/shadow.png" id="7_ojgne"]
 [ext_resource type="Shader" uid="uid://bkx5ijghxv2fb" path="res://src/ui/card/circle_mask.gdshader" id="8_emblem"]
-[ext_resource type="Script" path="res://src/ui/theme/card_highlight.gd" id="9_hl"]
+[ext_resource type="Script" uid="uid://b6368lfnmujpt" path="res://src/ui/theme/card_highlight.gd" id="9_hl"]
 
 [sub_resource type="ShaderMaterial" id="fake3d_mat"]
 resource_local_to_scene = true
