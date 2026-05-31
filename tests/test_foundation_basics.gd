@@ -27,3 +27,14 @@ func test_default_hooks_return_neutral_values() -> void:
 	assert_bool(s.can_intercept_kill(null, null, "battle", null)).is_false()
 	assert_bool(s.kill_on_fire(null, null, null)).is_false()
 	assert_str(s.trash_replacement_for(null, null, null)).is_equal("")
+
+func test_untap_and_set_taunt_verbs() -> void:
+	var state := GameState.new(1)
+	var eng := GameEngine.new(state)
+	var ctx := EffectContext.new(eng, 0)
+	var u := CardInstance.new(1, TestFactory.minion(1, 1, 1, 1))
+	u.tapped = true
+	ctx.untap(u)
+	assert_bool(u.tapped).is_false()
+	ctx.set_taunt(u)
+	assert_bool(u.vars.get("taunt", false)).is_true()

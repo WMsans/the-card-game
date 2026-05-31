@@ -513,6 +513,18 @@ func _rummage(player_idx: int, n: int) -> void:
 		emit(GameEvent.new(Enums.EventType.CARD_RUMMAGED,
 			{"player": player_idx, "instance": card.instance_id}))
 
+func _to_deck_bottom(card: CardInstance) -> void:
+	var owner := _owner_of(card)
+	if owner < 0:
+		return
+	var ps := state.players[owner]
+	ps.board.erase(card)
+	ps.hand.erase(card)
+	ps.discard.erase(card)
+	card.reset_stats()
+	card.zone = Enums.Zone.DECK
+	ps.deck.append(card)
+
 func _steal_top_discard(thief: int, victim: int) -> CardInstance:
 	var vps := state.players[victim]
 	if vps.discard.is_empty():

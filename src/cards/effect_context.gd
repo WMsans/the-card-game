@@ -30,6 +30,10 @@ func steal_top_discard(opp: int) -> CardInstance: return engine._steal_top_disca
 func end_turn() -> void: engine._end_turn()
 func fire_trap(card: CardInstance) -> void: engine._fire_trap(card)
 func set_unit_flag(unit: CardInstance, flag: String) -> void: unit.vars[flag] = true
+func harmonize() -> void: engine._harmonize(pidx)
+func untap(unit: CardInstance) -> void: unit.tapped = false
+func set_taunt(unit: CardInstance) -> void: unit.vars["taunt"] = true
+func to_deck_bottom(card: CardInstance) -> void: engine._to_deck_bottom(card)
 
 func add_fee_modifier(card: CardInstance, delta: int) -> void:
 	card.vars["fee_modifier"] = int(card.vars.get("fee_modifier", 0)) + delta
