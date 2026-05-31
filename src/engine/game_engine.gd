@@ -494,6 +494,25 @@ func _put_on_deck_top(unit: CardInstance) -> void:
 	unit.zone = Enums.Zone.DECK
 	ps.deck.push_front(unit)
 
+func _rummage(player_idx: int, n: int) -> void:
+	var ps := state.players[player_idx]
+	var bonus := 0
+	for u in ps.board:
+		if u.card_script != null:
+			bonus += u.card_script.rummage_bonus(u, _ctx_for(player_idx))
+	var total := n + bonus
+	ps.turn_counters["rummages_made"] += 1
+	emit(GameEvent.new(Enums.EventType.RUMMAGE_PERFORMED,
+		{"player": player_idx, "count": total}))
+	for i in range(total):
+		if ps.discard.is_empty():
+			break
+		var card: CardInstance = ps.discard.pop_front()
+		card.zone = Enums.Zone.HAND
+		ps.hand.append(card)
+		emit(GameEvent.new(Enums.EventType.CARD_RUMMAGED,
+			{"player": player_idx, "instance": card.instance_id}))
+
 func _steal_top_discard(thief: int, victim: int) -> CardInstance:
 	var vps := state.players[victim]
 	if vps.discard.is_empty():

@@ -41,3 +41,4 @@ func request_choice(card: CardInstance, spec, tag: String, asked_player: int = -
 	engine._request_choice(card, spec, tag, asked_player if asked_player >= 0 else pidx)
 
 func gain_orange(player: int) -> void: engine._gain_orange(player)
+func rummage(n: int) -> void: engine._rummage(pidx, n)
