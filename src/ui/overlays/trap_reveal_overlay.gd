@@ -48,7 +48,7 @@ func dismiss() -> void:
 	visible = false
 
 func get_animatable_nodes() -> Array[Node]:
-	return [_name, $Center/Panel/Margin/VBox/Body, _buttons]
+	return [_name, $Center/Panel/Margin/VBox/Body, _buttons, $Center/Panel/Margin/VBox/MinimizeButton]
 
 func get_dim_node() -> ColorRect:
 	return $Dim

@@ -47,8 +47,11 @@ var _tweens: Array[Tween] = []
 @onready var _hand_choice = $HandChoice
 @onready var _pile_overlay = $PileOverlay
 @onready var _minimize_bar = $MinimizeBar
+@onready var _hand_choice_dim: ColorRect = $Table/HandChoiceDim
 
 func _ready() -> void:
+	_hand_choice._dim_node = _hand_choice_dim
+	hand_view.z_index = 1
 	_end_turn.pressed.connect(_on_end_turn_pressed)
 	hand_view.card_drag_released.connect(_on_hand_card_drag_released)
 	hand_view.card_drag_started.connect(_on_hand_card_drag_started)
@@ -368,6 +371,8 @@ func handle_deck_target_clicked() -> void:
 func _on_pile_clicked(zone: int, player: int) -> void:
 	if _anim_busy or _pile_overlay.is_open() or _selected_attacker != -1:
 		return
+	if _active_overlay != null and _minimized_overlay == null:
+		return
 	var ps: PlayerState = state.players[player]
 	var cards: Array[CardInstance] = ps.deck if zone == Enums.Zone.DECK else ps.discard
 	if cards.is_empty():
@@ -474,6 +479,8 @@ func _play_flourishes(events: Array) -> void:
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:
 		return
+	if overlay.has_method("on_minimize"):
+		overlay.on_minimize()
 	for tw in _tweens:
 		if tw != null and tw.is_valid():
 			tw.kill()
@@ -532,6 +539,8 @@ func _on_overlay_expand() -> void:
 	var overlay := _minimized_overlay
 	if overlay == null:
 		return
+	if overlay.has_method("on_expand"):
+		overlay.on_expand()
 	for tw in _tweens:
 		if tw != null and tw.is_valid():
 			tw.kill()

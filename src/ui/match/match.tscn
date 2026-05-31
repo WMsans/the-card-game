@@ -144,6 +144,17 @@ offset_top = 980.0
 offset_right = 400.0
 offset_bottom = 1020.0
 
+[node name="HandChoiceDim" type="ColorRect" parent="Table" unique_id=512000100]
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.55)
+visible = false
+
 [node name="CardFlightLayer" type="Node2D" parent="Table" unique_id=789826257]
 script = ExtResource("17_flight")
 

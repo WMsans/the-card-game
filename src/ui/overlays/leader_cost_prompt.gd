@@ -28,7 +28,7 @@ func _emit(by_discard: bool) -> void:
 	chosen.emit(by_discard)
 
 func get_animatable_nodes() -> Array[Node]:
-	return [$Panel/PromptLabel, _tickets_btn, _discard_btn]
+	return [$Panel/PromptLabel, _tickets_btn, _discard_btn, $Panel/MinimizeButton]
 
 func get_dim_node() -> Control:
 	return $Panel
