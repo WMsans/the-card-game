@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://src/ui/match/hand_choice.tscn" id="18_hand_choice"]
 [ext_resource type="PackedScene" path="res://src/ui/table/pile_overlay.tscn" id="19_pileoverlay"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/minimize_bar.tscn" id="20_minbar"]
+[ext_resource type="PackedScene" path="res://src/ui/match/balatro_bg.tscn" id="21_bg"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -30,6 +31,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_match")
 
+[node name="BalatroBg" parent="." instance=ExtResource("21_bg")]
+
 [node name="Table" type="Control" parent="." unique_id=1177751450]
 layout_mode = 1
 anchors_preset = 15
@@ -38,14 +41,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="FeltFrame" type="Panel" parent="Table" unique_id=512000001]
-layout_mode = 0
-offset_left = 300.0
-offset_top = 220.0
-offset_right = 1620.0
-offset_bottom = 800.0
-mouse_filter = 2
-theme = ExtResource("14_theme")
+
 
 [node name="PlayerLeaderStation" type="Panel" parent="Table" unique_id=512000002]
 layout_mode = 0

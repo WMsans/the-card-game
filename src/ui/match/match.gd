@@ -48,6 +48,7 @@ var _tweens: Array[Tween] = []
 @onready var _pile_overlay = $PileOverlay
 @onready var _minimize_bar = $MinimizeBar
 @onready var _hand_choice_dim: ColorRect = $Table/HandChoiceDim
+@onready var _bg: BalatroBg = $BalatroBg
 
 func _ready() -> void:
 	_hand_choice._dim_node = _hand_choice_dim
@@ -80,6 +81,7 @@ func _ready() -> void:
 	_minimize_bar.expand_pressed.connect(_on_overlay_expand)
 	theme = THEME
 	JuicyButton.apply(_end_turn)
+	_bg.foreground_offset.connect(_on_foreground_offset)
 
 func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void:
 	_deck0_path = deck0_path
@@ -599,3 +601,6 @@ func _overlay_title(overlay: CanvasLayer) -> String:
 	if label != null:
 		return label.text
 	return "Choose"
+
+func _on_foreground_offset(offset: Vector2) -> void:
+	$Table.position = offset
