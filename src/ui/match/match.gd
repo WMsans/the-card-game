@@ -36,6 +36,7 @@ var _anim_busy: bool = false
 @onready var _trap_reveal = $TrapRevealOverlay
 @onready var _flight = $Table/CardFlightLayer
 @onready var _hand_choice = $HandChoice
+@onready var _pile_overlay = $PileOverlay
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -47,6 +48,9 @@ func _ready() -> void:
 	player_board.card_departed.connect(_on_card_departed)
 	opp_board.card_departed.connect(_on_card_departed)
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
+	_player_deck.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DECK, HUMAN))
+	_player_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, HUMAN))
+	_opp_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, 1 - HUMAN))
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
 	_hand_choice.confirmed.connect(_on_hand_choice_confirmed)
@@ -326,6 +330,25 @@ func handle_deck_target_clicked() -> void:
 		return
 	if _selected_attacker != -1:
 		_resolve_attack_target({"deck": true})
+		return
+	if _targeting_for_choice:
+		return
+	_on_pile_clicked(Enums.Zone.DECK, 1 - HUMAN)
+
+func _on_pile_clicked(zone: int, player: int) -> void:
+	if _anim_busy or _pile_overlay.is_open() or _selected_attacker != -1:
+		return
+	var ps: PlayerState = state.players[player]
+	var cards: Array[CardInstance] = ps.deck if zone == Enums.Zone.DECK else ps.discard
+	if cards.is_empty():
+		return
+	var pos := FlightAnchors.of(zone, player, self)
+	_pile_overlay.open(cards, pos, _pile_title(zone, player))
+
+func _pile_title(zone: int, player: int) -> String:
+	var who := "Your" if player == HUMAN else "Opponent's"
+	var what := "Deck" if zone == Enums.Zone.DECK else "Discard"
+	return "%s %s" % [who, what]
 
 func _resolve_attack_target(target: Dictionary) -> void:
 	var legal: Array = engine.get_legal_actions()
