@@ -561,6 +561,13 @@ func _check_traps(event: GameEvent) -> void:
 func _trap_condition_met(_trap: CardInstance, _event: GameEvent) -> bool:
 	return false
 
+func _taunt_units(player_idx: int) -> Array:
+	var out: Array = []
+	for u in state.players[player_idx].board:
+		if u.vars.get("taunt", false):
+			out.append(u)
+	return out
+
 func get_legal_actions() -> Array:
 	var out: Array = []
 	if state.phase == Enums.Phase.GAME_OVER:
@@ -578,12 +585,17 @@ func get_legal_actions() -> Array:
 				and ps.deck.size() + ps.discard.size() >= def.alt_discard_cost:
 			out.append(Action.play_card(c.instance_id, {"pay_by_discard": true}))
 	var opp := state.players[state.opponent()]
+	var taunts := _taunt_units(state.opponent())
 	for u in ps.board:
 		if u.tapped or not u.is_unit():
 			continue
-		out.append(Action.declare_attack(u.instance_id, {"deck": true}))
-		for d in opp.board:
-			out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+		if taunts.is_empty():
+			out.append(Action.declare_attack(u.instance_id, {"deck": true}))
+			for d in opp.board:
+				out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
+		else:
+			for d in taunts:
+				out.append(Action.declare_attack(u.instance_id, {"unit": d.instance_id}))
 	for u in ps.board:
 		if u.card_script == null:
 			continue
