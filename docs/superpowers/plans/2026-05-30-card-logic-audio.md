@@ -158,7 +158,7 @@ func _damage_unit(unit: CardInstance, n: int) -> void:
 		_kill_unit(unit)
 ```
 
-In `_declare_attack`, replace the combat-damage block:
+In `_declare_attack`, replace the combat-damage block (this is the **post-Foundation** version, where the kill calls already pass `"battle"` — see Foundation Task 14):
 
 ```gdscript
 	var r := Combat.compute(attacker, defender)
@@ -169,9 +169,9 @@ In `_declare_attack`, replace the combat-damage block:
 	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
 	if r["def_dies"]:
-		_kill(state.opponent(), defender)
+		_kill(state.opponent(), defender, "battle")
 	if r["atk_dies"]:
-		_kill(state.active_player, attacker)
+		_kill(state.active_player, attacker, "battle")
 ```
 
 with:
