@@ -69,17 +69,29 @@ Public API:
 - `close()` — quick fade/scale-down dismiss, then hide and free the spawned
   `CardView`s.
 
-**Data flow:**
+**Data flow** (the live scene is `match.gd` / `match.tscn`, not the standalone
+`table_view` preview):
 
 ```
-pile_view.clicked  ──►  table_view._on_pile_clicked(pile_id)
+pile_view.clicked  ──►  match._on_pile_clicked(zone, player)
                           gathers that pile's Array[CardInstance] from state
-                          + the pile node's global_position + a title
+                          + FlightAnchors.of(zone, player, self) (pile center)
+                          + a title
                           ──► pile_overlay.open(cards, pos, title)
 ```
 
-`table_view` already holds `state`, so it reads `you.deck`, `you.discard`,
-`opp.deck`, `opp.discard` directly. The overlay never touches game state.
+`match` already holds `state`, so it reads `you.deck`, `you.discard`,
+`opp.deck`, `opp.discard` directly, and `FlightAnchors.of(zone, player, self)`
+already returns each pile's screen center. The overlay never touches game state.
+
+**Opponent-deck click is context-sensitive.** `_opp_deck.clicked` is already
+wired to `handle_deck_target_clicked` (attack the deck when one of your units is
+the selected attacker). That behavior is preserved: when an attacker is selected
+*or* the player is choosing a target (`_selected_attacker != -1` or
+`_targeting_for_choice`), the opponent-deck click stays an attack/target; only
+otherwise does it open the contents overlay. The other three piles (player deck,
+player discard, opponent discard) open the overlay unconditionally (subject to
+the empty/already-open/`_anim_busy` guards).
 
 ## Fly-out animation
 
@@ -156,11 +168,13 @@ Mirrors the existing "assert end-state, not mid-motion" philosophy.
 - **Create** `src/ui/table/pile_overlay.gd` + `src/ui/table/pile_overlay.tscn`
   + `tests/test_pile_overlay.gd`
 - **Create** `tests/test_pile_view.gd`
-- **Modify** `src/ui/table/pile_view.gd` — hover juice (gated on count > 0)
-- **Modify** `src/ui/table/table_view.gd` — `_on_pile_clicked`, gather pile
-  lists + titles, open the overlay
-- **Modify** `src/ui/table/table_view.tscn` — add `PileOverlay` instance; connect
-  the four piles' `clicked` signals
+- **Modify** `src/ui/table/pile_view.gd` — hover juice (gated on count > 0);
+  `clicked` carries no args, so `match` binds zone/player when connecting
+- **Modify** `src/ui/match/match.gd` — `_on_pile_clicked(zone, player)`, gather
+  pile lists + titles, open the overlay; make `handle_deck_target_clicked`
+  context-sensitive (attack when targeting, else open overlay)
+- **Modify** `src/ui/match/match.tscn` — add `PileOverlay` instance; connect the
+  four piles' `clicked` signals (with bound zone/player)
 - **Possibly modify** `src/ui/card/card_view.gd` — only if `flip_to_face_up`
   needs a mid-flight trigger hook it doesn't already expose (it returns a
   `Tween`, so likely usable as-is)
