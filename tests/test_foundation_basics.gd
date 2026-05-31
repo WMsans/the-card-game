@@ -15,3 +15,15 @@ func test_new_event_types_exist_and_are_distinct() -> void:
 func test_rummages_made_counter_starts_zero() -> void:
 	var ps := PlayerState.new()
 	assert_int(ps.turn_counters["rummages_made"]).is_equal(0)
+
+func test_default_hooks_return_neutral_values() -> void:
+	var s := CardScript.new()
+	assert_int(s.cost_modifier(null, null)).is_equal(0)
+	assert_int(s.rummage_bonus(null, null)).is_equal(0)
+	assert_bool(s.is_clef()).is_false()
+	assert_bool(s.is_note()).is_false()
+	assert_bool(s.can_intercept_deck_damage(null, 0, 0, null)).is_false()
+	assert_int(s.deck_damage_on_fire(null, 0, 5, null)).is_equal(5)
+	assert_bool(s.can_intercept_kill(null, null, "battle", null)).is_false()
+	assert_bool(s.kill_on_fire(null, null, null)).is_false()
+	assert_str(s.trash_replacement_for(null, null, null)).is_equal("")
