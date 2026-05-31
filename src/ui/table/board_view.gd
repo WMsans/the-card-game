@@ -3,10 +3,11 @@ extends Node2D
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
 signal unit_clicked(instance_id: int)
+signal card_departed(card_view: CardView, to_pos: Vector2)
 
 var card_views: Dictionary = {}
 
-func render(units: Array, player: int) -> void:
+func render(units: Array, player: int, plan: Array = []) -> void:
 	var n := units.size()
 	var seen := {}
 	for i in range(n):
@@ -31,6 +32,16 @@ func render(units: Array, player: int) -> void:
 	for iid in card_views.keys():
 		if not seen.has(iid):
 			var leaver: CardView = card_views[iid]
+			var dest = _pile_dest(iid, plan)
 			card_views.erase(iid)
-			leaver.dissolve()
-			leaver.queue_free()
+			if dest != null:
+				card_departed.emit(leaver, dest)
+			else:
+				leaver.dissolve()
+				leaver.queue_free()
+
+func _pile_dest(iid: int, plan: Array):
+	for e in plan:
+		if e["instance_id"] == iid and (e["to"] == Enums.Zone.DISCARD or e["to"] == Enums.Zone.DECK):
+			return e.get("to_pos", null)
+	return null
