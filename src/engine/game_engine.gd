@@ -65,6 +65,13 @@ func _trigger_candidates(ps: PlayerState) -> Array:
 func _ctx_for(pidx: int):
 	return EffectContextClass.new(self, pidx)
 
+func effective_cost(card: CardInstance, player_idx: int) -> int:
+	var base := card.definition.ticket_cost
+	var modd := 0
+	if card.card_script != null:
+		modd = card.card_script.cost_modifier(card, _ctx_for(player_idx))
+	var fee: int = card.vars.get("fee_modifier", 0)
+	return max(0, base + modd + fee)
 
 func _owner_of(unit: CardInstance) -> int:
 	for i in range(state.players.size()):
@@ -301,7 +308,7 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 	if def.type == Enums.CardType.LEADER and pay_by_discard:
 		_mill(state.active_player, def.alt_discard_cost)
 	else:
-		ps.tickets_tapped += def.ticket_cost
+		ps.tickets_tapped += effective_cost(card, state.active_player)
 	ps.hand.erase(card)
 	ps.turn_counters["cards_played"] += 1
 	match def.type:
@@ -512,7 +519,7 @@ func get_legal_actions() -> Array:
 	var ps := state.active()
 	for c in ps.hand:
 		var def := c.definition
-		if ps.available_tickets() >= def.ticket_cost:
+		if ps.available_tickets() >= effective_cost(c, state.active_player):
 			out.append(Action.play_card(c.instance_id))
 		if def.type == Enums.CardType.LEADER \
 				and ps.deck.size() + ps.discard.size() >= def.alt_discard_cost:
