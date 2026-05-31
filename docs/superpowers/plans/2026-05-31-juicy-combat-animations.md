@@ -24,7 +24,7 @@
   - `Enums.EventType`: `UNIT_ATTACKED`, `UNIT_DAMAGED`, `UNIT_DIED`, `DECK_DAMAGED`, `TURN_STARTED`, etc. `Enums.Zone.DECK`.
   - Event payloads: `UNIT_ATTACKED {attacker, player, target_unit}` (`target_unit == -1` means deck attack); `UNIT_DAMAGED {target, amount}`; `UNIT_DIED {owner, instance}`; `DECK_DAMAGED {player, amount}`.
   - `FlightAnchors.of(Enums.Zone.DECK, player_idx, match_node) -> Vector2` returns the deck pile's global center.
-  - `BoardLayout.CARD_SCALE == 0.42`, `BoardLayout.CARD_PIVOT == Vector2(140, 196)`.
+  - `BoardLayout.CARD_SCALE == 0.6`, `BoardLayout.CARD_SIZE == Vector2(350, 490)`, `BoardLayout.CARD_PIVOT == CARD_SIZE * 0.5 == Vector2(175, 245)`. (The director reads `cv.base_scale` / `cv.size` directly, so these are background only.)
   - `match.gd` (`src/ui/match/match.gd`) exposes `player_board`, `opp_board`, `hand_view`, `_player_deck`, `_opp_deck`, `state`, `HUMAN` (== 0), and node `FxLayer` (a `Control` at `$FxLayer`).
 - **Coordinate assumption (already relied on by `CardFlight`):** the board `Node2D`s are translation-only (no scale/rotation), so a global-space delta equals a local-space delta. The director computes target deltas in global space and applies them to the attacker's local `position`. Keep this assumption.
 
@@ -47,7 +47,7 @@ Modified files:
 |---|---|
 | `src/ui/match/match.gd` | `apply_action` becomes a coroutine that awaits the director; add `_director`, `_anim_busy`, input gating, ramp reset on `TURN_STARTED`. |
 | `src/ui/match/flourishes.gd` | Use `DamageNumber` for damage popups; add `attack` param so the director owns combat numbers (no double-spawn); drop the old `_shake`. |
-| `tests/test_match_flourish.gd` | (Only if needed) existing calls stay valid via the defaulted `attack` param — verify, don't rewrite. |
+| `tests/test_match_flourish.gd` | Add two cases (below). The existing case calls `m._play_flourishes([evt])`, which stays valid because the new `attack` param defaults to `false` — don't rewrite it. |
 
 ---
 
@@ -799,9 +799,16 @@ The director now owns damage numbers for attack clusters. `Flourishes` should (a
 
 - [ ] **Step 1: Write the failing tests**
 
-Add to `tests/test_match_flourish.gd`:
+Add to `tests/test_match_flourish.gd` (the file has no `_spawn()` helper yet — add this one too):
 
 ```gdscript
+func _spawn() -> Node:
+	var m: Node = load("res://src/ui/match/match.tscn").instantiate()
+	add_child(m)
+	auto_free(m)
+	m.start_game(7, "res://src/data/decks/strike.csv", "res://src/data/decks/raccoon.csv")
+	return m
+
 func test_attack_flag_suppresses_unit_damage_number() -> void:
 	var m := _spawn()
 	var before := m.get_node("FxLayer").get_child_count()
@@ -816,7 +823,7 @@ func test_deck_mill_still_fires_during_attack() -> void:
 	assert_int(m.get_node("FxLayer").get_child_count()).is_greater(before)
 ```
 
-The existing `test_unit_damaged_spawns_damage_number_in_fxlayer` (2-arg call, no attack flag) must still pass — it relies on the new `attack` parameter defaulting to `false`.
+The existing `test_unit_damaged_event_spawns_a_damage_number` (which calls `m._play_flourishes([evt])`, no attack flag) must still pass — `_play_flourishes` forwards `CombatDirector.has_attack(events)`, which is `false` for a lone `UNIT_DAMAGED`, so the number is still drawn by `DamageNumber`.
 
 - [ ] **Step 2: Run the tests to verify the new ones fail**
 
