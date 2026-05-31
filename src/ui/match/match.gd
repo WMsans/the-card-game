@@ -11,6 +11,8 @@ var _deck1_path: String
 var _dragging_id: int = -1
 var _targeting_for_choice: bool = false
 var _target_candidates: Array = []
+var _director := CombatDirector.new()
+var _anim_busy: bool = false
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -72,6 +74,10 @@ func apply_action(action: Action) -> void:
 	engine.apply(action)
 	var events := state.bus.log.slice(from)
 	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
+	if CombatDirector.has_attack(events):
+		_anim_busy = true
+		await _director.play(events, self)
+		_anim_busy = false
 	render_all(plan)
 	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
@@ -239,6 +245,8 @@ func _on_play_again() -> void:
 	start_game(randi(), _deck0_path, _deck1_path)
 
 func _on_end_turn_pressed() -> void:
+	if _anim_busy:
+		return
 	if state.active_player == HUMAN and state.pending_choice == null:
 		apply_action(Action.end_turn())
 
@@ -297,6 +305,8 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	return false
 
 func handle_unit_clicked(instance_id: int) -> void:
+	if _anim_busy:
+		return
 	if _targeting_for_choice:
 		if _target_candidates.has(instance_id):
 			_targeting_for_choice = false
@@ -312,6 +322,8 @@ func handle_unit_clicked(instance_id: int) -> void:
 		_resolve_attack_target({"unit": instance_id})
 
 func handle_deck_target_clicked() -> void:
+	if _anim_busy:
+		return
 	if _selected_attacker != -1:
 		_resolve_attack_target({"deck": true})
 
@@ -352,6 +364,8 @@ func legal_play_ids() -> Array:
 	return ids
 
 func _on_hand_card_drag_released(instance_id: int, _at: Vector2) -> void:
+	if _anim_busy:
+		return
 	_dragging_id = -1
 	var in_zone := _drop_zones.is_hovering_zone()
 	_drop_zones.clear()
@@ -398,7 +412,8 @@ func _update_drag_feedback() -> void:
 		_tickets.clear_preview()
 
 func _play_flourishes(events: Array) -> void:
-	Flourishes.play(self, events)
+	Flourishes.play(self, events, CombatDirector.has_attack(events))
 	for e in events:
 		if e.type == Enums.EventType.TURN_STARTED:
 			$Banner.show_turn(e.data["player"] == HUMAN)
+			_director.reset_ramp()
