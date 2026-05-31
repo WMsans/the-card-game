@@ -53,6 +53,8 @@ static func _build() -> void:
 	_register("audio", 17, Staccato.new())
 	_register("audio", 18, Legato.new())
 	_register("audio", 19, Legato.new())
+	_register("audio", 20, Rest.new())
+	_register("audio", 21, Rest.new())
 
 static func get_script_for(deck: String, id: int) -> CardScript:
 	_build()
