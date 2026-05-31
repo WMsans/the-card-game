@@ -5,13 +5,10 @@ signal picked(option: int)
 
 const CARD_VIEW := preload("res://src/ui/card/card_view.tscn")
 
-@onready var _slot: Control = $Panel/CardSlot
-@onready var _name: Label = $Panel/TrapName
-@onready var _context: Label = $Panel/Context
-@onready var _buttons: HBoxContainer = $Panel/Buttons
-
-func _ready() -> void:
-	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
+@onready var _slot: Control = $Center/Panel/Margin/VBox/Body/CardSlot
+@onready var _name: Label = $Center/Panel/Margin/VBox/TrapName
+@onready var _context: Label = $Center/Panel/Margin/VBox/Body/Context
+@onready var _buttons: HBoxContainer = $Center/Panel/Margin/VBox/Buttons
 
 func show_reveal(trap: CardInstance, context: String, options: Array, interactive: bool) -> void:
 	if not is_node_ready(): await ready

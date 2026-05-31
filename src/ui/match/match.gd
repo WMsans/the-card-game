@@ -181,7 +181,7 @@ func _route_pending_choice() -> void:
 			_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, true)
 		"trash_choice":
 			var spec2: ChoiceSpec = pc.data["spec"]
-			_option_prompt.show_options(spec2.labels, spec2.title)
+			_option_prompt.show_options(spec2.labels, spec2.title, pc.data.get("source_card"))
 		"card_effect":
 			_route_card_effect(pc)
 
@@ -194,7 +194,7 @@ func _route_card_effect(pc: PendingChoice) -> void:
 			else:
 				_select.show_selection(spec.cards, spec.min_n, spec.max_n, spec.title)
 		"choose_option":
-			_option_prompt.show_options(spec.labels, spec.title)
+			_option_prompt.show_options(spec.labels, spec.title, pc.data.get("source_card"))
 		"select_target":
 			_begin_target_selection(spec)
 

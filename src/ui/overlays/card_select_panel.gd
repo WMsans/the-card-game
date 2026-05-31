@@ -8,13 +8,12 @@ var _selected: Array = []
 var _min: int = 0
 var _max: int = 0
 
-@onready var _row: HBoxContainer = $Panel/CardRow
-@onready var _confirm: Button = $Panel/ConfirmButton
-@onready var _label: Label = $Panel/Label
+@onready var _row: HBoxContainer = $Center/Panel/Margin/VBox/CardRow
+@onready var _confirm: Button = $Center/Panel/Margin/VBox/Buttons/ConfirmButton
+@onready var _label: Label = $Center/Panel/Margin/VBox/Label
 
 func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
-	$Panel.theme = preload("res://src/ui/theme/game_theme.tres")
 	JuicyButton.apply(_confirm)
 
 func show_selection(cards: Array, min_n: int, max_n: int, title: String) -> void:

@@ -124,6 +124,7 @@ func _request_choice(card: CardInstance, spec: ChoiceSpec, tag: String, asked_pl
 	state.pending_choice = PendingChoice.new("card_effect", asked_player, {
 		"spec": spec,
 		"ui_shape": spec.ui_shape,
+		"source_card": card,
 		"resume_card": card.instance_id,
 		"resume_tag": tag,
 		"resume_owner": _owner_of(card),
@@ -603,6 +604,7 @@ func _begin_trash(owner_idx: int, unit: CardInstance) -> void:
 	labels.append("Just KO it")
 	state.pending_choice = PendingChoice.new("trash_choice", owner_idx, {
 		"unit_id": unit.instance_id, "owner": owner_idx, "reps": reps,
+		"source_card": unit,
 		"spec": ChoiceSpec.choose_option(labels, "TRASH %s — replace?" % unit.definition.name),
 		"ui_shape": "choose_option",
 	})
