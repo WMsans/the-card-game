@@ -568,6 +568,12 @@ func _taunt_units(player_idx: int) -> Array:
 			out.append(u)
 	return out
 
+func _has_clef_on_board(player_idx: int) -> bool:
+	for u in state.players[player_idx].board:
+		if u.card_script != null and u.card_script.is_clef():
+			return true
+	return false
+
 func get_legal_actions() -> Array:
 	var out: Array = []
 	if state.phase == Enums.Phase.GAME_OVER:
@@ -579,6 +585,9 @@ func get_legal_actions() -> Array:
 	var ps := state.active()
 	for c in ps.hand:
 		var def := c.definition
+		var is_clef := c.card_script != null and c.card_script.is_clef()
+		if is_clef and _has_clef_on_board(state.active_player):
+			continue
 		if ps.available_tickets() >= effective_cost(c, state.active_player):
 			out.append(Action.play_card(c.instance_id))
 		if def.type == Enums.CardType.LEADER \
