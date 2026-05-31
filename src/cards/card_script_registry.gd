@@ -43,6 +43,8 @@ static func _build() -> void:
 	_register("audio", 5, HalfNote.new())
 	_register("audio", 6, EighthNote.new())
 	_register("audio", 7, EighthNote.new())
+	_register("audio", 8, SixteenthNote.new())
+	_register("audio", 9, SixteenthNote.new())
 	_register("audio", 10, WholeNote.new())
 	_register("audio", 11, WholeNote.new())
 
