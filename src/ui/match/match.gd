@@ -143,9 +143,9 @@ func _enrich(raw: Array) -> Array:
 	for t in raw:
 		var e: Dictionary = t.duplicate()
 		if t["from"] == Enums.Zone.DECK or t["from"] == Enums.Zone.DISCARD:
-			e["from_pos"] = FlightAnchors.of(t["from"], t["player"], self) - BoardLayout.CARD_PIVOT
+			e["from_pos"] = _flight.to_local(FlightAnchors.of(t["from"], t["player"], self)) - BoardLayout.CARD_PIVOT
 		if t["to"] == Enums.Zone.DECK or t["to"] == Enums.Zone.DISCARD:
-			e["to_pos"] = FlightAnchors.of(t["to"], t["player"], self) - BoardLayout.CARD_PIVOT
+			e["to_pos"] = _flight.to_local(FlightAnchors.of(t["to"], t["player"], self)) - BoardLayout.CARD_PIVOT
 		out.append(e)
 	return out
 
