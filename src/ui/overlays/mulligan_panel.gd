@@ -67,7 +67,7 @@ func _update() -> void:
 		cv.set_highlight(CardHighlight.State.SELECTED if _selected.has(i) else CardHighlight.State.NONE)
 
 func get_animatable_nodes() -> Array[Node]:
-	return [$Panel/Label, _row, _confirm]
+	return [$Panel/Label, _row, _confirm, $Panel/MinimizeButton]
 
 func get_dim_node() -> Control:
 	return $Panel

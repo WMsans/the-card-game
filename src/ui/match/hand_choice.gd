@@ -15,6 +15,8 @@ var _sel: StagedSelection = null
 var _handlers: Dictionary = {}
 var _locked: Array = []
 var _active: bool = false
+var _minimized: bool = false
+var _dim_node: Control = null
 
 func _ready() -> void:
 	_title.theme = THEME
@@ -22,6 +24,7 @@ func _ready() -> void:
 	_confirm.pressed.connect(_confirm_pressed)
 	JuicyButton.apply(_confirm)
 	var _min_btn: Button = $MinimizeButton
+	_min_btn.theme = THEME
 	JuicyButton.apply(_min_btn)
 	_min_btn.pressed.connect(func(): minimize_requested.emit())
 
@@ -53,6 +56,8 @@ func start(hand_view, source_cards: Array, min_n: int, max_n: int, title: String
 		_handlers[id] = cb
 	_active = true
 	visible = true
+	if _dim_node != null:
+		_dim_node.visible = true
 	_confirm.disabled = not _sel.can_confirm()
 
 func _make_click_handler(id: int) -> Callable:
@@ -61,7 +66,7 @@ func _make_click_handler(id: int) -> Callable:
 			_on_card_clicked(id)
 
 func _on_card_clicked(id: int) -> void:
-	if _sel == null:
+	if _sel == null or _minimized:
 		return
 	_sel.toggle(id)
 	_hand_view.set_choice_excluded(_sel.staged)
@@ -107,9 +112,28 @@ func _deactivate() -> void:
 	_sel = null
 	_active = false
 	visible = false
+	if _dim_node != null:
+		_dim_node.visible = false
 
 func get_animatable_nodes() -> Array[Node]:
-	return [_title, _confirm]
+	return [_title, _confirm, $MinimizeButton]
 
 func get_dim_node() -> Control:
-	return null
+	return _dim_node
+
+func on_minimize() -> void:
+	_minimized = true
+	if _sel != null and _hand_view != null:
+		for id in _sel.staged:
+			var cv: CardView = _hand_view.card_views.get(id)
+			if cv != null:
+				cv.visible = false
+
+func on_expand() -> void:
+	_minimized = false
+	if _sel != null and _hand_view != null:
+		for id in _sel.staged:
+			var cv: CardView = _hand_view.card_views.get(id)
+			if cv != null:
+				cv.visible = true
+		_restage()

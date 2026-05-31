@@ -39,7 +39,7 @@ func _emit(i: int) -> void:
 	picked.emit(i)
 
 func get_animatable_nodes() -> Array[Node]:
-	var nodes: Array[Node] = [_label, _box]
+	var nodes: Array[Node] = [_label, _box, $Center/Panel/Margin/VBox/MinimizeButton]
 	if _slot.visible and _slot.get_child_count() > 0:
 		nodes.push_front(_slot)
 	return nodes
