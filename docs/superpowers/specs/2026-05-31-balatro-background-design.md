@@ -65,7 +65,7 @@ Two `FastNoiseLite` sub-resources with `NoiseTexture2D` wrappers are assigned to
 
 - Instance `balatro_bg.tscn` as the first child of `Match` in `match.tscn` (behind `Table`)
 - In `match.gd`, connect to `BalatroBg.foreground_offset` signal and apply the offset to `Table.position`
-- Remove or repurpose the current `FeltFrame` Panel — its area is covered by the noise background
+- Remove the current `FeltFrame` Panel from Match — the noise background fully replaces its visual role
 - Optionally instance `balatro_bg.tscn` in `main_menu.tscn` for visual consistency across scenes
 
 ### 4. File Locations
