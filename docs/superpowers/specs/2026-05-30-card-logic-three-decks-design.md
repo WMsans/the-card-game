@@ -93,6 +93,23 @@ ORANGE is modeled as a real **card**, not a counter.
 - **On play (`OrangeCard.on_cast`):** if the hand is non-empty, request a `select_cards(hand, 0, 1, ...)` choice; the chosen card (any type) gets `add_fee_modifier(chosen, -1)`. Stackable: multiple Oranges, and multiple applications to the same card, accumulate. Playable even with no other hand cards (no effect then). Cost 0.
 - **While in hand:** raises the owner's end-of-turn hand limit. `_end_turn` computes the limit as `5 + (number of Orange cards in hand)` instead of a flat 5.
 
+### 3.5 Interception & trash-choice UX
+
+All interactive interception and the trash-replacement choice are driven through the existing `pending_choice` plumbing (`match.gd:_route_pending_choice`), which already asks the correct player (`pending_choice.player`) and auto-routes to the AI when the asked player is not the human. Because traps belong to the **defending** (non-active) player, a human's interceptor naturally prompts during the opponent's turn, and an AI's interceptor auto-resolves — no new routing concept is needed, only new presentation.
+
+**Interceptor prompt — dedicated trap-reveal overlay.** A new overlay (`src/ui/overlays/trap_reveal_overlay.{gd,tscn}`) flips the hidden trap face-up near the trap-set zone, showing the trap's card art, name, and rules text, with **Fire / Decline** buttons, while the affected object on the table flashes (the deck pile for deck-damage traps; the dying unit for kill traps). Driven by a new `ChoiceSpec` shape:
+
+- `ChoiceSpec.intercept(trap_card, context_text, flash_ref)` → `ui_shape = "intercept"`, carrying the trap `CardInstance`, a human-readable context line (e.g. "Your Deck will take 6 damage"), and a reference to the object to flash. `match.gd` routes `"intercept"` to the overlay; Fire/Decline resolve as a two-option `choose_option`-style result.
+- **Always prompt:** every interceptor asks before firing, including the pure-upside ones (Rest, Garbage Guard, Safety Net) — maximum control and consistency (Ruling §6).
+
+**Two-step target for Ancient One's Protection.** Firing raises the overlay (step 1: Fire/Decline). On Fire, the engine resolves the trap and raises a **follow-up** `select_target` choice over the eligible allied Units; the overlay closes and the board highlights candidates for a click, exactly like attack targeting (`_begin_target_selection`). No new targeting UI — it reuses the existing highlight + arrow flow.
+
+**Opponent's interceptors (read-only).** When the AI fires one of these on the human's turn, the same overlay is shown **non-interactively** for a short beat (no buttons, auto-dismiss) so the player sees which trap fired and why, then the AI's decision is applied. Sequencing is automatic: `apply_action` plays the triggering flourish first, then `_post_action` surfaces the prompt, so the cause is always seen before the reveal.
+
+**Trash-replacement menu.** When the human trashes a Unit and one or more "may instead" replacements apply, a labeled menu lists the applicable options plus **"Just KO it"**, presented as a **single horizontal row** of buttons (reusing `OptionPrompt`), titled with the trashed unit's name. This is a `choose_option` choice asked of the trashing player; it is distinct from the trap-reveal overlay (it is the player's own effect, not a hidden trap).
+
+**New/changed UI surface:** `trap_reveal_overlay.{gd,tscn}` (new); `match.gd` routing for `"intercept"` and the read-only AI variant; `OptionPrompt` confirmed to lay options out in a single row for the trash menu. The engine side adds the `intercept` `ChoiceSpec` shape and the follow-up `select_target` raised by Ancient One's Protection.
+
 ---
 
 ## 4. Mechanics
@@ -228,6 +245,8 @@ All confirmed with the project owner during design.
 8. **Raccoon leader's two modes:** the "discard hand cards → deal damage" ability is an **activated** ability available while the Raccoon is on the **board**; the rummage-2 and return-on-reshuffle effects are **passives that work while it is in the discard pile**.
 9. **Bottom of the discard pile** = index 0 (front) of the `discard` array, consistent across RUMMAGE draws and Safety Net's redirect.
 10. **HARMONIZE stat buffs are permanent** for the unit's lifetime (not cleared at end of turn), distinct from temporary turn buffs.
+11. **Interceptor presentation:** a dedicated trap-reveal overlay (not the plain modal), with the affected deck/unit flashing; **every** interceptor always prompts (no auto-fire, even for pure-upside traps); Ancient One's Protection's target is chosen via a two-step board highlight + click; an AI interceptor is shown read-only on the human's turn (§3.5).
+12. **Trash-replacement menu** is presented as a single horizontal row of option buttons (applicable replacements + "Just KO it"), titled with the trashed unit's name, reusing `OptionPrompt` (§3.5).
 
 ---
 
@@ -245,6 +264,11 @@ GdUnit4, run headless per the project's test-runner notes. Tests live in `tests/
 - Orange token: minting, 5-cap, hand-limit bump, fee reduction stacking.
 - TAUNT: legal-action restriction and deck-attack block.
 - CLEF: one-active play restriction; bounce ability.
+
+**UI tests (GdUnit4, headless):**
+
+- `trap_reveal_overlay`: renders trap name/text from a CardInstance; emits Fire/Decline; read-only mode hides buttons and auto-dismisses.
+- `match.gd` routing: an `intercept` pending_choice opens the overlay for the human and routes to AI (read-only) otherwise; Ancient One's Protection's Fire raises the follow-up `select_target`; the trash menu opens `OptionPrompt` with a single row of options.
 
 **Per-card tests:** one suite per non-trivial card (trivial vanilla stat-line cards may be covered by a smoke/load test). Follow the existing Strike test style (`fresh_engine`, `place_on_board`, `put_in_hand`, assert on resulting zones/stats/pending choices).
 
@@ -264,8 +288,11 @@ src/cards/card_script_registry.gd  # register all new ids + writing:100
 src/engine/game_engine.gd    # suspendable pipeline, effective_cost, taunt/clef/orange enforcement
 src/engine/player_state.gd   # rummages_made counter, end-turn hand limit
 src/data/enums.gd            # new EventTypes
+src/cards/choice_spec.gd     # new "intercept" shape
+src/ui/overlays/trap_reveal_overlay.{gd,tscn}  # new interceptor overlay
+src/ui/match/match.gd        # route "intercept" + read-only AI variant + trash menu
 tests/cards/{raccoon,audio,writing}/  # per-card suites
-tests/  # mechanic suites
+tests/  # mechanic + UI suites
 ```
 
 **Build order (workstreams):**
