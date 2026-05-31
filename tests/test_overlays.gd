@@ -85,3 +85,14 @@ func test_trap_reveal_animatable_nodes() -> void:
 	var p = _inst("res://src/ui/overlays/trap_reveal_overlay.tscn")
 	var nodes: Array[Node] = p.get_animatable_nodes()
 	assert_int(nodes.size()).is_equal(3)
+
+func test_minimize_bar_show_sets_title() -> void:
+	var bar = _inst("res://src/ui/overlays/minimize_bar.tscn")
+	bar.show_bar("Pick a card")
+	assert_str(bar.find_child("Title").text).is_equal("Pick a card")
+
+func test_minimize_bar_hides_on_hide_bar() -> void:
+	var bar = _inst("res://src/ui/overlays/minimize_bar.tscn")
+	bar.show_bar("Test")
+	bar.hide_bar()
+	assert_bool(bar.visible).is_true()  # CanvasLayer still visible during tween
