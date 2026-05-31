@@ -475,24 +475,48 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
 		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
 	if r["def_dies"]:
-		_kill(state.opponent(), defender)
+		_kill(state.opponent(), defender, "battle")
 	if r["atk_dies"]:
-		_kill(state.active_player, attacker)
+		_kill(state.active_player, attacker, "battle")
 
-func _kill(owner_idx: int, unit: CardInstance) -> void:
+func _kill(owner_idx: int, unit: CardInstance, reason: String = "effect") -> void:
+	_push({"kind": "call", "fn": func(): _begin_kill(owner_idx, unit, reason)})
+	_pump()
+
+func _begin_kill(owner_idx: int, unit: CardInstance, reason: String) -> void:
 	if unit.vars.get("immortal_this_turn", false):
 		return
+	if not state.players[owner_idx].board.has(unit):
+		return
+	for trap in state.players[owner_idx].set_traps:
+		if trap.card_script != null and trap.card_script.can_intercept_kill(
+				trap, unit, reason, _ctx_for(owner_idx)):
+			state.pending_choice = PendingChoice.new("intercept", owner_idx, {
+				"op": "kill", "trap_id": trap.instance_id,
+				"owner": owner_idx, "unit_id": unit.instance_id,
+				"spec": ChoiceSpec.intercept(trap,
+					"%s would be killed" % unit.definition.name, ["Fire", "Decline"]),
+				"ui_shape": "intercept",
+			})
+			_suspended = true
+			return
+	_apply_kill(owner_idx, unit)
+
+func _apply_kill(owner_idx: int, unit: CardInstance) -> void:
 	var owner := state.players[owner_idx]
+	if not owner.board.has(unit):
+		return
 	owner.board.erase(unit)
 	unit.zone = Enums.Zone.DISCARD
 	unit.reset_stats()
-	owner.discard.append(unit)
+	if unit.vars.get("discard_to_bottom", false):
+		unit.vars.erase("discard_to_bottom")
+		owner.discard.push_front(unit)
+	else:
+		owner.discard.append(unit)
 	owner.turn_counters["units_died"] += 1
 	emit(GameEvent.new(Enums.EventType.UNIT_DIED,
 		{"owner": owner_idx, "instance": unit.instance_id}))
-
-func _apply_kill(_owner_idx: int, _unit: CardInstance) -> void:
-	_kill(_owner_idx, _unit)
 
 func _damage_unit(unit: CardInstance, n: int) -> void:
 	unit.current_health -= n
