@@ -50,6 +50,7 @@ static func _build() -> void:
 	_register("writing", 10, MelonZombieWarlock.new())
 	_register("writing", 7, Cultist.new())
 	_register("writing", 8, Cultist.new())
+	_register("writing", 6, Avatar.new())
 	_register("writing", 15, CitrusSacrifice.new())
 	_register("writing", 16, CitrusSacrifice.new())
 	_register("writing", 17, PainSplit.new())
