@@ -7,8 +7,16 @@ signal card_drag_started(instance_id: int)
 signal card_departed(card_view: CardView, to_pos: Vector2)
 
 var card_views: Dictionary = {}
+var _hand_order: Array = []
+var _player: int = 0
+var _excluded: Array = []
 
 func render(cards: Array, player: int, plan: Array = []) -> void:
+	_player = player
+	_hand_order = []
+	for c in cards:
+		_hand_order.append(c.instance_id)
+	_excluded = []
 	var n := cards.size()
 	var seen := {}
 	var fly_i := 0
@@ -69,3 +77,20 @@ func _pile_dest(iid: int, plan: Array):
 func _schedule_flip(cv: CardView, delay: float) -> void:
 	var timer := get_tree().create_timer(delay + CardFlight.FLY_TIME * 0.6)
 	timer.timeout.connect(cv.flip_to_face_up, CONNECT_ONE_SHOT)
+
+func set_choice_excluded(ids: Array) -> void:
+	_excluded = ids.duplicate()
+	var visible_ids: Array = []
+	for iid in _hand_order:
+		if not _excluded.has(iid):
+			visible_ids.append(iid)
+	var n := visible_ids.size()
+	for i in range(n):
+		var cv: CardView = card_views.get(visible_ids[i])
+		if cv == null:
+			continue
+		cv.z_index = 0
+		var t := BoardLayout.slot(Enums.Zone.HAND, i, n, _player)
+		var rest_pos := t.origin - BoardLayout.CARD_PIVOT
+		cv.set_rest(rest_pos, t.get_rotation())
+		CardFlight.move_to(cv, rest_pos, t.get_rotation())
