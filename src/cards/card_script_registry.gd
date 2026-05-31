@@ -37,6 +37,8 @@ static func _build() -> void:
 	_register("strike", 20, WrongMascot.new())
 	_register("strike", 21, StrikeSocial.new())
 	_register("writing", 1, Shelley.new())
+	_register("writing", 2, MelonZombieHulk.new())
+	_register("writing", 3, MelonZombieHulk.new())
 	_register("writing", OrangeToken.ID, OrangeCard.new())
 	_register("writing", 4, CitrusWerewolf.new())
 	_register("writing", 5, CitrusWerewolf.new())
@@ -46,6 +48,8 @@ static func _build() -> void:
 	_register("writing", 14, MercenaryTrader.new())
 	_register("writing", 9, MelonZombieWarlock.new())
 	_register("writing", 10, MelonZombieWarlock.new())
+	_register("writing", 7, Cultist.new())
+	_register("writing", 8, Cultist.new())
 	_register("writing", 15, CitrusSacrifice.new())
 	_register("writing", 16, CitrusSacrifice.new())
 
