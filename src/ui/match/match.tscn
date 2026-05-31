@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://src/ui/overlays/option_prompt.tscn" id="15_option"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/trap_reveal_overlay.tscn" id="16_trap_reveal"]
 [ext_resource type="Script" path="res://src/ui/match/card_flight_layer.gd" id="17_flight"]
+[ext_resource type="PackedScene" path="res://src/ui/match/hand_choice.tscn" id="18_hand_choice"]
 
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
@@ -196,3 +197,5 @@ mouse_filter = 2
 [node name="OptionPrompt" parent="." instance=ExtResource("15_option")]
 
 [node name="TrapRevealOverlay" parent="." instance=ExtResource("16_trap_reveal")]
+
+[node name="HandChoice" parent="." instance=ExtResource("18_hand_choice")]

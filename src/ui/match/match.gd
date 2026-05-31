@@ -33,6 +33,7 @@ var _target_candidates: Array = []
 @onready var _option_prompt = $OptionPrompt
 @onready var _trap_reveal = $TrapRevealOverlay
 @onready var _flight = $Table/CardFlightLayer
+@onready var _hand_choice = $HandChoice
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
@@ -46,6 +47,7 @@ func _ready() -> void:
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
+	_hand_choice.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
 	_option_prompt.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_trap_reveal.picked.connect(func(i): apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
@@ -168,7 +170,7 @@ func _route_pending_choice() -> void:
 			_mulligan.show_hand(state.players[HUMAN].hand)
 		"discard_to_limit":
 			var n: int = pc.data["count"]
-			_select.show_selection(state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
+			_hand_choice.start(hand_view, state.players[HUMAN].hand, n, n, "Discard %d card(s)" % n)
 		"intercept":
 			var spec: ChoiceSpec = pc.data["spec"]
 			_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, true)
@@ -182,11 +184,25 @@ func _route_card_effect(pc: PendingChoice) -> void:
 	var spec: ChoiceSpec = pc.data["spec"]
 	match spec.ui_shape:
 		"select_cards":
-			_select.show_selection(spec.cards, spec.min_n, spec.max_n, spec.title)
+			if _is_hand_pool(spec.cards):
+				_hand_choice.start(hand_view, spec.cards, spec.min_n, spec.max_n, spec.title)
+			else:
+				_select.show_selection(spec.cards, spec.min_n, spec.max_n, spec.title)
 		"choose_option":
 			_option_prompt.show_options(spec.labels, spec.title)
 		"select_target":
 			_begin_target_selection(spec)
+
+func _is_hand_pool(cards: Array) -> bool:
+	if cards.is_empty():
+		return false
+	var hand_ids := {}
+	for c in state.players[HUMAN].hand:
+		hand_ids[c.instance_id] = true
+	for c in cards:
+		if not hand_ids.has(c.instance_id):
+			return false
+	return true
 
 func _show_readonly_intercept(pc: PendingChoice) -> void:
 	var spec: ChoiceSpec = pc.data["spec"]

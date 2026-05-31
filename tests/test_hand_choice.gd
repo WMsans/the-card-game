@@ -9,7 +9,7 @@ func _match() -> Node:
 
 func test_start_shows_chrome_and_title() -> void:
 	var m := _match()
-	var hc := m._hand_choice
+	var hc = m._hand_choice
 	hc.start(m.hand_view, m.state.players[0].hand, 1, 1, "Pick 1")
 	assert_bool(hc.visible).is_true()
 	assert_str(hc.find_child("Title").text).is_equal("Pick 1")
@@ -17,7 +17,7 @@ func test_start_shows_chrome_and_title() -> void:
 
 func test_click_then_confirm_emits_source_index() -> void:
 	var m := _match()
-	var hc := m._hand_choice
+	var hc = m._hand_choice
 	var hand: Array = m.state.players[0].hand
 	hc.start(m.hand_view, hand, 1, 1, "Pick 1")
 	var got := {"indices": []}
@@ -29,7 +29,7 @@ func test_click_then_confirm_emits_source_index() -> void:
 
 func test_clicking_past_max_replaces_rightmost() -> void:
 	var m := _match()
-	var hc := m._hand_choice
+	var hc = m._hand_choice
 	var hand: Array = m.state.players[0].hand
 	hc.start(m.hand_view, hand, 2, 2, "Pick 2")
 	var got := {"indices": []}
@@ -42,7 +42,7 @@ func test_clicking_past_max_replaces_rightmost() -> void:
 
 func test_clicking_staged_card_deselects() -> void:
 	var m := _match()
-	var hc := m._hand_choice
+	var hc = m._hand_choice
 	var hand: Array = m.state.players[0].hand
 	hc.start(m.hand_view, hand, 0, 2, "Up to 2")
 	hc._on_card_clicked(hand[0].instance_id)
