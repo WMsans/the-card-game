@@ -82,6 +82,22 @@ func _owner_of(unit: CardInstance) -> int:
 			return i
 	return -1
 
+func _any_damage_doubler() -> bool:
+	for ps in state.players:
+		for u in ps.board:
+			if u.card_script != null and u.card_script.doubles_all_damage():
+				return true
+	return false
+
+func damage_to(unit: CardInstance, base: int) -> int:
+	var m := 1
+	if _any_damage_doubler():
+		m *= 2
+	if state.turn_flags.get("notes_double_damage", false) \
+			and unit.card_script != null and unit.card_script.is_note():
+		m *= 2
+	return base * m
+
 func _fire_trap(card: CardInstance) -> void:
 	var owner := _owner_of(card)
 	if owner < 0:
@@ -443,6 +459,7 @@ func _apply_resolve_choice(params: Dictionary) -> void:
 		_finish_end_turn()
 
 func _finish_end_turn() -> void:
+	state.turn_flags.clear()
 	for p in state.players:
 		for u in p.board:
 			u.reset_stats()
@@ -471,15 +488,17 @@ func _declare_attack(attacker_id: int, target: Dictionary) -> void:
 	var opp := state.players[state.opponent()]
 	var defender: CardInstance = _find_on_board(opp, target["unit"])
 	var r := Combat.compute(attacker, defender)
-	defender.current_health -= r["dmg_to_def"]
-	attacker.current_health -= r["dmg_to_atk"]
+	var dmg_def := damage_to(defender, r["dmg_to_def"])
+	var dmg_atk := damage_to(attacker, r["dmg_to_atk"])
+	defender.current_health -= dmg_def
+	attacker.current_health -= dmg_atk
 	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
-		{"target": defender.instance_id, "amount": r["dmg_to_def"]}))
+		{"target": defender.instance_id, "amount": dmg_def}))
 	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED,
-		{"target": attacker.instance_id, "amount": r["dmg_to_atk"]}))
-	if r["def_dies"]:
+		{"target": attacker.instance_id, "amount": dmg_atk}))
+	if defender.current_health <= 0:
 		_kill(state.opponent(), defender, "battle")
-	if r["atk_dies"]:
+	if attacker.current_health <= 0:
 		_kill(state.active_player, attacker, "battle")
 
 func _kill(owner_idx: int, unit: CardInstance, reason: String = "effect") -> void:
@@ -522,8 +541,9 @@ func _apply_kill(owner_idx: int, unit: CardInstance) -> void:
 		{"owner": owner_idx, "instance": unit.instance_id}))
 
 func _damage_unit(unit: CardInstance, n: int) -> void:
-	unit.current_health -= n
-	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED, {"target": unit.instance_id, "amount": n}))
+	var dmg := damage_to(unit, n)
+	unit.current_health -= dmg
+	emit(GameEvent.new(Enums.EventType.UNIT_DAMAGED, {"target": unit.instance_id, "amount": dmg}))
 	if unit.current_health <= 0:
 		_kill_unit(unit)
 
