@@ -55,13 +55,20 @@ func close() -> void:
 	visible = false
 	modulate.a = 1.0
 
+func _grid_position(index: int) -> Vector2:
+	var h_sep := _grid.get_theme_constant("h_separation")
+	var v_sep := _grid.get_theme_constant("v_separation")
+	var col := index % _grid.columns
+	var row := index / _grid.columns
+	return Vector2(col * (CARD_SIZE.x + h_sep), row * (CARD_SIZE.y + v_sep))
+
 func _animate_in(from_pos: Vector2) -> void:
 	var n := _cards.size()
 	var stagger := minf(CardFlight.STAGGER, MAX_FLY_WINDOW / float(maxi(n, 1)))
 	var from_local := (from_pos - _grid.global_position) - CARD_SIZE * 0.5
 	for i in n:
 		var cv := _cards[i]
-		cv.set_rest(cv.position, 0.0)
+		cv.set_rest(_grid_position(i), 0.0)
 		cv.modulate.a = 1.0
 		var delay := float(i) * stagger
 		CardFlight.fly_in(cv, from_local, delay)
