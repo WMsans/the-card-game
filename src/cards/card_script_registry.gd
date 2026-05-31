@@ -41,6 +41,8 @@ static func _build() -> void:
 	_register("raccoon", 3, Rat.new())
 	_register("raccoon", 4, Opossum.new())
 	_register("raccoon", 5, Opossum.new())
+	_register("raccoon", 6, Skunk.new())
+	_register("raccoon", 7, Skunk.new())
 	_register("raccoon", 8, Coyote.new())
 	_register("raccoon", 9, Coyote.new())
 	_register("raccoon", 10, TrashCannon.new())
