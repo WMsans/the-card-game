@@ -40,6 +40,9 @@ func _ready() -> void:
 	hand_view.card_drag_started.connect(_on_hand_card_drag_started)
 	player_board.unit_clicked.connect(handle_unit_clicked)
 	opp_board.unit_clicked.connect(handle_unit_clicked)
+	hand_view.card_departed.connect(_on_card_departed)
+	player_board.card_departed.connect(_on_card_departed)
+	opp_board.card_departed.connect(_on_card_departed)
 	_opp_deck.clicked.connect(handle_deck_target_clicked)
 	_mulligan.confirmed.connect(func(idx): apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): apply_action(Action.resolve_choice({"indices": idx})))
@@ -62,19 +65,22 @@ func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void
 	_post_action()
 
 func apply_action(action: Action) -> void:
+	var before := _snapshot_zones()
 	var from := state.bus.log.size()
 	engine.apply(action)
 	var events := state.bus.log.slice(from)
-	render_all()
+	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
+	render_all(plan)
+	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
 	_post_action()
 
-func render_all() -> void:
+func render_all(plan: Array = []) -> void:
 	var you := state.players[HUMAN]
 	var opp := state.players[1 - HUMAN]
-	player_board.render(you.board, 0)
-	opp_board.render(opp.board, 1)
-	hand_view.render(you.hand, 0)
+	player_board.render(you.board, 0, plan)
+	opp_board.render(opp.board, 1, plan)
+	hand_view.render(you.hand, 0, plan)
 	opp_hand.set_count(opp.hand.size())
 	_player_deck.set_count(you.deck.size())
 	_player_discard.set_count(you.discard.size())
@@ -83,6 +89,59 @@ func render_all() -> void:
 	_player_leader.set_count(1 if you.leader else 0)
 	_opp_leader.set_count(1 if opp.leader else 0)
 	_tickets.set_tickets(you.tickets_tapped, you.tickets_total)
+
+func _snapshot_zones() -> Dictionary:
+	var snap := {}
+	for p in range(state.players.size()):
+		var ps: PlayerState = state.players[p]
+		for c in ps.deck:
+			snap[c.instance_id] = {"zone": Enums.Zone.DECK, "player": p}
+		for c in ps.hand:
+			snap[c.instance_id] = {"zone": Enums.Zone.HAND, "player": p}
+		for c in ps.board:
+			snap[c.instance_id] = {"zone": Enums.Zone.BOARD, "player": p}
+		for c in ps.discard:
+			snap[c.instance_id] = {"zone": Enums.Zone.DISCARD, "player": p}
+	return snap
+
+func _enrich(raw: Array) -> Array:
+	var out: Array = []
+	for t in raw:
+		var e: Dictionary = t.duplicate()
+		if t["from"] == Enums.Zone.DECK or t["from"] == Enums.Zone.DISCARD:
+			e["from_pos"] = FlightAnchors.of(t["from"], t["player"], self) - BoardLayout.CARD_PIVOT
+		if t["to"] == Enums.Zone.DECK or t["to"] == Enums.Zone.DISCARD:
+			e["to_pos"] = FlightAnchors.of(t["to"], t["player"], self) - BoardLayout.CARD_PIVOT
+		out.append(e)
+	return out
+
+func _spawn_pile_travelers(plan: Array) -> void:
+	var mill_i := 0
+	var resh_i := 0
+	for e in plan:
+		var from_pile: bool = e["from"] == Enums.Zone.DECK or e["from"] == Enums.Zone.DISCARD
+		var to_pile: bool = e["to"] == Enums.Zone.DECK or e["to"] == Enums.Zone.DISCARD
+		if not (from_pile and to_pile):
+			continue
+		if e["from"] == Enums.Zone.DECK and e["to"] == Enums.Zone.DISCARD:
+			_flight.spawn_traveler(_find_card(e["instance_id"]), e["from_pos"], e["to_pos"],
+				true, float(mill_i) * 0.05)
+			mill_i += 1
+		elif e["from"] == Enums.Zone.DISCARD and e["to"] == Enums.Zone.DECK:
+			if resh_i < 5:
+				_flight.spawn_traveler(null, e["from_pos"], e["to_pos"], false, float(resh_i) * 0.04)
+				resh_i += 1
+
+func _on_card_departed(cv: CardView, to_pos: Vector2) -> void:
+	_flight.take_leaver(cv, to_pos)
+
+func _find_card(iid: int) -> CardInstance:
+	for p in state.players:
+		for coll in [p.deck, p.hand, p.board, p.discard]:
+			for c in coll:
+				if c.instance_id == iid:
+					return c
+	return null
 
 func _post_action() -> void:
 	_refresh_highlights()
