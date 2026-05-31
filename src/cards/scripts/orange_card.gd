@@ -11,3 +11,6 @@ func on_cast(card: CardInstance, ctx: EffectContext) -> void:
 func resume(card: CardInstance, tag: String, result: Dictionary, ctx: EffectContext) -> void:
 	if tag == "orange_fee" and not result["cards"].is_empty():
 		ctx.add_fee_modifier(result["cards"][0], -1)
+
+func is_exhausted() -> bool:
+	return true

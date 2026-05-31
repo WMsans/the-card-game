@@ -25,6 +25,7 @@ func cost_modifier(_card: CardInstance, _ctx) -> int: return 0
 # Classification predicates for "every Note" / "one CLEF" rules.
 func is_clef() -> bool: return false
 func is_note() -> bool: return false
+func is_exhausted() -> bool: return false
 
 # RUMMAGE: extra cards added per rummage instance while this card is on board.
 func rummage_bonus(_card: CardInstance, _ctx) -> int: return 0

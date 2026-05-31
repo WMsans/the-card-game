@@ -5,6 +5,7 @@ const KNOWN_KEYWORDS := [
 	"REQUEST", "RUMMAGE", "TRASH", "ORANGE", "HARMONIZE", "CLEF",
 	"TAUNT", "BOMB", "DETONATE", "DEFUSE", "CYCLE", "MILL",
 	"SCRAPPED", "EMPOWERED", "OVERCHARGE", "RECYCLE", "HARMONIZED", "REMOVED",
+	"EXHAUSTED",
 ]
 
 static func load_deck(path: String, deck_color: String) -> Array[CardDefinition]:

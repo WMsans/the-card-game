@@ -14,6 +14,8 @@ static func _make_def() -> CardDefinition:
 	d.type = Enums.CardType.SPELL
 	d.name = "Orange"
 	d.ticket_cost = 0
+	d.ability_text = "Reduce a card's fee by 1. While in hand, increase hand size by one. EXHAUSTED."
+	d.keywords = ["EXHAUSTED"]
 	return d
 
 static func is_orange(card: CardInstance) -> bool:

@@ -394,8 +394,11 @@ func _play_card(instance_id: int, params: Dictionary) -> void:
 			card.tapped = true
 			ps.board.append(card)
 		Enums.CardType.SPELL:
-			card.zone = Enums.Zone.DISCARD
-			ps.discard.append(card)
+			if card.card_script != null and card.card_script.is_exhausted():
+				card.zone = Enums.Zone.REMOVED
+			else:
+				card.zone = Enums.Zone.DISCARD
+				ps.discard.append(card)
 		Enums.CardType.TRAP:
 			card.zone = Enums.Zone.TRAP_SET
 			ps.set_traps.append(card)

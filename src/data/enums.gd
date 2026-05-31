@@ -1,7 +1,7 @@
 class_name Enums
 extends RefCounted
 
-enum Zone { DECK, HAND, BOARD, DISCARD, TRAP_SET, LEADER_SLOT }
+enum Zone { DECK, HAND, BOARD, DISCARD, TRAP_SET, LEADER_SLOT, REMOVED }
 enum Phase { SETUP, START, MAIN, END, GAME_OVER }
 enum CardType { MINION, SPELL, TRAP, LEADER }
 enum EventType {
