@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://cdeckselect01"]
+
+[ext_resource type="Script" path="res://src/ui/shell/deck_select_panel.gd" id="1_ds"]
+
+[node name="DeckSelectPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ds")
+
+[node name="LeaderArt" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 120.0
+offset_top = 120.0
+offset_right = 620.0
+offset_bottom = 820.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LeaderName" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 120.0
+offset_top = 60.0
+offset_right = 620.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 40
+
+[node name="LeaderText" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 120.0
+offset_top = 830.0
+offset_right = 760.0
+offset_bottom = 980.0
+autowrap_mode = 3
+
+[node name="MyDeckLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 120.0
+offset_right = 1800.0
+offset_bottom = 160.0
+text = "Your Deck"
+
+[node name="MyDeckRow" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 170.0
+offset_right = 1800.0
+offset_bottom = 470.0
+
+[node name="OppLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 500.0
+offset_right = 1800.0
+offset_bottom = 540.0
+text = "Opponent"
+
+[node name="OppRow" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 550.0
+offset_right = 1800.0
+offset_bottom = 850.0
+
+[node name="Back" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 120.0
+offset_top = 1000.0
+offset_right = 320.0
+offset_bottom = 1050.0
+text = "Back"
+
+[node name="Seed" type="LineEdit" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 810.0
+offset_top = 1000.0
+offset_right = 1110.0
+offset_bottom = 1050.0
+placeholder_text = "Seed (optional)"
+
+[node name="Embark" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1600.0
+offset_top = 1000.0
+offset_right = 1800.0
+offset_bottom = 1050.0
+text = "Embark"

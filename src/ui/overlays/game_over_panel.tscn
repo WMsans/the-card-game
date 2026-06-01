@@ -45,3 +45,11 @@ offset_top = 350.0
 offset_right = 670.0
 offset_bottom = 400.0
 text = "Quit"
+
+[node name="MainMenu" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 420.0
+offset_right = 670.0
+offset_bottom = 470.0
+text = "Main Menu"

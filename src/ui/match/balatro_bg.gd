@@ -6,10 +6,19 @@ signal foreground_offset(offset: Vector2)
 @export var bg_max_offset: Vector2 = Vector2(4, 3)
 @export var fg_max_offset: Vector2 = Vector2(12, 10)
 @export var smoothing: float = 2.0
+@export var trauma_decay: float = 1.5
+@export var shake_max: Vector2 = Vector2(40, 30)
 
+var _trauma: float = 0.0
 var _bg_current: Vector2 = Vector2.ZERO
 var _fg_current: Vector2 = Vector2.ZERO
 var _parallax_padding: Vector2
+
+func add_trauma(amount: float) -> void:
+	_trauma = clampf(_trauma + amount, 0.0, 1.0)
+
+func get_trauma() -> float:
+	return _trauma
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -66,8 +75,14 @@ func _process(delta: float) -> void:
 	_bg_current = _bg_current.lerp(bg_target, smoothing * delta)
 	_fg_current = _fg_current.lerp(fg_target, smoothing * delta)
 
-	offset_left = -_parallax_padding.x + _bg_current.x
-	offset_top = -_parallax_padding.y + _bg_current.y
-	offset_right = _parallax_padding.x + _bg_current.x
-	offset_bottom = _parallax_padding.y + _bg_current.y
-	foreground_offset.emit(_fg_current)
+	_trauma = maxf(_trauma - trauma_decay * delta, 0.0)
+	var shake := _trauma * _trauma
+	var jolt := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * shake
+	var bg_jolt := jolt * shake_max * (bg_max_offset / fg_max_offset)
+	var fg_jolt := jolt * shake_max
+
+	offset_left = -_parallax_padding.x + _bg_current.x + bg_jolt.x
+	offset_top = -_parallax_padding.y + _bg_current.y + bg_jolt.y
+	offset_right = _parallax_padding.x + _bg_current.x + bg_jolt.x
+	offset_bottom = _parallax_padding.y + _bg_current.y + bg_jolt.y
+	foreground_offset.emit(_fg_current + fg_jolt)

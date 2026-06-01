@@ -9,6 +9,9 @@ const DECKS := ["strike", "raccoon", "writing", "audio"]
 func _ready() -> void:
 	populate()
 
+func on_foreground_offset(offset: Vector2) -> void:
+	position = offset
+
 func populate() -> void:
 	for color in DECKS:
 		var defs := CardDatabase.load_deck("res://src/data/decks/%s.csv" % color, color)
