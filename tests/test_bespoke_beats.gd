@@ -39,3 +39,12 @@ func test_trap_deploy_flips_card_face_down() -> void:
 	# Past the center hold + the arc; the card should have flipped face-down en route.
 	await get_tree().create_timer(FeedbackFx.HOLD_TIME + 0.8).timeout
 	assert_bool(cv._face_down).is_true()
+
+func test_run_feedback_features_a_played_spell() -> void:
+	var m := await _match()
+	var cv := await _hand_card(m, 321, Enums.CardType.SPELL)
+	var events := [GameEvent.new(Enums.EventType.CARD_PLAYED,
+		{"player": 0, "instance": 321, "card_type": Enums.CardType.SPELL})]
+	m._run_bespoke(events)
+	await get_tree().create_timer(0.4).timeout
+	assert_float(cv.global_position.y).is_less(700.0)

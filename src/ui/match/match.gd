@@ -117,6 +117,8 @@ func apply_action(action: Action) -> void:
 	_anim_busy = true
 	if CombatDirector.has_attack(events):
 		await _director.play(events, self)
+	else:
+		await _run_bespoke(events)
 	render_all(plan)
 	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
@@ -514,6 +516,15 @@ func _play_flourishes(events: Array) -> void:
 			$Banner.show_turn(e.data["player"] == HUMAN)
 			_director.reset_ramp()
 			_action_cue.reset_ramp()
+
+func _run_bespoke(events: Array) -> void:
+	for e in events:
+		if e.type == Enums.EventType.CARD_PLAYED:
+			match e.data.get("card_type", -1):
+				Enums.CardType.SPELL:
+					await _feature_spell(e.data.get("instance", -1), e.data.get("player", -1))
+				Enums.CardType.TRAP:
+					await _feature_trap_deploy(e.data.get("instance", -1), e.data.get("player", -1))
 
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:
