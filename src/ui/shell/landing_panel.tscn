@@ -16,12 +16,21 @@ script = ExtResource("1_land")
 [node name="Logo" type="Label" parent="." unique_id=1003650157]
 layout_mode = 0
 offset_left = 90.0
-offset_top = 491.0
+offset_top = 404.0
 offset_right = 700.0
-offset_bottom = 692.0
+offset_bottom = 605.0
 theme_override_font_sizes/font_size = 72
 text = "THE CARD
 GAME"
+
+[node name="Description" type="Label" parent="." unique_id=194321744]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 606.0
+offset_right = 708.0
+offset_bottom = 807.0
+theme_override_font_sizes/font_size = 32
+text = "Mega Collab by VGDC in UCI"
 
 [node name="Menu" type="VBoxContainer" parent="." unique_id=11854724]
 layout_mode = 0

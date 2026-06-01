@@ -16,8 +16,8 @@ const DRIFT_Y_TOP := -550.0
 const DRIFT_Y_BOTTOM := 1150.0
 const SPEED_MIN := 22.0
 const SPEED_MAX := 42.0
-const SCALE_MIN := 0.42
-const SCALE_MAX := 0.58
+const SCALE_MIN := 0.8
+const SCALE_MAX := 1.2
 const SETTLE_MSEC := 400
 
 @onready var _drift: Node2D = $DriftingCards
@@ -83,7 +83,7 @@ func _spawn_drifting_cards() -> void:
 
 	for i in range(DRIFT_CARD_COUNT):
 		var cv: CardView = CARD_VIEW.instantiate()
-		cv.lift_on_hover = true
+		cv.lift_on_hover = false
 		cv.drag_started.connect(_on_drag_started.bind(i))
 		cv.drag_released.connect(_on_drag_released.bind(i))
 		_drift.add_child(cv)
