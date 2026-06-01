@@ -113,15 +113,16 @@ func apply_action(action: Action) -> void:
 	var events := state.bus.log.slice(from)
 	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
 	_anim_busy = true
+	var featured: Array = []
 	if CombatDirector.has_attack(events):
 		await _director.play(events, self)
 	else:
-		await _run_bespoke(events)
+		featured = await _run_bespoke(events)
 	render_all(plan)
 	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
 	if not CombatDirector.has_attack(events):
-		await _action_cue.play(self, events)
+		await _action_cue.play(self, events, featured)
 	_anim_busy = false
 	_post_action()
 
@@ -521,16 +522,26 @@ func _play_flourishes(events: Array) -> void:
 			_director.reset_ramp()
 			_action_cue.reset_ramp()
 
-func _run_bespoke(events: Array) -> void:
+func _run_bespoke(events: Array) -> Array:
+	var featured: Array = []
 	for e in events:
 		if e.type == Enums.EventType.CARD_PLAYED:
+			var iid: int = e.data.get("instance", -1)
+			var pl: int = e.data.get("player", -1)
 			match e.data.get("card_type", -1):
 				Enums.CardType.SPELL:
-					await _feature_spell(e.data.get("instance", -1), e.data.get("player", -1))
+					await _feature_spell(iid, pl)
+					featured.append(iid)
 				Enums.CardType.TRAP:
-					await _feature_trap_deploy(e.data.get("instance", -1), e.data.get("player", -1))
+					await _feature_trap_deploy(iid, pl)
+					featured.append(iid)
 				Enums.CardType.MINION:
-					await _feature_minion(e.data.get("instance", -1), e.data.get("player", -1))
+					if hand_view.card_views.has(iid):
+						await _feature_minion(iid, pl)
+						featured.append(iid)
+				_:
+					pass
+	return featured
 
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:

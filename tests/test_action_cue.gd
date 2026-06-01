@@ -71,3 +71,11 @@ func test_play_with_no_cue_events_is_noop() -> void:
 	var cue := ActionCue.new()
 	await cue.play(m, [GameEvent.new(Enums.EventType.CARD_DRAWN, {"player": 0, "instance": 1})])
 	assert_int(m.get_node("FxLayer").get_child_count()).is_equal(fx_before)
+
+func test_play_skips_featured_target() -> void:
+	var m := await _match()
+	var cue := ActionCue.new()
+	var events := [GameEvent.new(Enums.EventType.CARD_PLAYED,
+		{"player": 0, "instance": 999, "card_type": Enums.CardType.MINION})]
+	cue.play(m, events, [999])
+	assert_array(ActionCue.descriptors(events)).is_not_empty()
