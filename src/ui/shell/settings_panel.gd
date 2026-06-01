@@ -35,6 +35,9 @@ func _on_fullscreen_toggled(on: bool) -> void:
 	_settings.apply()
 	_settings.save()
 
+func on_foreground_offset(offset: Vector2) -> void:
+	position = offset
+
 func _on_vsync_toggled(on: bool) -> void:
 	if _settings == null: return
 	_settings.vsync = on

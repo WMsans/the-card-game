@@ -37,3 +37,6 @@ func _scroll_loop() -> void:
 	var tw := create_tween().set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(_label, "position:y", end_y, SCROLL_DURATION)
 	tw.tween_callback(_scroll_loop)
+
+func on_foreground_offset(offset: Vector2) -> void:
+	position = offset
