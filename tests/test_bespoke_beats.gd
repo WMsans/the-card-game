@@ -48,3 +48,9 @@ func test_run_feedback_features_a_played_spell() -> void:
 	m._run_bespoke(events)
 	await get_tree().create_timer(0.4).timeout
 	assert_float(cv.global_position.y).is_less(700.0)
+
+func test_handle_drop_marks_card_played() -> void:
+	var m := await _match()
+	var cv := await _hand_card(m, 401, Enums.CardType.SPELL)
+	m._find_card_view_any(401).mark_played()
+	assert_bool(cv._consumed).is_true()

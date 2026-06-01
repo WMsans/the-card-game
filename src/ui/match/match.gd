@@ -346,11 +346,14 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	var legal: Array = engine.get_legal_actions()
 	var by_tickets: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, false)
 	var by_discard: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, true)
+	var cv := _find_card_view_any(instance_id)
 	if by_tickets != null and by_discard != null:
 		_leader_prompt.show_prompt()
 		_active_overlay = _leader_prompt
 		var handler := func(by_disc: bool):
 			_active_overlay = null
+			if cv != null:
+				cv.mark_played()
 			if by_disc:
 				apply_action(by_discard)
 			else:
@@ -358,9 +361,13 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 		_leader_prompt.chosen.connect(handler, CONNECT_ONE_SHOT)
 		return true
 	if by_discard != null:
+		if cv != null:
+			cv.mark_played()
 		apply_action(by_discard)
 		return true
 	if by_tickets != null:
+		if cv != null:
+			cv.mark_played()
 		apply_action(by_tickets)
 		return true
 	render_all()
