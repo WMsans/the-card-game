@@ -39,9 +39,7 @@ static func parse_cluster(events: Array) -> Dictionary:
 	return c
 
 static func next_speed(current: float, gap: float) -> float:
-	if gap <= CHAIN_GAP:
-		return minf(current + RAMP_STEP, MAX_SPEED)
-	return 1.0
+	return FeedbackFx.next_speed(current, gap)
 
 func reset_ramp() -> void:
 	anim_speed = 1.0
@@ -122,9 +120,4 @@ func _spawn_numbers(m, c: Dictionary) -> void:
 
 func _bump_pile(m, deck_player: int, spd: float) -> void:
 	var pile: Control = m._player_deck if deck_player == m.HUMAN else m._opp_deck
-	if pile == null:
-		return
-	var s: Vector2 = pile.scale
-	var tw: Tween = pile.create_tween()
-	tw.tween_property(pile, "scale", s * 1.18, PILE_BUMP_UP / maxf(spd, 0.01)).set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(pile, "scale", s, PILE_BUMP_DOWN / maxf(spd, 0.01)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	FeedbackFx.bump_pile(pile, spd)
