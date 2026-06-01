@@ -66,6 +66,7 @@ var _tween_tilt: Tween
 func setup(instance: CardInstance) -> void:
 	_instance = instance
 	_face_down = false
+	_consumed = false
 	_refresh()
 
 func set_face_down(value: bool) -> void:
@@ -256,6 +257,7 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
+			_consumed = false
 			_active_drag = self
 			# Grab-relative pivot: keep the card exactly where it was picked up so it
 			# doesn't snap-jump to recenter, AND make drag rotation pivot around the
@@ -303,10 +305,11 @@ func _on_gui_input(event: InputEvent) -> void:
 				# Satisfying release: elastic scale drop + return to rest
 				if _tween_release and _tween_release.is_running():
 					_tween_release.kill()
-				_tween_release = create_tween()
-				_tween_release.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-				_tween_release.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-				_tween_release.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+				if not _consumed:
+					_tween_release = create_tween()
+					_tween_release.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+					_tween_release.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+					_tween_release.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	elif event is InputEventMouseMotion and _hovering and _active_drag == null:
 		# Only tilt while this card is the active hover. Without the _active_drag /
 		# _hovering guard, moving over a card while another is dragged would set the

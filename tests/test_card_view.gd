@@ -103,3 +103,28 @@ func test_set_playable_drives_highlight() -> void:
 	assert_bool((cv.find_child("Highlight") as Control).visible).is_true()
 	cv.set_playable(false)
 	assert_bool((cv.find_child("Highlight") as Control).visible).is_false()
+
+func _release_event() -> InputEventMouseButton:
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = false
+	return ev
+
+func test_played_card_does_not_snap_back_on_release() -> void:
+	var cv := _spawn()
+	cv.set_interactive(true)
+	cv.set_rest(Vector2(500, 900), 0.0)
+	cv.position = Vector2(800, 400)
+	cv._dragging = true
+	cv.mark_played()
+	cv._on_gui_input(_release_event())
+	assert_bool(cv._tween_release != null and cv._tween_release.is_running()).is_false()
+
+func test_unplayed_card_snaps_back_on_release() -> void:
+	var cv := _spawn()
+	cv.set_interactive(true)
+	cv.set_rest(Vector2(500, 900), 0.0)
+	cv.position = Vector2(800, 400)
+	cv._dragging = true
+	cv._on_gui_input(_release_event())
+	assert_bool(cv._tween_release != null and cv._tween_release.is_running()).is_true()
