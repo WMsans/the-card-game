@@ -7,6 +7,7 @@ const RECOIL_TIME := 0.24
 const SQUASH_TIME := 0.10
 const POP_TIME := 0.18
 const HITSTOP := 0.05
+const WIGGLE_TIME := 0.5
 
 static func _t(base_time: float, speed: float) -> float:
 	return base_time / maxf(speed, 0.01)
@@ -49,4 +50,13 @@ static func pop(cv: CardView, speed: float = 1.0) -> Tween:
 	tw.parallel().tween_property(cv, "modulate", Color(1.6, 1.6, 1.6), t * 0.45)
 	tw.tween_property(cv, "scale", Vector2(base, base), t * 0.55).set_trans(Tween.TRANS_QUAD)
 	tw.parallel().tween_property(cv, "modulate", Color.WHITE, t * 0.55)
+	return tw
+
+# Balatro joker-trigger feel: tilt a few degrees, then elastically spring back to upright.
+static func spring_wiggle(cv: CanvasItem, degrees: float = 9.0, speed: float = 1.0) -> Tween:
+	var start: float = cv.rotation
+	var t := _t(WIGGLE_TIME, speed)
+	var tw := cv.create_tween()
+	tw.tween_property(cv, "rotation", start + deg_to_rad(degrees), t * 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(cv, "rotation", start, t * 0.75).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	return tw

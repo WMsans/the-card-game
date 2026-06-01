@@ -57,3 +57,18 @@ func test_speed_shortens_duration() -> void:
 	await CardJuice.recoil(cv, cv.position, cv.rotation, 2.5).finished
 	var fast := Time.get_ticks_msec() - t0
 	assert_int(fast).is_less(slow)
+
+func _card() -> CardView:
+	var cv: CardView = load("res://src/ui/card/card_view.tscn").instantiate()
+	add_child(cv)
+	auto_free(cv)
+	return cv
+
+func test_spring_wiggle_returns_to_upright() -> void:
+	var cv := _card()
+	cv.rotation = 0.3
+	var tw := CardJuice.spring_wiggle(cv, 10.0)
+	await get_tree().create_timer(0.14).timeout
+	assert_float(cv.rotation).is_greater(0.3)
+	await tw.finished
+	assert_float(cv.rotation).is_equal_approx(0.3, 0.01)
