@@ -143,7 +143,9 @@ func _resolve_card_effect(params: Dictionary) -> void:
 	var pc := state.pending_choice
 	var data := pc.data
 	var spec: ChoiceSpec = data["spec"]
-	var card := _find_anywhere(data["resume_card"])
+	var card: CardInstance = data.get("source_card")
+	if card == null:
+		card = _find_anywhere(data["resume_card"])
 	var owner: int = data["resume_owner"]
 	var result := _build_choice_result(spec, params)
 	state.pending_choice = null

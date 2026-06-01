@@ -4,8 +4,8 @@ func _ready_engine() -> GameEngine:
 	var state := GameState.new(11)
 	var eng := GameEngine.new(state)
 	eng.setup(TestFactory.simple_deck(), TestFactory.simple_deck())
-	eng.apply(Action.mulligan([0, 1]))
-	eng.apply(Action.mulligan([0, 1]))
+	eng.apply(Action.mulligan([0, 1, 2]))
+	eng.apply(Action.mulligan([0, 1, 2]))
 	return eng
 
 func test_end_turn_passes_to_opponent_and_starts_their_turn() -> void:
