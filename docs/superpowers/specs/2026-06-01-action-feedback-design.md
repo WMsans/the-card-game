@@ -71,8 +71,10 @@ Mirrors the `CombatDirector` split:
 
 #### What the common cue looks like (in-place — no trip to center)
 
-1. **Pop** — the target card does a quick squash-stretch **scale-punch** (pops to
-   ~1.15× and springs back, `TRANS_ELASTIC`/`BACK`), snapping the eye to it.
+1. **Pop & spring** — the target card does a quick squash-stretch **scale-punch**
+   (pops to ~1.15× and springs back, `TRANS_ELASTIC`/`BACK`) **plus** a Balatro
+   **spring-rotation wiggle** (the shared `CardJuice.spring_wiggle` primitive
+   used by spell cast), snapping the eye to it.
 2. **Label** — a short word springs up just above the target and drifts slightly
    upward while held, reusing the `DamageNumber` / `FxLayer` float pattern.
 3. **Tint** — a brief color flash on the card during the hold, keyed to meaning
@@ -148,8 +150,8 @@ On `CARD_PLAYED` with `card_type == SPELL`:
 4. **Fly home** — a short flight to the caster's **discard pile**, shrinking as it
    goes (reuse `CardFlight.fly_out`).
 
-New flight primitive `CardFlight.spring_wiggle(cv, degrees, ...) -> Tween` for the
-trigger oscillation.
+New juice primitive `CardJuice.spring_wiggle(cv, degrees, ...) -> Tween` for the
+trigger oscillation (also reused by the common cue, §1).
 
 #### 3b. Trap deployed (Slay-the-Spire power-card feel)
 
@@ -168,13 +170,29 @@ midpoint hop). Kept structured so waypoints are unit-testable.
 
 ### 4. Bespoke: trap fired / revealed
 
-- Keep the existing `TrapRevealOverlay` as the decision/reveal beat. Read-only
-  intercept hold goes from 0.8s → `HOLD_TIME` (2.0s) for consistency.
 - On `TRAP_FIRED` (`{player, instance}`): the owner's trap pile **flashes +
-  bumps**, the fired trap flips face-up and flies trap-pile → discard, with a
-  "TRAP SPRUNG" cue — making clear which pile reacted.
+  bumps**, then the fired trap flips face-up and **flies to screen center**
+  (making clear which pile reacted) — and only *then* does the
+  `TrapRevealOverlay` **bounce in** (§5 popup entrance) rather than appearing
+  instantly. The overlay remains the decision/reveal beat.
+- Read-only intercept hold goes from 0.8s → `HOLD_TIME` (2.0s) for consistency.
+- After resolution, the trap flies center → discard.
 
-### 5. Timing & sequencing
+### 5. Popup entrance transition (all card popups)
+
+Card-displaying overlays currently snap on with `visible = true`. Replace that
+with a shared **bouncy/juicy scale-up entrance**: the panel scales from ~0.85 →
+1.0 with an overshoot (`TRANS_BACK`/`ELASTIC`, `EASE_OUT`) while its dim/backdrop
+fades in. As in the trap example, any card that features to center arrives
+*before* the popup pops in.
+
+- Shared helper `CardJuice.popup_in(panel, ...) -> Tween` (and a matching
+  `popup_out` for dismissal) so every popup uses one entrance.
+- Applies to: `TrapRevealOverlay`, `CardSelectPanel`, `OptionPrompt`,
+  `LeaderCostPrompt`, `MulliganPanel`, and `PileOverlay` (panel/title pop; its
+  existing card fly-in is kept).
+
+### 6. Timing & sequencing
 
 - `apply_action` (and AI turns) already lock input via `_anim_busy` during the
   attack director. The cue chain extends that: set `_anim_busy` for the whole
@@ -191,7 +209,9 @@ midpoint hop). Kept structured so waypoints are unit-testable.
   target per event type; minion `CARD_PLAYED` produces a "PLAYED" cue, while
   spell and trap `CARD_PLAYED` produce **no** generic cue (routed to bespoke
   §3a/§3b); rummage/draw/discard produce none.
-- `CardFlight.spring_wiggle` — oscillation returns to upright (final rotation 0).
+- `CardJuice.spring_wiggle` — oscillation returns to upright (final rotation 0).
+- `CardJuice.popup_in`/`popup_out` — entrance ends at scale 1.0 / full alpha;
+  exit completes hidden.
 - Spell-cast routing: `CARD_PLAYED` spell drives the lift-to-center → wiggle →
   fly-to-discard path.
 - Ramp: `next_speed` chaining behaves (reuse/extend existing combat-director ramp
