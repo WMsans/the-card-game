@@ -529,6 +529,8 @@ func _run_bespoke(events: Array) -> void:
 					await _feature_spell(e.data.get("instance", -1), e.data.get("player", -1))
 				Enums.CardType.TRAP:
 					await _feature_trap_deploy(e.data.get("instance", -1), e.data.get("player", -1))
+				Enums.CardType.MINION:
+					await _feature_minion(e.data.get("instance", -1), e.data.get("player", -1))
 
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:
@@ -686,6 +688,32 @@ func _feature_trap_deploy(iid: int, player: int) -> void:
 	await CardFlight.orbit_loop(cv, cv.position, CardFlight.ORBIT_RADIUS, to_topleft, spd).finished
 	var pile: Control = _player_trap if player == HUMAN else _opp_trap
 	FeedbackFx.bump_pile(pile, spd)
+	cv.z_index = 0
+
+func _feature_minion(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null or not hand_view.card_views.has(iid):
+		return
+	var spd := await _fly_to_center(cv)
+	var board: Node2D = player_board if player == HUMAN else opp_board
+	hand_view.card_views.erase(iid)
+	for c in cv.drag_released.get_connections():
+		cv.drag_released.disconnect(c["callable"])
+	for c in cv.drag_started.get_connections():
+		cv.drag_started.disconnect(c["callable"])
+	cv.reparent(board)
+	board.card_views[iid] = cv
+	cv.clicked.connect(func(_cv: CardView): board.unit_clicked.emit(iid))
+	var ps: PlayerState = state.players[player]
+	var idx := 0
+	for i in range(ps.board.size()):
+		if ps.board[i].instance_id == iid:
+			idx = i
+			break
+	var t := BoardLayout.slot(Enums.Zone.BOARD, idx, ps.board.size(), player)
+	var rest_pos := t.origin - BoardLayout.CARD_PIVOT
+	await CardFlight.move_to(cv, rest_pos, t.get_rotation()).finished
+	CardJuice.squash(cv, spd)
 	cv.z_index = 0
 
 func _on_foreground_offset(offset: Vector2) -> void:
