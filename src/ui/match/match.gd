@@ -37,8 +37,6 @@ var _bg: BalatroBg = null
 @onready var _player_discard = $Table/PlayerDiscard
 @onready var _opp_deck = $Table/OppDeck
 @onready var _opp_discard = $Table/OppDiscard
-@onready var _player_leader = $Table/PlayerLeader
-@onready var _opp_leader = $Table/OppLeader
 @onready var _player_trap = $Table/PlayerTrap
 @onready var _opp_trap = $Table/OppTrap
 @onready var _tickets = $Table/PlayerTickets
@@ -138,8 +136,6 @@ func render_all(plan: Array = []) -> void:
 	_player_discard.set_count(you.discard.size())
 	_opp_deck.set_count(opp.deck.size())
 	_opp_discard.set_count(opp.discard.size())
-	_player_leader.set_count(1 if you.leader else 0)
-	_opp_leader.set_count(1 if opp.leader else 0)
 	_player_trap.set_count(you.set_traps.size())
 	_opp_trap.set_count(opp.set_traps.size())
 	_tickets.set_tickets(you.tickets_tapped, you.tickets_total)

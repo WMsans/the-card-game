@@ -42,13 +42,6 @@ offset_top = 530.0
 offset_right = 1810.0
 offset_bottom = 740.0
 
-[node name="PlayerLeader" parent="." instance=ExtResource("5_pile")]
-layout_mode = 0
-offset_left = 110.0
-offset_top = 750.0
-offset_right = 260.0
-offset_bottom = 960.0
-
 [node name="OppDeck" parent="." instance=ExtResource("5_pile")]
 layout_mode = 0
 offset_left = 1660.0
@@ -62,13 +55,6 @@ offset_left = 1660.0
 offset_top = 270.0
 offset_right = 1810.0
 offset_bottom = 480.0
-
-[node name="OppLeader" parent="." instance=ExtResource("5_pile")]
-layout_mode = 0
-offset_left = 110.0
-offset_top = 50.0
-offset_right = 260.0
-offset_bottom = 260.0
 
 [node name="PlayerTickets" parent="." instance=ExtResource("6_ticket")]
 layout_mode = 0

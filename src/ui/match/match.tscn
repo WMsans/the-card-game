@@ -86,61 +86,47 @@ script = ExtResource("1_board")
 [node name="PlayerHand" type="Node2D" parent="Table" unique_id=295156646]
 script = ExtResource("2_hand")
 
-[node name="PlayerDeck" parent="Table" unique_id=1762679969 instance=ExtResource("4_pile")]
+[node name="PlayerDiscard" parent="Table" unique_id=1762679969 instance=ExtResource("4_pile")]
 layout_mode = 0
 offset_left = 1660.0
 offset_top = 750.0
 offset_right = 1810.0
 offset_bottom = 960.0
 
-[node name="PlayerDiscard" parent="Table" unique_id=947836656 instance=ExtResource("4_pile")]
+[node name="PlayerTrap" parent="Table" unique_id=947836656 instance=ExtResource("4_pile")]
 layout_mode = 0
 offset_left = 1660.0
 offset_top = 530.0
 offset_right = 1810.0
 offset_bottom = 740.0
 
-[node name="PlayerLeader" parent="Table" unique_id=2142680860 instance=ExtResource("4_pile")]
+[node name="PlayerDeck" parent="Table" unique_id=2142680860 instance=ExtResource("4_pile")]
 layout_mode = 0
 offset_left = 110.0
 offset_top = 750.0
 offset_right = 260.0
 offset_bottom = 960.0
 
-[node name="OppDeck" parent="Table" unique_id=1394567074 instance=ExtResource("4_pile")]
+[node name="OppDiscard" parent="Table" unique_id=1394567074 instance=ExtResource("4_pile")]
 layout_mode = 0
 offset_left = 1660.0
 offset_top = 50.0
 offset_right = 1810.0
 offset_bottom = 260.0
 
-[node name="OppDiscard" parent="Table" unique_id=39958300 instance=ExtResource("4_pile")]
+[node name="OppTrap" parent="Table" unique_id=39958300 instance=ExtResource("4_pile")]
 layout_mode = 0
 offset_left = 1660.0
 offset_top = 270.0
 offset_right = 1810.0
 offset_bottom = 480.0
 
-[node name="OppLeader" parent="Table" unique_id=131738334 instance=ExtResource("4_pile")]
+[node name="OppDeck" parent="Table" unique_id=131738334 instance=ExtResource("4_pile")]
 layout_mode = 0
 offset_left = 110.0
 offset_top = 50.0
 offset_right = 260.0
 offset_bottom = 260.0
-
-[node name="PlayerTrap" parent="Table" unique_id=512000201 instance=ExtResource("4_pile")]
-layout_mode = 0
-offset_left = 1660.0
-offset_top = 310.0
-offset_right = 1810.0
-offset_bottom = 520.0
-
-[node name="OppTrap" parent="Table" unique_id=512000202 instance=ExtResource("4_pile")]
-layout_mode = 0
-offset_left = 1810.0
-offset_top = 270.0
-offset_right = 1960.0
-offset_bottom = 480.0
 
 [node name="PlayerTickets" parent="Table" unique_id=1218761618 instance=ExtResource("5_ticket")]
 layout_mode = 0
