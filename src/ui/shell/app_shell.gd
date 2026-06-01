@@ -39,15 +39,18 @@ func goto_deck_select() -> void:
 	p.back_pressed.connect(goto_landing)
 	p.deck_changed.connect(func() -> void: _bg.add_trauma(DECK_PICK_TRAUMA))
 	p.embark.connect(start_match)
+	_bg.foreground_offset.connect(p.on_foreground_offset)
 
 func goto_settings() -> void:
 	var p: SettingsPanel = _mount(SETTINGS)
 	p.bind(_settings)
 	p.back_pressed.connect(goto_landing)
+	_bg.foreground_offset.connect(p.on_foreground_offset)
 
 func goto_credits() -> void:
 	var p: CreditsPanel = _mount(CREDITS)
 	p.back_pressed.connect(goto_landing)
+	_bg.foreground_offset.connect(p.on_foreground_offset)
 
 func goto_compendium() -> void:
 	var gallery: CardGallery = _mount(COMPENDIUM)
@@ -58,6 +61,7 @@ func goto_compendium() -> void:
 	back.pressed.connect(goto_landing)
 	gallery.add_child(back)
 	JuicyButton.apply(back)
+	_bg.foreground_offset.connect(gallery.on_foreground_offset)
 
 func start_match(seed_value: int, my_deck: String, opp_deck: String) -> void:
 	var m: Node = _mount(MATCH)

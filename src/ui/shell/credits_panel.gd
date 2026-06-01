@@ -10,3 +10,6 @@ func _ready() -> void:
 	theme = preload("res://src/ui/theme/game_theme.tres")
 	_back.pressed.connect(func() -> void: back_pressed.emit())
 	JuicyButton.apply(_back)
+
+func on_foreground_offset(offset: Vector2) -> void:
+	position = offset

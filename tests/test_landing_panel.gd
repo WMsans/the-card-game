@@ -32,7 +32,7 @@ func test_creates_drifting_card_sprites() -> void:
 	var cards: Node = p.get_node("DriftingCards")
 	assert_int(cards.get_child_count()).is_equal(p.DRIFT_COUNT)
 
-func test_foreground_offset_moves_drifting_cards_container() -> void:
+func test_foreground_offset_moves_panel() -> void:
 	var p := _spawn()
 	p.on_foreground_offset(Vector2(11, 13))
-	assert_vector(p.get_node("DriftingCards").position).is_equal(Vector2(11, 13))
+	assert_vector(p.position).is_equal(Vector2(11, 13))

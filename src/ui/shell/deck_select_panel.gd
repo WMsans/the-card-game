@@ -69,5 +69,8 @@ func seed_value() -> int:
 	var txt: String = %Seed.text.strip_edges()
 	return int(txt) if txt.is_valid_int() else randi()
 
+func on_foreground_offset(offset: Vector2) -> void:
+	position = offset
+
 func _on_embark() -> void:
 	embark.emit(seed_value(), my_deck, opp_deck)

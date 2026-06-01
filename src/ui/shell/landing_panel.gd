@@ -42,4 +42,4 @@ func _spawn_drifting_cards() -> void:
 		t.tween_property(s, "position:y", base.y, rng.randf_range(3.0, 6.0))
 
 func on_foreground_offset(offset: Vector2) -> void:
-	_drift.position = offset
+	position = offset
