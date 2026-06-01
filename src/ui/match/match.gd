@@ -403,7 +403,7 @@ func _on_pile_clicked(zone: int, player: int) -> void:
 	if cards.is_empty():
 		return
 	var pos := FlightAnchors.of(zone, player, self)
-	_pile_overlay.open(cards, pos, _pile_title(zone, player))
+	_pile_overlay.open(cards, pos, _pile_title(zone, player), player != HUMAN)
 
 func _on_trap_pile_clicked(player: int) -> void:
 	if _anim_busy or _pile_overlay.is_open() or _selected_attacker != -1:
