@@ -654,10 +654,7 @@ func _overlay_title(overlay: CanvasLayer) -> String:
 		return label.text
 	return "Choose"
 
-func _feature_spell(iid: int, player: int) -> void:
-	var cv := _find_card_view_any(iid)
-	if cv == null:
-		return
+func _fly_to_center(cv: CardView) -> float:
 	cv.z_index = 300
 	var spd := _action_cue.anim_speed
 	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
@@ -667,6 +664,13 @@ func _feature_spell(iid: int, player: int) -> void:
 	await tw.finished
 	CardJuice.spring_wiggle(cv, 10.0, spd)
 	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
+	return spd
+
+func _feature_spell(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null:
+		return
+	await _fly_to_center(cv)
 	var discard_pos := FlightAnchors.of(Enums.Zone.DISCARD, player, self) - cv.size * cv.scale * 0.5
 	await CardFlight.fly_out(cv, discard_pos).finished
 	cv.z_index = 0
@@ -675,18 +679,11 @@ func _feature_trap_deploy(iid: int, player: int) -> void:
 	var cv := _find_card_view_any(iid)
 	if cv == null:
 		return
-	cv.z_index = 300
-	var spd := _action_cue.anim_speed
-	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
-	var tw := cv.create_tween().set_parallel(true)
-	tw.tween_property(cv, "global_position", center_topleft, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(cv, "scale", Vector2(FEATURE_SCALE, FEATURE_SCALE), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await tw.finished
-	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
-	cv.set_face_down(true)
+	var spd := await _fly_to_center(cv)
+	await cv.flip_to_face_down().finished
 	var pile_pos := FlightAnchors.of(Enums.Zone.TRAP_SET, player, self)
 	var to_topleft := pile_pos - cv.size * (cv.base_scale * 0.55) * 0.5
-	await CardFlight.flourish_arc(cv, to_topleft, Vector2(-220, -120), spd).finished
+	await CardFlight.orbit_loop(cv, cv.position, CardFlight.ORBIT_RADIUS, to_topleft, spd).finished
 	var pile: Control = _player_trap if player == HUMAN else _opp_trap
 	FeedbackFx.bump_pile(pile, spd)
 	cv.z_index = 0
