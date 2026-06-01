@@ -32,6 +32,9 @@ func test_clicking_player_trap_opens_overlay() -> void:
 	var m := await _match()
 	_set_trap(m, 0, 501)
 	m.render_all()
+	# Clear any post-setup overlay/anim lock so the click takes effect.
+	m._active_overlay = null
+	m._anim_busy = false
 	m._on_trap_pile_clicked(0)
 	assert_bool(m._pile_overlay.is_open()).is_true()
 
