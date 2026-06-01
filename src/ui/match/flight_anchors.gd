@@ -19,4 +19,6 @@ static func _pile_for(zone: int, player: int, m):
 		return m._player_deck if player == 0 else m._opp_deck
 	if zone == Enums.Zone.DISCARD:
 		return m._player_discard if player == 0 else m._opp_discard
+	if zone == Enums.Zone.TRAP_SET:
+		return m.get_meta("_player_trap") if player == 0 else m.get_meta("_opp_trap")
 	return null
