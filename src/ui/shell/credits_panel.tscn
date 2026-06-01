@@ -11,32 +11,22 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_cr")
 
-[node name="VBox" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="CreditsLabel" type="RichTextLabel" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_right = 1920.0
+offset_bottom = 100.0
+text = ""
+fit_content = true
+scroll_active = false
+bbcode_enabled = true
 
-[node name="Title" type="Label" parent="VBox"]
-layout_mode = 2
-text = "Credits"
-horizontal_alignment = 1
-
-[node name="Body" type="Label" parent="VBox"]
-layout_mode = 2
-text = "The Card Game
-A WMsans project."
-horizontal_alignment = 1
-
-[node name="Back" type="Button" parent="VBox"]
+[node name="Back" type="Button" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 140.0
+offset_bottom = 80.0
 text = "Back"
+flat = true
