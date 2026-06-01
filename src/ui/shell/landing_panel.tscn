@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://clanding001"]
+
+[ext_resource type="Script" path="res://src/ui/shell/landing_panel.gd" id="1_land"]
+
+[node name="LandingPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_land")
+
+[node name="DriftingCards" type="Node2D" parent="."]
+
+[node name="Logo" type="Label" parent="."]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 560.0
+offset_right = 700.0
+offset_bottom = 700.0
+text = "THE CARD
+GAME"
+theme_override_font_sizes/font_size = 72
+
+[node name="Menu" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 720.0
+offset_right = 396.0
+offset_bottom = 980.0
+theme_override_constants/separation = 12
+
+[node name="Play" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play"
+
+[node name="Compendium" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Compendium"
+
+[node name="Settings" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Settings"
+
+[node name="Quit" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit"
+
+[node name="Credits" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1760.0
+offset_top = 1020.0
+offset_right = 1900.0
+offset_bottom = 1060.0
+text = "Credits"
+flat = true

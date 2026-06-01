@@ -1,5 +1,7 @@
 extends Control
 
+signal quit_to_menu
+
 const HUMAN := 0
 const THEME := preload("res://src/ui/theme/game_theme.tres")
 const MINIMIZE_STAGGER := 0.05
@@ -22,6 +24,7 @@ var _minimized_overlay: CanvasLayer = null
 var _active_overlay: CanvasLayer = null
 var _rest_transforms: Dictionary = {}
 var _tweens: Array[Tween] = []
+var _bg: BalatroBg = null
 
 @onready var opp_board: Node2D = $Table/OppBoard
 @onready var player_board: Node2D = $Table/PlayerBoard
@@ -48,7 +51,6 @@ var _tweens: Array[Tween] = []
 @onready var _pile_overlay = $PileOverlay
 @onready var _minimize_bar = $MinimizeBar
 @onready var _hand_choice_dim: ColorRect = $Table/HandChoiceDim
-@onready var _bg: BalatroBg = $BalatroBg
 
 func _ready() -> void:
 	_hand_choice._dim_node = _hand_choice_dim
@@ -72,6 +74,7 @@ func _ready() -> void:
 	_trap_reveal.picked.connect(func(i): _active_overlay = null; apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
+	_game_over.main_menu.connect(func(): quit_to_menu.emit())
 	_select.minimize_requested.connect(_on_overlay_minimize.bind(_select))
 	_hand_choice.minimize_requested.connect(_on_overlay_minimize.bind(_hand_choice))
 	_option_prompt.minimize_requested.connect(_on_overlay_minimize.bind(_option_prompt))
@@ -81,7 +84,11 @@ func _ready() -> void:
 	_minimize_bar.expand_pressed.connect(_on_overlay_expand)
 	theme = THEME
 	JuicyButton.apply(_end_turn)
-	_bg.foreground_offset.connect(_on_foreground_offset)
+
+func attach_background(bg: BalatroBg) -> void:
+	_bg = bg
+	if _bg != null and not _bg.foreground_offset.is_connected(_on_foreground_offset):
+		_bg.foreground_offset.connect(_on_foreground_offset)
 
 func start_game(seed_value: int, deck0_path: String, deck1_path: String) -> void:
 	_deck0_path = deck0_path
