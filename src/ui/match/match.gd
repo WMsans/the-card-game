@@ -195,7 +195,7 @@ func _find_card(iid: int) -> CardInstance:
 
 func _find_card_view_any(iid: int) -> CardView:
 	for view in [hand_view, player_board, opp_board, opp_hand]:
-		if view.card_views.has(iid):
+		if "card_views" in view and view.card_views.has(iid):
 			return view.card_views[iid]
 	return null
 
