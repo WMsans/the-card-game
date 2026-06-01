@@ -22,7 +22,7 @@ static func advertises_zone(state: GameState, instance_id: int, player: int) -> 
 	if state.active_player != player or state.pending_choice != null:
 		return false
 	var inst := _find_in_hand(state.players[player].hand, instance_id)
-	return inst != null and inst.definition.type != Enums.CardType.LEADER
+	return inst != null
 
 static func _find_in_hand(hand: Array, instance_id: int) -> CardInstance:
 	for c in hand:
