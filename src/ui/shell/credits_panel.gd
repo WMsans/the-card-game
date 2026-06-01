@@ -23,12 +23,17 @@ func _populate_label() -> void:
 		push_error("Could not open %s" % CREDITS_PATH)
 		return
 	var body := ""
+	var current_section := ""
 	while not f.eof_reached():
 		var line := f.get_line().strip_edges()
-		if line != "":
+		if line == "":
+			continue
+		if line.begins_with("# "):
+			body += "[font_size=48]%s[/font_size]\n\n" % line.substr(2)
+		else:
 			body += line + "\n"
 	f.close()
-	_label.text = "[center][font_size=48]Artists[/font_size]\n\n" + body + "[/center]"
+	_label.text = "[center]" + body + "[/center]"
 
 func _scroll_loop() -> void:
 	var viewport_height := get_viewport_rect().size.y
