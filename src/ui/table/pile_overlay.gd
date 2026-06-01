@@ -31,6 +31,7 @@ func open(cards: Array[CardInstance], from_pos: Vector2, title: String, face_dow
 	visible = true
 	modulate.a = 1.0
 	_title.text = title
+	CardJuice.popup_in($Title)
 	for inst in PileSort.sorted(cards):
 		var cv: CardView = CARD_VIEW.instantiate()
 		cv.custom_minimum_size = CARD_SIZE

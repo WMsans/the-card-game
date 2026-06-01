@@ -277,8 +277,9 @@ func _is_hand_pool(cards: Array) -> bool:
 
 func _show_readonly_intercept(pc: PendingChoice) -> void:
 	var spec: ChoiceSpec = pc.data["spec"]
+	FeedbackFx.bump_pile(_opp_trap if pc.player != HUMAN else _player_trap, 1.0)
 	_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, false)
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME).timeout
 	_trap_reveal.dismiss()
 
 func _begin_target_selection(spec: ChoiceSpec) -> void:
