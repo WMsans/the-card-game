@@ -77,6 +77,26 @@ func test_cards_land_at_their_grid_slots() -> void:
 		assert_bool(cv._rest_set).is_true()
 		assert_vector(cv.position).is_equal_approx(cv._rest_position, Vector2(2, 2))
 
+func test_face_down_open_keeps_cards_face_down() -> void:
+	var o := _overlay()
+	o.open(_three_cards(), Vector2(1700, 400), "Opponent's Traps", true)
+	# Wait past the normal flip window.
+	await get_tree().create_timer(1.2).timeout
+	var grid: GridContainer = o.find_child("Grid") as GridContainer
+	for cv in grid.get_children():
+		assert_bool(cv._face_down).is_true()
+
+func test_default_open_flips_cards_face_up() -> void:
+	var o := _overlay()
+	o.open(_three_cards(), Vector2(1700, 400), "Your Traps")
+	await get_tree().create_timer(1.2).timeout
+	var grid: GridContainer = o.find_child("Grid") as GridContainer
+	var any_face_up := false
+	for cv in grid.get_children():
+		if not cv._face_down:
+			any_face_up = true
+	assert_bool(any_face_up).is_true()
+
 func test_cards_start_offset_from_their_slot() -> void:
 	var o := _overlay()
 	o.open(_three_cards(), Vector2(1700, 800), "Your Deck")
