@@ -8,6 +8,8 @@ const MINIMIZE_STAGGER := 0.05
 const MINIMIZE_DURATION := 0.25
 const EXPAND_DURATION := 0.35
 const DIM_FADE_DURATION := 0.3
+const FEATURE_CENTER := Vector2(BoardLayout.CENTER_X, BoardLayout.SCREEN.y * 0.5)
+const FEATURE_SCALE := 1.0
 
 var state: GameState
 var engine: GameEngine
@@ -191,6 +193,12 @@ func _find_card(iid: int) -> CardInstance:
 			for c in coll:
 				if c.instance_id == iid:
 					return c
+	return null
+
+func _find_card_view_any(iid: int) -> CardView:
+	for view in [hand_view, player_board, opp_board, opp_hand]:
+		if view.card_views.has(iid):
+			return view.card_views[iid]
 	return null
 
 func _post_action() -> void:
@@ -630,6 +638,23 @@ func _overlay_title(overlay: CanvasLayer) -> String:
 	if label != null:
 		return label.text
 	return "Choose"
+
+func _feature_spell(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null:
+		return
+	cv.z_index = 300
+	var spd := _action_cue.anim_speed
+	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
+	var tw := cv.create_tween().set_parallel(true)
+	tw.tween_property(cv, "global_position", center_topleft, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(cv, "scale", Vector2(FEATURE_SCALE, FEATURE_SCALE), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	CardJuice.spring_wiggle(cv, 10.0, spd)
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
+	var discard_pos := FlightAnchors.of(Enums.Zone.DISCARD, player, self) - cv.size * cv.scale * 0.5
+	await CardFlight.fly_out(cv, discard_pos).finished
+	cv.z_index = 0
 
 func _on_foreground_offset(offset: Vector2) -> void:
 	$Table.position = offset
