@@ -30,3 +30,12 @@ func test_spell_feature_moves_card_toward_center() -> void:
 	var center := Vector2(BoardLayout.CENTER_X, BoardLayout.SCREEN.y * 0.5)
 	# It should be much closer to center than a hand card's resting Y (~940).
 	assert_float(cv.global_position.y).is_less(700.0)
+
+func test_trap_deploy_flips_card_face_down() -> void:
+	var m := await _match()
+	var cv := await _hand_card(m, 311, Enums.CardType.TRAP)
+	assert_bool(cv._face_down).is_false()
+	m._feature_trap_deploy(311, 0)
+	# Past the center hold + the arc; the card should have flipped face-down en route.
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME + 0.8).timeout
+	assert_bool(cv._face_down).is_true()
