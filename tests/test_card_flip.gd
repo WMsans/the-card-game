@@ -17,3 +17,13 @@ func test_flip_reveals_face_up_and_restores_scale() -> void:
 	await t.finished
 	assert_bool(cv._face_down).is_false()
 	assert_float(cv.get_node("CardSurface").scale.x).is_equal_approx(1.0, 0.01)
+
+func test_flip_to_face_down_hides_and_shrinks() -> void:
+	var cv := _a_card()
+	assert_bool(cv._face_down).is_false()
+	var t: Tween = cv.flip_to_face_down()
+	await t.finished
+	assert_bool(cv._face_down).is_true()
+	# Surface scale restored to 1 after the flip; whole card a little smaller.
+	assert_float(cv.get_node("CardSurface").scale.x).is_equal_approx(1.0, 0.01)
+	assert_float(cv.scale.x).is_equal_approx(cv.base_scale * CardView.FACE_DOWN_SCALE, 0.02)

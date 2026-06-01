@@ -333,3 +333,13 @@ func flip_to_face_up() -> Tween:
 	t.tween_callback(func(): set_face_down(false))
 	t.tween_property(_surface, "scale:x", 1.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	return t
+
+func flip_to_face_down() -> Tween:
+	_surface.pivot_offset = _surface.size * 0.5
+	var target := Vector2(base_scale, base_scale) * FACE_DOWN_SCALE
+	var t := _surface.create_tween()
+	t.tween_property(_surface, "scale:x", 0.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	t.tween_callback(func(): set_face_down(true))
+	t.tween_property(_surface, "scale:x", 1.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "scale", target, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	return t
