@@ -72,3 +72,23 @@ func test_spring_wiggle_returns_to_upright() -> void:
 	assert_float(cv.rotation).is_greater(0.3)
 	await tw.finished
 	assert_float(cv.rotation).is_equal_approx(0.3, 0.01)
+
+func _panel() -> Control:
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(200, 200)
+	c.size = Vector2(200, 200)
+	add_child(c)
+	auto_free(c)
+	return c
+
+func test_popup_in_ends_at_full_scale_and_alpha() -> void:
+	var p := _panel()
+	await CardJuice.popup_in(p).finished
+	assert_vector(p.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+	assert_float(p.modulate.a).is_equal_approx(1.0, 0.01)
+
+func test_popup_out_ends_hidden() -> void:
+	var p := _panel()
+	await CardJuice.popup_out(p).finished
+	assert_vector(p.scale).is_equal_approx(Vector2(0.9, 0.9), Vector2(0.01, 0.01))
+	assert_float(p.modulate.a).is_equal_approx(0.0, 0.01)
