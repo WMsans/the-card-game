@@ -6,7 +6,7 @@ const RAMP_STEP := 0.35
 const MAX_SPEED := 2.5
 const PILE_BUMP_UP := 0.08
 const PILE_BUMP_DOWN := 0.12
-const HOLD_TIME := 2.0
+const HOLD_TIME := 1.0
 
 static func next_speed(current: float, gap: float) -> float:
 	if gap <= CHAIN_GAP:

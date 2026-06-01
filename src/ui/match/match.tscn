@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://rt5sodi1v357"]
 
-[ext_resource type="Script" uid="uid://bpgvknb1nff8x" path="res://src/ui/table/board_view.gd" id="1_board"]
-[ext_resource type="Script" uid="uid://cg1dqfuj051an" path="res://src/ui/table/hand_view.gd" id="2_hand"]
-[ext_resource type="Script" uid="uid://825rksniy2p7" path="res://src/ui/table/opponent_hand.gd" id="3_opp"]
+[ext_resource type="Script" uid="uid://cotg6hrhdbk6d" path="res://src/ui/table/board_view.gd" id="1_board"]
+[ext_resource type="Script" uid="uid://pc53owcec51g" path="res://src/ui/table/hand_view.gd" id="2_hand"]
+[ext_resource type="Script" uid="uid://8hcminwtpxqa" path="res://src/ui/table/opponent_hand.gd" id="3_opp"]
 [ext_resource type="PackedScene" path="res://src/ui/table/pile_view.tscn" id="4_pile"]
 [ext_resource type="PackedScene" path="res://src/ui/table/ticket_tray.tscn" id="5_ticket"]
-[ext_resource type="Script" uid="uid://cfdcw38hhl2mu" path="res://src/ui/match/match.gd" id="6_match"]
+[ext_resource type="Script" uid="uid://drtthxdnplxn8" path="res://src/ui/match/match.gd" id="6_match"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/turn_banner.tscn" id="7_banner"]
 [ext_resource type="Script" uid="uid://cdyfwflmecq7i" path="res://src/ui/table/targeting_arrow.gd" id="8_arrow"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/mulligan_panel.tscn" id="9_mulligan"]
@@ -16,10 +16,11 @@
 [ext_resource type="Theme" uid="uid://0icwp3i8uuhc" path="res://src/ui/theme/game_theme.tres" id="14_theme"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/option_prompt.tscn" id="15_option"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/trap_reveal_overlay.tscn" id="16_trap_reveal"]
-[ext_resource type="Script" uid="uid://cd6fl004v7gen" path="res://src/ui/match/card_flight_layer.gd" id="17_flight"]
+[ext_resource type="Script" uid="uid://bfws5pcc04l8b" path="res://src/ui/match/card_flight_layer.gd" id="17_flight"]
 [ext_resource type="PackedScene" path="res://src/ui/match/hand_choice.tscn" id="18_hand_choice"]
 [ext_resource type="PackedScene" path="res://src/ui/table/pile_overlay.tscn" id="19_pileoverlay"]
 [ext_resource type="PackedScene" path="res://src/ui/overlays/minimize_bar.tscn" id="20_minbar"]
+
 [node name="Match" type="Control" unique_id=1759707777]
 layout_mode = 3
 anchors_preset = 15
@@ -36,8 +37,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-
 
 [node name="PlayerLeaderStation" type="Panel" parent="Table" unique_id=512000002]
 layout_mode = 0
@@ -151,15 +150,14 @@ offset_right = 400.0
 offset_bottom = 1020.0
 
 [node name="HandChoiceDim" type="ColorRect" parent="Table" unique_id=512000100]
+visible = false
 layout_mode = 0
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.55)
-visible = false
 
 [node name="CardFlightLayer" type="Node2D" parent="Table" unique_id=789826257]
 script = ExtResource("17_flight")
