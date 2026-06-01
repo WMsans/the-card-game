@@ -30,7 +30,7 @@ func test_each_menu_button_emits_its_intent() -> void:
 func test_creates_drifting_card_sprites() -> void:
 	var p := _spawn()
 	var cards: Node = p.get_node("DriftingCards")
-	assert_int(cards.get_child_count()).is_equal(p.DRIFT_COUNT)
+	assert_int(cards.get_child_count()).is_equal(p.DRIFT_CARD_COUNT)
 
 func test_foreground_offset_moves_panel() -> void:
 	var p := _spawn()
