@@ -1,32 +1,32 @@
-a,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image
+a,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image,Credit
 1,Leader,Battle Bjorn,7 / Discard 4,2,10,"On cast, all REQUESTS are instantly met this turn.
-REQUEST: A condition that activates special effects when met. When attacking, if the REQUEST is met, the Unit gains +2 Damage and +2 Health during the fight.","""It's Striking Time!""",docs/design_docs/Card List/images/strike_battle-bjorn.png
-2,Minion,Strike Request Form,1,1,1,"On cast, search and draw the first card in your Deck with a REQUEST.","""Check the VGDC Linktree for the form.""",docs/design_docs/Card List/images/strike_strike-request-form.jpg
-3,Minion,Strike Request Form,1,1,1,"On cast, search and draw the first card in your Deck with a REQUEST.","""Check the VGDC Linktree for the form.""",docs/design_docs/Card List/images/strike_strike-request-form.jpg
-4,Minion,Priority Raise,2,1,1,You may tap this card to move a card with a REQUEST from your Discard Pile into your Deck.,"""Hey, this is important!""",
-5,Minion,Bounty Striker,1,2,1,"Whenever you meet a REQUEST, if this card is in your Discard pile, add it to your Hand.","""Your local request hunter!""",
-6,Minion,Bounty Striker,1,2,1,"Whenever you meet a REQUEST, if this card is in your Discard pile, add it to your Hand.","""Your local request hunter!""",
+REQUEST: A condition that activates special effects when met. When attacking, if the REQUEST is met, the Unit gains +2 Damage and +2 Health during the fight.","""It's Striking Time!""",docs/design_docs/Card List/images/strike_battle-bjorn.png,Jacob Ho (@adaruu)
+2,Minion,Strike Request Form,1,1,1,"On cast, search and draw the first card in your Deck with a REQUEST.","""Check the VGDC Linktree for the form.""",docs/design_docs/Card List/images/strike_strike-request-form.jpg,Rodriguez (@spacepenguin537)
+3,Minion,Strike Request Form,1,1,1,"On cast, search and draw the first card in your Deck with a REQUEST.","""Check the VGDC Linktree for the form.""",docs/design_docs/Card List/images/strike_strike-request-form.jpg,Rodriguez (@spacepenguin537)
+4,Minion,Priority Raise,2,1,1,You may tap this card to move a card with a REQUEST from your Discard Pile into your Deck.,"""Hey, this is important!""",,
+5,Minion,Bounty Striker,1,2,1,"Whenever you meet a REQUEST, if this card is in your Discard pile, add it to your Hand.","""Your local request hunter!""",,
+6,Minion,Bounty Striker,1,2,1,"Whenever you meet a REQUEST, if this card is in your Discard pile, add it to your Hand.","""Your local request hunter!""",,
 7,Minion,Red Alien,8,7,7,"REQUEST: A player discarded 2+ cards this turn.
-Once per turn, when this card attacks, your opponent must either Discard a card from their hand or 2 cards from their Deck.","""Why did the timer just go to 2?""",docs/design_docs/Card List/images/strike_red-alien.jpg
+Once per turn, when this card attacks, your opponent must either Discard a card from their hand or 2 cards from their Deck.","""Why did the timer just go to 2?""",docs/design_docs/Card List/images/strike_red-alien.jpg,Ian Rodriguez (@spacepenguin537)
 8,Minion,Headphones Ghost,10,9,9,"REQUEST: 3+ Units have died this turn.
-Whenever a player attacks for the second time on their turn, kill a Unit with 8 or less Health.","""can u get sub 5?!?!""",Quin
+Whenever a player attacks for the second time on their turn, kill a Unit with 8 or less Health.","""can u get sub 5?!?!""",Quin,
 9,Minion,Gray Alien,4,3,4,"REQUEST: Have 3+ cards in your Hand.
-On cast, Discard any number of cards, then Draw that many and one more.","""What is that green thing heading towards me?""",docs/design_docs/Card List/images/strike_gray-alien.jpg
+On cast, Discard any number of cards, then Draw that many and one more.","""What is that green thing heading towards me?""",docs/design_docs/Card List/images/strike_gray-alien.jpg,Rodriguez (@spacepenguin537)
 10,Minion,Cactus Guy,5,5,4,"REQUEST: A player attacked 2+ times this turn.
 If this card deals Deck damage, steal the top card of your opponent's Discard Pile.
-(When this stolen card is Discarded, it goes back to the top of your opponent's Discard Pile).","""Rapidly approaching the nearest alien""",docs/design_docs/Card List/images/strike_cactus-guy.jpg
+(When this stolen card is Discarded, it goes back to the top of your opponent's Discard Pile).","""Rapidly approaching the nearest alien""",docs/design_docs/Card List/images/strike_cactus-guy.jpg,Ian Rodriguez (@spacepenguin537)
 11,Minion,Request Slacker,4,4,1,"REQUEST: 4 or less Units are on the Board.
-On cast, place an enemy Minion on top of their Deck.","""There's not much left to do, we can deal with that later...""", 
+On cast, place an enemy Minion on top of their Deck.","""There's not much left to do, we can deal with that later...""", ,
 12,Minion,Request Slacker,4,4,1,"REQUEST: 4 or less Units are on the Board.
-On cast, place an enemy Minion on top of their Deck.","""There's not much left to do, we can deal with that later...""",
-13,Minion,Overstriker,3,2,3,"REQUEST: The active player has cast 2+ cards this turn. Once per turn, whenever your opponent plays a card that costs 7 or more Tickets, they Discard the top card of their Deck.",Exhaustion comes from doing too much in too little time.,Samuel Gines
+On cast, place an enemy Minion on top of their Deck.","""There's not much left to do, we can deal with that later...""",,
+13,Minion,Overstriker,3,2,3,"REQUEST: The active player has cast 2+ cards this turn. Once per turn, whenever your opponent plays a card that costs 7 or more Tickets, they Discard the top card of their Deck.",Exhaustion comes from doing too much in too little time.,Samuel Gines,
 14,Minion,Overstriker,3,2,3,"REQUEST: The active player has casted 2+ cards this turn.
 Once per turn, whenever your opponent plays a card that costs 7 or more ""Resources"",
-they Discard the top card of their Deck.",Exhaustion comes from doing too much in too little time.,
-15,Spell,Request Board,5,0,0,"For every Minion in your hand, summon it for free if you currently meet its REQUEST.",You can tell when Playtest Night approaches when there's suddenly 100 Strike Requests.,Alexander C
-16,Spell,Request Board,5,0,0,"For every Minion in your hand, summon it for free if you currently meet its REQUEST.",You can tell when Playtest Night approaches when there's suddenly 100 Strike Requests.,^^^
-17,Spell,Bjorn Hammer,6,0,0,Kill all units that do not meet a REQUEST. End your turn immediately.,"""STRIKE SMASH!!!!!""",
-18,Spell,Bjorn Hammer,6,0,0,Kill all units that do not meet a REQUEST. End your turn immediately.,"""STRIKE SMASH!!!!!""",
-19,Trap,Wrong Mascot!,4,0,0,"If your opponent attacks a Minion with a REQUEST, kill the attacker if that REQUEST is currently met.","""I'm not Bjorn, I'm Arnie!""",
-20,Trap,Wrong Mascot!,4,0,0,"If your opponent attacks a Minion with a REQUEST, kill the attacker if that REQUEST is currently met.","""I'm not Bjorn, I'm Arnie!""",
-21,Trap,Strike Social,4,0,0,"If your opponent declares an Attack, all Minions whose REQUEST are currently met cannot be killed this turn.",Strike singlehandedly bankrupted VGDC by buying boba.,docs/design_docs/Card List/images/strike_strike-social.png
+they Discard the top card of their Deck.",Exhaustion comes from doing too much in too little time.,,
+15,Spell,Request Board,5,0,0,"For every Minion in your hand, summon it for free if you currently meet its REQUEST.",You can tell when Playtest Night approaches when there's suddenly 100 Strike Requests.,Alexander C,
+16,Spell,Request Board,5,0,0,"For every Minion in your hand, summon it for free if you currently meet its REQUEST.",You can tell when Playtest Night approaches when there's suddenly 100 Strike Requests.,^^^,
+17,Spell,Bjorn Hammer,6,0,0,Kill all units that do not meet a REQUEST. End your turn immediately.,"""STRIKE SMASH!!!!!""",,
+18,Spell,Bjorn Hammer,6,0,0,Kill all units that do not meet a REQUEST. End your turn immediately.,"""STRIKE SMASH!!!!!""",,
+19,Trap,Wrong Mascot!,4,0,0,"If your opponent attacks a Minion with a REQUEST, kill the attacker if that REQUEST is currently met.","""I'm not Bjorn, I'm Arnie!""",,
+20,Trap,Wrong Mascot!,4,0,0,"If your opponent attacks a Minion with a REQUEST, kill the attacker if that REQUEST is currently met.","""I'm not Bjorn, I'm Arnie!""",,
+21,Trap,Strike Social,4,0,0,"If your opponent declares an Attack, all Minions whose REQUEST are currently met cannot be killed this turn.",Strike singlehandedly bankrupted VGDC by buying boba.,docs/design_docs/Card List/images/strike_strike-social.png,Alexander Cortez (@anxiousmage)

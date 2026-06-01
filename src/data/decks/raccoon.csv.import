@@ -6,10 +6,10 @@ uid="uid://c0a5vixtjyweq"
 
 [deps]
 
-files=["res://src/data/decks/raccoon.Type.translation", "res://src/data/decks/raccoon.Name.translation", "res://src/data/decks/raccoon.Cost.translation", "res://src/data/decks/raccoon.Damage.translation", "res://src/data/decks/raccoon.Health.translation", "res://src/data/decks/raccoon.Ability.translation", "res://src/data/decks/raccoon.Flavor Text.translation", "res://src/data/decks/raccoon.Image.translation"]
+files=["res://src/data/decks/raccoon.Type.translation", "res://src/data/decks/raccoon.Name.translation", "res://src/data/decks/raccoon.Cost.translation", "res://src/data/decks/raccoon.Damage.translation", "res://src/data/decks/raccoon.Health.translation", "res://src/data/decks/raccoon.Ability.translation", "res://src/data/decks/raccoon.Flavor Text.translation", "res://src/data/decks/raccoon.Image.translation", "res://src/data/decks/raccoon.Credit.translation"]
 
 source_file="res://src/data/decks/raccoon.csv"
-dest_files=["res://src/data/decks/raccoon.Type.translation", "res://src/data/decks/raccoon.Name.translation", "res://src/data/decks/raccoon.Cost.translation", "res://src/data/decks/raccoon.Damage.translation", "res://src/data/decks/raccoon.Health.translation", "res://src/data/decks/raccoon.Ability.translation", "res://src/data/decks/raccoon.Flavor Text.translation", "res://src/data/decks/raccoon.Image.translation"]
+dest_files=["res://src/data/decks/raccoon.Type.translation", "res://src/data/decks/raccoon.Name.translation", "res://src/data/decks/raccoon.Cost.translation", "res://src/data/decks/raccoon.Damage.translation", "res://src/data/decks/raccoon.Health.translation", "res://src/data/decks/raccoon.Ability.translation", "res://src/data/decks/raccoon.Flavor Text.translation", "res://src/data/decks/raccoon.Image.translation", "res://src/data/decks/raccoon.Credit.translation"]
 
 [params]
 

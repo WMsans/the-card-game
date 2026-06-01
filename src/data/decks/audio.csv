@@ -1,28 +1,28 @@
-Card ID,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image
+Card ID,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image,Credit
 1,Leader,"Plop, Grand Conductor",10 / Discard 5,2,16,"HARMONIZE all other Units. HARMONIZE: Deal 6 damage to the enemy Deck.
 HARMONIZE: Trigger HARMONIZE effects for this turn.","""im ploppin it""
---plop",docs/design_docs/Card List/images/audio_plop-grand-conductor.png
-2,Minion,Quarter Note,2,1 (3),4,HARMONIZE: Gain 2 Damage.,Ol' Reliable.,docs/design_docs/Card List/images/audio_quarter-note.png
-3,Minion,Quarter Note,2,1 (3),4,HARMONIZE: Gain 2 Damage.,Ol' Reliable.,docs/design_docs/Card List/images/audio_quarter-note.png
-4,Minion,Half Note,3,2 (3),4 (6),HARMONIZE: Gain 1 Damage and 2 Health.,Half some pain!,docs/design_docs/Card List/images/audio_half-note.png
-5,Minion,Half Note,3,2 (3),4 (6),HARMONIZE: Gain 1 Damage and 2 Health.,Half some pain!,docs/design_docs/Card List/images/audio_half-note.png
-6,Minion,Eighth Note,4,1 (4),8,HARMONIZE: Gain 3 Damage.,Eight this!,docs/design_docs/Card List/images/audio_eighth-note.png
-7,Minion,Eighth Note,4,1 (4),8,HARMONIZE: Gain 3 Damage.,Eight this!,docs/design_docs/Card List/images/audio_eighth-note.png
-8,Minion,Sixteenth Note,10,1,16,This Minion costs 1 less for every Note on the Board. HARMONIZE: Deal 4 Damage to the enemy Deck.,A fleeting mark on the score.,docs/design_docs/Card List/images/audio_sixteenth-note.png
-9,Minion,Sixteenth Note,10,1,16,This Minion costs 1 less for every Note on the Board. HARMONIZE: Deal 4 Damage to the enemy Deck.,A fleeting mark on the score.,docs/design_docs/Card List/images/audio_sixteenth-note.png
+--plop",docs/design_docs/Card List/images/audio_plop-grand-conductor.png,Lucas Lek (@epictoast)
+2,Minion,Quarter Note,2,1 (3),4,HARMONIZE: Gain 2 Damage.,Ol' Reliable.,docs/design_docs/Card List/images/audio_quarter-note.png,Brandon Tsai (@fire05s)
+3,Minion,Quarter Note,2,1 (3),4,HARMONIZE: Gain 2 Damage.,Ol' Reliable.,docs/design_docs/Card List/images/audio_quarter-note.png,Brandon Tsai (@fire05s)
+4,Minion,Half Note,3,2 (3),4 (6),HARMONIZE: Gain 1 Damage and 2 Health.,Half some pain!,docs/design_docs/Card List/images/audio_half-note.png,Brandon Tsai (@fire05s)
+5,Minion,Half Note,3,2 (3),4 (6),HARMONIZE: Gain 1 Damage and 2 Health.,Half some pain!,docs/design_docs/Card List/images/audio_half-note.png,Brandon Tsai (@fire05s)
+6,Minion,Eighth Note,4,1 (4),8,HARMONIZE: Gain 3 Damage.,Eight this!,docs/design_docs/Card List/images/audio_eighth-note.png,Brandon Tsai (@fire05s)
+7,Minion,Eighth Note,4,1 (4),8,HARMONIZE: Gain 3 Damage.,Eight this!,docs/design_docs/Card List/images/audio_eighth-note.png,Brandon Tsai (@fire05s)
+8,Minion,Sixteenth Note,10,1,16,This Minion costs 1 less for every Note on the Board. HARMONIZE: Deal 4 Damage to the enemy Deck.,A fleeting mark on the score.,docs/design_docs/Card List/images/audio_sixteenth-note.png,Brandon Tsai (@fire05s)
+9,Minion,Sixteenth Note,10,1,16,This Minion costs 1 less for every Note on the Board. HARMONIZE: Deal 4 Damage to the enemy Deck.,A fleeting mark on the score.,docs/design_docs/Card List/images/audio_sixteenth-note.png,Brandon Tsai (@fire05s)
 10,Minion,Whole Note,4,4,4 (6),"HARMONIZE: Gain 2 Health and TAUNT.
-TAUNT: All enemy Units must target this Unit.",Takes up your time.,docs/design_docs/Card List/images/audio_whole-note.png
+TAUNT: All enemy Units must target this Unit.",Takes up your time.,docs/design_docs/Card List/images/audio_whole-note.png,Conner Wood (@connerwould5)
 11,Minion,Whole Note,4,4,4 (6),"HARMONIZE: Gain 2 Health and TAUNT.
-TAUNT: All enemy Units must target this Unit.",Takes up your time.,docs/design_docs/Card List/images/audio_whole-note.png
+TAUNT: All enemy Units must target this Unit.",Takes up your time.,docs/design_docs/Card List/images/audio_whole-note.png,Conner Wood (@connerwould5)
 12,Minion,Treble Clef,5,0,5,"CLEF. HARMONIZE all Notes at the start of every 2 turns.
-You may only have one CLEF active. During your turn, you may spend 2 Tickets to return a Clef to your hand.",A strong foundation.,
+You may only have one CLEF active. During your turn, you may spend 2 Tickets to return a Clef to your hand.",A strong foundation.,,
 13,Minion,Bass Clef,5,0,5,"CLEF. All Units take double damage. HARMONIZE when a Unit survives damage.
-You may only have one CLEF active. During your turn, you may spend 2 Tickets to return a Clef to your hand.",A dramatic twist.,
-14,Spell,Harmonize,4,0,0,HARMONIZE.,"""All together now!""",docs/design_docs/Card List/images/audio_harmonize.png
-15,Spell,Harmonize,4,0,0,HARMONIZE.,"""All together now!""",docs/design_docs/Card List/images/audio_harmonize.png
-16,Spell,Staccato,3,0,0,"HARMONIZE, but all Notes take double Damage this turn.","Quick, Quick, QUICK!",
-17,Spell,Staccato,3,0,0,"HARMONIZE, but all Notes take double Damage this turn.","Quick, Quick, QUICK!",
-18,Spell,Legato,6,0,0,HARMONIZE. You can Untap one Tapped Unit this turn.,A connection that keeps you going.,
-19,Spell,Legato,6,0,0,HARMONIZE. You can Untap one Tapped Unit this turn.,A connection that keeps you going.,
-20,Trap,Rest,4,0,0,Negate the next instance of Damage to your Deck.,"""You are unimportant.""",
-21,Trap,Rest,4,0,0,Negate the next instance of Damage to your Deck.,"""You are unimportant.""",
+You may only have one CLEF active. During your turn, you may spend 2 Tickets to return a Clef to your hand.",A dramatic twist.,,
+14,Spell,Harmonize,4,0,0,HARMONIZE.,"""All together now!""",docs/design_docs/Card List/images/audio_harmonize.png,Lucas Lek (@epictoast)
+15,Spell,Harmonize,4,0,0,HARMONIZE.,"""All together now!""",docs/design_docs/Card List/images/audio_harmonize.png,Lucas Lek (@epictoast)
+16,Spell,Staccato,3,0,0,"HARMONIZE, but all Notes take double Damage this turn.","Quick, Quick, QUICK!",,
+17,Spell,Staccato,3,0,0,"HARMONIZE, but all Notes take double Damage this turn.","Quick, Quick, QUICK!",,
+18,Spell,Legato,6,0,0,HARMONIZE. You can Untap one Tapped Unit this turn.,A connection that keeps you going.,,
+19,Spell,Legato,6,0,0,HARMONIZE. You can Untap one Tapped Unit this turn.,A connection that keeps you going.,,
+20,Trap,Rest,4,0,0,Negate the next instance of Damage to your Deck.,"""You are unimportant.""",,
+21,Trap,Rest,4,0,0,Negate the next instance of Damage to your Deck.,"""You are unimportant.""",,

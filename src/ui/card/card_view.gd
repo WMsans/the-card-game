@@ -31,6 +31,7 @@ signal clicked(card_view: CardView)
 @onready var _discard: Label = $CardSurface/CardViewport/Visuals/DiscardLabel
 @onready var _ability: RichTextLabel = $CardSurface/CardViewport/Visuals/AbilityText
 @onready var _flavor: Label = $CardSurface/CardViewport/Visuals/FlavorLabel
+@onready var _credit: Label = $CardSurface/CardViewport/Visuals/CreditLabel
 @onready var _leader_emblem: TextureRect = $CardSurface/CardViewport/LeaderEmblem
 @onready var _highlight: CardHighlight = $Highlight
 
@@ -103,6 +104,8 @@ func _refresh() -> void:
 
 	_ability.text = _bold_keywords(def.ability_text, def.keywords)
 	_flavor.text = def.flavor
+	_credit.text = "Illustration by %s" % def.credit if def.credit != "" else ""
+	_credit.visible = def.credit != ""
 
 func _refresh_leader_emblem(def: CardDefinition) -> void:
 	# The leader's portrait marks which deck a Minion/Spell/Trap belongs to;
@@ -115,7 +118,7 @@ func _refresh_leader_emblem(def: CardDefinition) -> void:
 		_leader_emblem.texture = load(emblem)
 
 func _set_overlays_visible(v: bool) -> void:
-	for n in [_art, _name, _damage, _health, _ticket, _discard, _ability, _flavor, _leader_emblem]:
+	for n in [_art, _name, _damage, _health, _ticket, _discard, _ability, _flavor, _credit, _leader_emblem]:
 		n.visible = v
 
 func _stat_color(current: int, base: int) -> Color:
