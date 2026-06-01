@@ -9,11 +9,13 @@ signal foreground_offset(offset: Vector2)
 
 var _bg_current: Vector2 = Vector2.ZERO
 var _fg_current: Vector2 = Vector2.ZERO
+var _parallax_padding: Vector2
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	color = UiPalette.BG
 	_setup_material()
+	_parallax_padding = bg_max_offset + Vector2(4, 4)
 
 func _setup_material() -> void:
 	var base_noise := FastNoiseLite.new()
@@ -64,5 +66,8 @@ func _process(delta: float) -> void:
 	_bg_current = _bg_current.lerp(bg_target, smoothing * delta)
 	_fg_current = _fg_current.lerp(fg_target, smoothing * delta)
 
-	position = _bg_current
+	offset_left = -_parallax_padding.x + _bg_current.x
+	offset_top = -_parallax_padding.y + _bg_current.y
+	offset_right = _parallax_padding.x + _bg_current.x
+	offset_bottom = _parallax_padding.y + _bg_current.y
 	foreground_offset.emit(_fg_current)
