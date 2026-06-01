@@ -27,7 +27,7 @@ func spawn_traveler(inst: CardInstance, from_pos: Vector2, to_pos: Vector2,
 	add_child(cv)
 	cv.set_interactive(false)
 	cv.setup(inst if inst != null else CardInstance.new(-1, _placeholder))
-	cv.set_base_scale(BoardLayout.CARD_SCALE)
+	cv.set_base_scale(BoardLayout.CARD_SCALE * CardView.FACE_DOWN_SCALE)
 	cv.set_face_down(true)
 	cv.position = from_pos
 	var tw := cv.create_tween()

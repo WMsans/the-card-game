@@ -1,6 +1,7 @@
 class_name CardView
 extends Control
 
+const FACE_DOWN_SCALE := 0.85
 const STAT_NORMAL := Color.WHITE
 const STAT_BUFFED := Color(0.4, 1.0, 0.4)
 const STAT_DAMAGED := Color(1.0, 0.4, 0.4)
@@ -37,6 +38,7 @@ signal clicked(card_view: CardView)
 
 var _instance: CardInstance
 var _face_down: bool = false
+var _consumed: bool = false
 var base_scale: float = 1.0   # table cards render scaled-down; hover is relative to this
 static var _active_drag: CardView = null
 
@@ -139,6 +141,9 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	gui_input.connect(_on_gui_input)
+
+func mark_played() -> void:
+	_consumed = true
 
 func set_interactive(v: bool) -> void:
 	_interactive = v

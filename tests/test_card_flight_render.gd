@@ -52,3 +52,10 @@ func test_board_leaver_to_discard_emits_card_departed() -> void:
 	bv.render([], 0, plan)
 	assert_object(got["cv"]).is_not_null()
 	assert_bool(bv.card_views.has(inst.instance_id)).is_false()
+
+func test_face_down_traveler_uses_smaller_scale() -> void:
+	var m := _spawn()
+	var layer = m._flight
+	var cv: CardView = layer.spawn_traveler(null, Vector2(100, 100), Vector2(800, 800))
+	assert_bool(cv._face_down).is_true()
+	assert_float(cv.base_scale).is_equal_approx(BoardLayout.CARD_SCALE * CardView.FACE_DOWN_SCALE, 0.001)
