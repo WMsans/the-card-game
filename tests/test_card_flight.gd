@@ -33,3 +33,15 @@ func test_move_to_reaches_target() -> void:
 	var tw := CardFlight.move_to(cv, Vector2(700, 850), 0.0)
 	await tw.finished
 	assert_vector(cv.position).is_equal_approx(Vector2(700, 850), Vector2(2, 2))
+
+func test_flourish_arc_samples_a_curved_path() -> void:
+	var from := Vector2(960, 540)
+	var to := Vector2(1735, 855)
+	var pts: PackedVector2Array = CardFlight.arc_points(from, to, Vector2(0, -260), 6)
+	# Endpoints honored.
+	assert_vector(pts[0]).is_equal_approx(from, Vector2(0.5, 0.5))
+	assert_vector(pts[pts.size() - 1]).is_equal_approx(to, Vector2(0.5, 0.5))
+	# A genuine curve: the midpoint sits off the straight line between endpoints.
+	var mid: Vector2 = pts[pts.size() / 2]
+	var straight := from.lerp(to, 0.5)
+	assert_float(mid.distance_to(straight)).is_greater(20.0)
