@@ -19,8 +19,8 @@ face-down for the opponent).
 
 - **Style: hybrid.** A unified cue covers most events; trap deploy and trap
   fired/revealed get richer bespoke treatment.
-- **Bespoke moments:** trap deployed, trap fired/revealed. Everything else uses
-  the unified cue.
+- **Bespoke moments:** spell cast, trap deployed, trap fired/revealed.
+  Everything else uses the unified cue.
 - **Trap pile count:** visible for both players (number of set traps is public);
   contents face-down for the opponent.
 - **Readability hold:** every feedback beat holds **2.0s** for readability
@@ -29,6 +29,9 @@ face-down for the opponent).
   **sequentially** (one 2s beat each) — but **ramp gradually faster** across the
   chain, reusing `CombatDirector`'s speed-ramp logic. Input is locked
   (`_anim_busy`) until the chain finishes.
+- **Spell cast motion:** Balatro joker-trigger feel — the spell flies to **screen
+  center**, scales up, does a snappy **spring-rotation wiggle** within the 2.0s
+  hold, then flies a short path to the caster's **discard pile**.
 - **Trap deploy motion:** Slay-the-Spire "power card" feel — the trap features at
   **screen center**, scaled up, holds 2.0s, then sweeps along a **curved arc**
   into the trap pile in a short time, flipping face-down, ending with a pile thunk.
@@ -62,10 +65,22 @@ Mirrors the `CombatDirector` split:
   target_id: int }`. `lookup` resolves an instance id to a board `CardView`
   center (or a pile anchor). Unit-testable.
 - An `ActionCue` instance with `play(match, events) -> void` (async). It builds
-  descriptors, then for each one in order: pulses the target card (quick
-  scale-punch) and floats the label near `at_pos` (reusing the `DamageNumber` /
-  `FxLayer` spawn pattern), holds for `HOLD_TIME / speed`, then advances. Speed
-  starts at 1.0 and ramps via the shared ramp helper across the chain.
+  descriptors, then for each one in order: plays the in-place beat below, holds
+  for `HOLD_TIME / speed`, then advances. Speed starts at 1.0 and ramps via the
+  shared ramp helper across the chain.
+
+#### What the common cue looks like (in-place — no trip to center)
+
+1. **Pop** — the target card does a quick squash-stretch **scale-punch** (pops to
+   ~1.15× and springs back, `TRANS_ELASTIC`/`BACK`), snapping the eye to it.
+2. **Label** — a short word springs up just above the target and drifts slightly
+   upward while held, reusing the `DamageNumber` / `FxLayer` float pattern.
+3. **Tint** — a brief color flash on the card during the hold, keyed to meaning
+   (the descriptor's `color`; e.g. gold for request met, green for played).
+4. **Hold** — the label stays readable for `HOLD_TIME` (ramped faster across a
+   chain), then fades.
+5. **No-single-card events** — `HARMONIZE` pops the whole board row with the label
+   at board center; `RUMMAGE` pops the discard pile with the label at that pile.
 
 Shared constants: `HOLD_TIME := 2.0`. To avoid duplication, the ramp helper
 (`next_speed`) and the pile-bump helper (`_bump_pile`), plus the ramp constants
@@ -83,7 +98,7 @@ guard gates `ActionCue` so attack damage isn't double-reported).
 | Event | Cue |
 |---|---|
 | `CARD_PLAYED`, `card_type == MINION` | "PLAYED" pulse on the new board card |
-| `CARD_PLAYED`, `card_type == SPELL` | "CAST" pulse on the card |
+| `CARD_PLAYED`, `card_type == SPELL` | handled by §3a (bespoke center feature) |
 | `CARD_PLAYED`, `card_type == TRAP` | handled by §3 (no generic cue) |
 | `REQUEST_MET` | "REQUEST MET" pulse on the card (`instance`) |
 | `HARMONIZE` | "HARMONIZE" ripple/pulse across that player's board (payload has only `player`, no instance) |
@@ -111,12 +126,37 @@ separate classes; existing damage-number / mill flourishes are unchanged.
 - Add a `Zone.TRAP_SET` case to `FlightAnchors.of` / `_pile_for` so the pile's
   screen anchor is available to both the overlay fly-out and the deploy flight.
 
-### 3. Bespoke: trap deployed (Slay-the-Spire power-card feel)
+### 3. Bespoke center-feature beats (spell cast, trap deployed)
+
+Spell cast and trap deploy share a structure: the played card flies to **screen
+center**, scales up, holds for `HOLD_TIME` (ramped if part of a chain), then
+flies to its destination. They differ only in the per-type flourish during the
+hold and the destination. A shared helper provides the lift-to-center and the
+return flight; each type supplies its own hold-flourish and end zone.
+
+#### 3a. Spell cast (Balatro joker-trigger feel)
+
+On `CARD_PLAYED` with `card_type == SPELL`:
+
+1. **Lift & center** — the spell flies from the hand to **screen center**, scaled
+   up to a readable size.
+2. **Spring trigger** — within the `HOLD_TIME` hold, a snappy **spring-rotation
+   wiggle**: tilts a few degrees and elastically springs back to upright (a quick
+   damped oscillation, `TRANS_ELASTIC`/`BACK`), signalling the effect resolving.
+3. **Hold** — stays centered and readable for the full `HOLD_TIME`; the wiggle
+   plays inside that window.
+4. **Fly home** — a short flight to the caster's **discard pile**, shrinking as it
+   goes (reuse `CardFlight.fly_out`).
+
+New flight primitive `CardFlight.spring_wiggle(cv, degrees, ...) -> Tween` for the
+trigger oscillation.
+
+#### 3b. Trap deployed (Slay-the-Spire power-card feel)
 
 On `CARD_PLAYED` with `card_type == TRAP`:
 
-1. **Feature** — the trap card lifts to **screen center**, scaled up, held for
-   `HOLD_TIME` (ramped if part of a chain) so the player can read it.
+1. **Lift & center** — the trap card lifts to **screen center**, scaled up, held
+   for `HOLD_TIME` (ramped if part of a chain) so the player can read it.
 2. **Curved sweep** — a short flight along a **curved arc** into the owner's trap
    pile, rotating slightly and flipping to **face-down** en route.
 3. **Land** — pile "thunk" (the shared `_bump_pile` scale-punch).
@@ -148,8 +188,12 @@ midpoint hop). Kept structured so waypoints are unit-testable.
 ## Testing (gdUnit4, matching repo conventions)
 
 - `test_action_cue.gd` — `ActionCue.descriptors` mapping: correct label / color /
-  target per event type (incl. minion vs spell vs trap branch on `card_type`);
-  trap `CARD_PLAYED` produces no generic cue; rummage/draw/discard produce none.
+  target per event type; minion `CARD_PLAYED` produces a "PLAYED" cue, while
+  spell and trap `CARD_PLAYED` produce **no** generic cue (routed to bespoke
+  §3a/§3b); rummage/draw/discard produce none.
+- `CardFlight.spring_wiggle` — oscillation returns to upright (final rotation 0).
+- Spell-cast routing: `CARD_PLAYED` spell drives the lift-to-center → wiggle →
+  fly-to-discard path.
 - Ramp: `next_speed` chaining behaves (reuse/extend existing combat-director ramp
   coverage).
 - `test_pile_view` / `test_pile_overlay` extensions — trap pile renders
