@@ -12,6 +12,7 @@ const MAX_FLY_WINDOW := 1.0
 
 var _open: bool = false
 var _cards: Array[CardView] = []
+var _face_down_mode: bool = false
 
 func _ready() -> void:
 	visible = false
@@ -22,13 +23,15 @@ func _ready() -> void:
 func is_open() -> bool:
 	return _open
 
-func open(cards: Array[CardInstance], from_pos: Vector2, title: String) -> void:
+func open(cards: Array[CardInstance], from_pos: Vector2, title: String, face_down: bool = false) -> void:
 	if _open or cards.is_empty():
 		return
+	_face_down_mode = face_down
 	_open = true
 	visible = true
 	modulate.a = 1.0
 	_title.text = title
+	CardJuice.popup_in($Title)
 	for inst in PileSort.sorted(cards):
 		var cv: CardView = CARD_VIEW.instantiate()
 		cv.custom_minimum_size = CARD_SIZE
@@ -72,7 +75,8 @@ func _animate_in(from_pos: Vector2) -> void:
 		cv.modulate.a = 1.0
 		var delay := float(i) * stagger
 		CardFlight.fly_in(cv, from_local, delay)
-		_schedule_flip(cv, delay + CardFlight.FLY_TIME * 0.6)
+		if not _face_down_mode:
+			_schedule_flip(cv, delay + CardFlight.FLY_TIME * 0.6)
 
 func _schedule_flip(cv: CardView, at: float) -> void:
 	var t := cv.create_tween()

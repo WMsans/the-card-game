@@ -8,6 +8,8 @@ const MINIMIZE_STAGGER := 0.05
 const MINIMIZE_DURATION := 0.25
 const EXPAND_DURATION := 0.35
 const DIM_FADE_DURATION := 0.3
+const FEATURE_CENTER := Vector2(BoardLayout.CENTER_X, BoardLayout.SCREEN.y * 0.5)
+const FEATURE_SCALE := 1.0
 
 var state: GameState
 var engine: GameEngine
@@ -18,6 +20,7 @@ var _dragging_id: int = -1
 var _targeting_for_choice: bool = false
 var _target_candidates: Array = []
 var _director := CombatDirector.new()
+var _action_cue := ActionCue.new()
 var _anim_busy: bool = false
 var _minimized_overlay: CanvasLayer = null
 # tracked for future re-entrancy guards and integration tests
@@ -36,6 +39,8 @@ var _bg: BalatroBg = null
 @onready var _opp_discard = $Table/OppDiscard
 @onready var _player_leader = $Table/PlayerLeader
 @onready var _opp_leader = $Table/OppLeader
+@onready var _player_trap = $Table/PlayerTrap
+@onready var _opp_trap = $Table/OppTrap
 @onready var _tickets = $Table/PlayerTickets
 @onready var _end_turn: Button = $EndTurnButton
 @onready var _arrow: Node2D = $ArrowLayer
@@ -67,6 +72,8 @@ func _ready() -> void:
 	_player_deck.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DECK, HUMAN))
 	_player_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, HUMAN))
 	_opp_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, 1 - HUMAN))
+	_player_trap.clicked.connect(_on_trap_pile_clicked.bind(HUMAN))
+	_opp_trap.clicked.connect(_on_trap_pile_clicked.bind(1 - HUMAN))
 	_mulligan.confirmed.connect(func(idx): _active_overlay = null; apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): _active_overlay = null; apply_action(Action.resolve_choice({"indices": idx})))
 	_hand_choice.confirmed.connect(_on_hand_choice_confirmed)
@@ -107,13 +114,17 @@ func apply_action(action: Action) -> void:
 	engine.apply(action)
 	var events := state.bus.log.slice(from)
 	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
+	_anim_busy = true
 	if CombatDirector.has_attack(events):
-		_anim_busy = true
 		await _director.play(events, self)
-		_anim_busy = false
+	else:
+		await _run_bespoke(events)
 	render_all(plan)
 	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
+	if not CombatDirector.has_attack(events):
+		await _action_cue.play(self, events)
+	_anim_busy = false
 	_post_action()
 
 func render_all(plan: Array = []) -> void:
@@ -129,6 +140,8 @@ func render_all(plan: Array = []) -> void:
 	_opp_discard.set_count(opp.discard.size())
 	_player_leader.set_count(1 if you.leader else 0)
 	_opp_leader.set_count(1 if opp.leader else 0)
+	_player_trap.set_count(you.set_traps.size())
+	_opp_trap.set_count(opp.set_traps.size())
 	_tickets.set_tickets(you.tickets_tapped, you.tickets_total)
 
 func _snapshot_zones() -> Dictionary:
@@ -182,6 +195,12 @@ func _find_card(iid: int) -> CardInstance:
 			for c in coll:
 				if c.instance_id == iid:
 					return c
+	return null
+
+func _find_card_view_any(iid: int) -> CardView:
+	for view in [hand_view, player_board, opp_board, opp_hand]:
+		if view.card_views.has(iid):
+			return view.card_views[iid]
 	return null
 
 func _post_action() -> void:
@@ -258,8 +277,9 @@ func _is_hand_pool(cards: Array) -> bool:
 
 func _show_readonly_intercept(pc: PendingChoice) -> void:
 	var spec: ChoiceSpec = pc.data["spec"]
+	FeedbackFx.bump_pile(_opp_trap if pc.player != HUMAN else _player_trap, 1.0)
 	_trap_reveal.show_reveal(spec.cards[0], spec.title, spec.labels, false)
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME).timeout
 	_trap_reveal.dismiss()
 
 func _begin_target_selection(spec: ChoiceSpec) -> void:
@@ -389,6 +409,18 @@ func _on_pile_clicked(zone: int, player: int) -> void:
 	var pos := FlightAnchors.of(zone, player, self)
 	_pile_overlay.open(cards, pos, _pile_title(zone, player))
 
+func _on_trap_pile_clicked(player: int) -> void:
+	if _anim_busy or _pile_overlay.is_open() or _selected_attacker != -1:
+		return
+	if _active_overlay != null and _minimized_overlay == null:
+		return
+	var cards: Array[CardInstance] = state.players[player].set_traps
+	if cards.is_empty():
+		return
+	var pos := FlightAnchors.of(Enums.Zone.TRAP_SET, player, self)
+	var title := "Your Traps" if player == HUMAN else "Opponent's Traps"
+	_pile_overlay.open(cards, pos, title, player != HUMAN)
+
 func _pile_title(zone: int, player: int) -> String:
 	var who := "Your" if player == HUMAN else "Opponent's"
 	var what := "Deck" if zone == Enums.Zone.DECK else "Discard"
@@ -484,6 +516,16 @@ func _play_flourishes(events: Array) -> void:
 		if e.type == Enums.EventType.TURN_STARTED:
 			$Banner.show_turn(e.data["player"] == HUMAN)
 			_director.reset_ramp()
+			_action_cue.reset_ramp()
+
+func _run_bespoke(events: Array) -> void:
+	for e in events:
+		if e.type == Enums.EventType.CARD_PLAYED:
+			match e.data.get("card_type", -1):
+				Enums.CardType.SPELL:
+					await _feature_spell(e.data.get("instance", -1), e.data.get("player", -1))
+				Enums.CardType.TRAP:
+					await _feature_trap_deploy(e.data.get("instance", -1), e.data.get("player", -1))
 
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:
@@ -608,6 +650,43 @@ func _overlay_title(overlay: CanvasLayer) -> String:
 	if label != null:
 		return label.text
 	return "Choose"
+
+func _feature_spell(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null:
+		return
+	cv.z_index = 300
+	var spd := _action_cue.anim_speed
+	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
+	var tw := cv.create_tween().set_parallel(true)
+	tw.tween_property(cv, "global_position", center_topleft, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(cv, "scale", Vector2(FEATURE_SCALE, FEATURE_SCALE), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	CardJuice.spring_wiggle(cv, 10.0, spd)
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
+	var discard_pos := FlightAnchors.of(Enums.Zone.DISCARD, player, self) - cv.size * cv.scale * 0.5
+	await CardFlight.fly_out(cv, discard_pos).finished
+	cv.z_index = 0
+
+func _feature_trap_deploy(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null:
+		return
+	cv.z_index = 300
+	var spd := _action_cue.anim_speed
+	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
+	var tw := cv.create_tween().set_parallel(true)
+	tw.tween_property(cv, "global_position", center_topleft, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(cv, "scale", Vector2(FEATURE_SCALE, FEATURE_SCALE), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
+	cv.set_face_down(true)
+	var pile_pos := FlightAnchors.of(Enums.Zone.TRAP_SET, player, self)
+	var to_topleft := pile_pos - cv.size * (cv.base_scale * 0.55) * 0.5
+	await CardFlight.flourish_arc(cv, to_topleft, Vector2(-220, -120), spd).finished
+	var pile: Control = _player_trap if player == HUMAN else _opp_trap
+	FeedbackFx.bump_pile(pile, spd)
+	cv.z_index = 0
 
 func _on_foreground_offset(offset: Vector2) -> void:
 	$Table.position = offset

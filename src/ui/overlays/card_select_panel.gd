@@ -36,6 +36,7 @@ func show_selection(cards: Array, min_n: int, max_n: int, title: String) -> void
 		cv.gui_input.connect(func(e):
 			if e is InputEventMouseButton and e.pressed: toggle_index(idx))
 	visible = true
+	CardJuice.popup_in($Center/Panel)
 	_update()
 
 func toggle_index(i: int) -> void:

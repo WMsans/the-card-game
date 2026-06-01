@@ -41,6 +41,7 @@ func show_hand(hand: Array) -> void:
 				if e is InputEventMouseButton and e.pressed:
 					toggle_index(idx))
 	visible = true
+	CardJuice.popup_in($Panel)
 	_update()
 
 func toggle_index(i: int) -> void:

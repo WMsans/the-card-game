@@ -28,6 +28,7 @@ func show_options(labels: Array, title: String, card: CardInstance = null) -> vo
 		_box.add_child(b)
 		JuicyButton.apply(b)
 	visible = true
+	CardJuice.popup_in($Center/Panel)
 
 func _ready() -> void:
 	var _min_btn: Button = $Center/Panel/Margin/VBox/MinimizeButton

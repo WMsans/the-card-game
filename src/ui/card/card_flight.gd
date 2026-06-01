@@ -36,3 +36,30 @@ static func move_to(cv: CardView, pos: Vector2, rot: float, delay: float = 0.0) 
 	tw.tween_property(cv, "position", pos, FLY_TIME * 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(cv, "rotation", rot, FLY_TIME * 0.7).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	return tw
+
+const FLOURISH_TIME := 0.42
+
+# Pure: sample a quadratic Bezier (from -> control -> to) into `segments`+1 points.
+# `control_offset` bends the path off the straight line so it reads as a sweep.
+static func arc_points(from_pos: Vector2, to_pos: Vector2, control_offset: Vector2, segments: int = 8) -> PackedVector2Array:
+	var control := (from_pos + to_pos) * 0.5 + control_offset
+	var pts := PackedVector2Array()
+	for i in range(segments + 1):
+		var t := float(i) / float(segments)
+		var a := from_pos.lerp(control, t)
+		var b := control.lerp(to_pos, t)
+		pts.append(a.lerp(b, t))
+	return pts
+
+# Fly a card along the sampled curve, scaling down slightly as it lands.
+static func flourish_arc(cv: CardView, to_pos: Vector2, control_offset: Vector2, speed: float = 1.0) -> Tween:
+	var base := cv.base_scale
+	var pts := arc_points(cv.position, to_pos, control_offset, 8)
+	var dur: float = FLOURISH_TIME / maxf(speed, 0.01)
+	var seg_time: float = dur / float(pts.size() - 1)
+	var st := cv.create_tween()
+	st.tween_property(cv, "scale", Vector2(base, base) * 0.55, dur).set_trans(Tween.TRANS_QUAD)
+	var tw := cv.create_tween()
+	for i in range(1, pts.size()):
+		tw.tween_property(cv, "position", pts[i], seg_time).set_trans(Tween.TRANS_LINEAR)
+	return tw

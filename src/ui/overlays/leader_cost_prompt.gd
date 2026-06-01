@@ -19,6 +19,7 @@ func _ready() -> void:
 func show_prompt() -> void:
 	if not is_node_ready(): await ready
 	visible = true
+	CardJuice.popup_in($Panel)
 
 func choose_tickets() -> void: _emit(false)
 func choose_discard() -> void: _emit(true)

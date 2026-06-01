@@ -31,6 +31,7 @@ func show_reveal(trap: CardInstance, context: String, options: Array, interactiv
 			_buttons.add_child(b)
 			JuicyButton.apply(b)
 	visible = true
+	CardJuice.popup_in($Center/Panel)
 
 func press_option(i: int) -> void:
 	visible = false
