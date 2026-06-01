@@ -19,7 +19,9 @@ func _ready() -> void:
 
 func _populate_label() -> void:
 	var f := FileAccess.open(CREDITS_PATH, FileAccess.READ)
-	assert(f != null, "Could not open %s" % CREDITS_PATH)
+	if f == null:
+		push_error("Could not open %s" % CREDITS_PATH)
+		return
 	var body := ""
 	while not f.eof_reached():
 		var line := f.get_line().strip_edges()
