@@ -1,5 +1,7 @@
 extends Control
 
+signal quit_to_menu
+
 const HUMAN := 0
 const THEME := preload("res://src/ui/theme/game_theme.tres")
 const MINIMIZE_STAGGER := 0.05
@@ -72,6 +74,7 @@ func _ready() -> void:
 	_trap_reveal.picked.connect(func(i): _active_overlay = null; apply_action(Action.resolve_choice({"option": i})))
 	_game_over.play_again.connect(_on_play_again)
 	_game_over.quit.connect(func(): get_tree().quit())
+	_game_over.main_menu.connect(func(): quit_to_menu.emit())
 	_select.minimize_requested.connect(_on_overlay_minimize.bind(_select))
 	_hand_choice.minimize_requested.connect(_on_overlay_minimize.bind(_hand_choice))
 	_option_prompt.minimize_requested.connect(_on_overlay_minimize.bind(_option_prompt))
