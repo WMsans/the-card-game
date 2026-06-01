@@ -36,6 +36,8 @@ var _bg: BalatroBg = null
 @onready var _opp_discard = $Table/OppDiscard
 @onready var _player_leader = $Table/PlayerLeader
 @onready var _opp_leader = $Table/OppLeader
+@onready var _player_trap = $Table/PlayerTrap
+@onready var _opp_trap = $Table/OppTrap
 @onready var _tickets = $Table/PlayerTickets
 @onready var _end_turn: Button = $EndTurnButton
 @onready var _arrow: Node2D = $ArrowLayer
@@ -67,6 +69,8 @@ func _ready() -> void:
 	_player_deck.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DECK, HUMAN))
 	_player_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, HUMAN))
 	_opp_discard.clicked.connect(_on_pile_clicked.bind(Enums.Zone.DISCARD, 1 - HUMAN))
+	_player_trap.clicked.connect(_on_trap_pile_clicked.bind(HUMAN))
+	_opp_trap.clicked.connect(_on_trap_pile_clicked.bind(1 - HUMAN))
 	_mulligan.confirmed.connect(func(idx): _active_overlay = null; apply_action(Action.mulligan(idx)))
 	_select.confirmed.connect(func(idx): _active_overlay = null; apply_action(Action.resolve_choice({"indices": idx})))
 	_hand_choice.confirmed.connect(_on_hand_choice_confirmed)
@@ -129,6 +133,8 @@ func render_all(plan: Array = []) -> void:
 	_opp_discard.set_count(opp.discard.size())
 	_player_leader.set_count(1 if you.leader else 0)
 	_opp_leader.set_count(1 if opp.leader else 0)
+	_player_trap.set_count(you.set_traps.size())
+	_opp_trap.set_count(opp.set_traps.size())
 	_tickets.set_tickets(you.tickets_tapped, you.tickets_total)
 
 func _snapshot_zones() -> Dictionary:
@@ -388,6 +394,18 @@ func _on_pile_clicked(zone: int, player: int) -> void:
 		return
 	var pos := FlightAnchors.of(zone, player, self)
 	_pile_overlay.open(cards, pos, _pile_title(zone, player))
+
+func _on_trap_pile_clicked(player: int) -> void:
+	if _anim_busy or _pile_overlay.is_open() or _selected_attacker != -1:
+		return
+	if _active_overlay != null and _minimized_overlay == null:
+		return
+	var cards: Array[CardInstance] = state.players[player].set_traps
+	if cards.is_empty():
+		return
+	var pos := FlightAnchors.of(Enums.Zone.TRAP_SET, player, self)
+	var title := "Your Traps" if player == HUMAN else "Opponent's Traps"
+	_pile_overlay.open(cards, pos, title, player != HUMAN)
 
 func _pile_title(zone: int, player: int) -> String:
 	var who := "Your" if player == HUMAN else "Opponent's"
