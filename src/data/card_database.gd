@@ -15,7 +15,7 @@ static func load_deck(path: String, deck_color: String) -> Array[CardDefinition]
 	f.get_csv_line()
 	while not f.eof_reached():
 		var row := f.get_csv_line()
-		if row.size() < 9:
+		if row.size() < 10:
 			continue
 		if row[1].strip_edges() == "":
 			continue
@@ -37,6 +37,7 @@ static func _parse_row(row: PackedStringArray, deck_color: String) -> CardDefini
 	d.ability_text = row[6].strip_edges()
 	d.flavor = row[7].strip_edges()
 	d.image = row[8].strip_edges() if row.size() > 8 else ""
+	d.credit = row[9].strip_edges() if row.size() > 9 else ""
 	d.keywords = _extract_keywords(d.ability_text)
 	return d
 

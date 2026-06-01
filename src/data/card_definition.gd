@@ -12,4 +12,5 @@ var base_health: int = 0
 var ability_text: String = ""
 var flavor: String = ""
 var image: String = ""
+var credit: String = ""
 var keywords: Array[String] = []

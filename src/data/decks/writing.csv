@@ -1,26 +1,26 @@
-Card ID,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image
+Card ID,Type,Name,Cost,Damage,Health,Ability,Flavor Text,Image,Credit
 1,Leader,"Shelley, Live-Action Roleplayer",4 / Discard 4,2,5,"When you TRASH a Unit, you may instead send it to the bottom of your Deck.
-TRASH: KO an allied Unit.","""Time for your last rites.""",
-2,Minion,Melon Zombie Hulk,6,8,7,"Whenever this Minion attacks, TRASH a Unit.",The otherworldly magics of the melon grant it unparalleled strength.,
-3,Minion,Melon Zombie Hulk,6,8,7,"Whenever this Minion attacks, TRASH a Unit.",The otherworldly magics of the melon grant it unparalleled strength.,
-4,Minion,Citrus Werewolf,8,9,6,"On Damaging the opponent, gain 1 ORANGE.",Such is the ingenuity of the werewolves.,melina
-5,Minion,Citrus Werewolf,8,9,6,"On Damaging the opponent, gain 1 ORANGE.",Such is the ingenuity of the werewolves.,melina
-6,Minion,Avatar of the Ancient Evil,13,10,9,"On cast, you may TRASH any number of other Units. Your opponent also TRASHES that many Units.","A nation of ten million, wiped out in an instant. The Ancient Evil has awoken. ",docs/design_docs/Card List/images/writing_avatar-of-the-ancient-evil.png
-7,Minion,Cultist of the Ancient Evil,2,0,1,"On Damaging the opponent’s Deck, you may TRASH this Unit to return a card from your Discard Pile to your hand.",To bring back the lost requires an equivalent exchange. ,docs/design_docs/Card List/images/writing_cultist-of-the-ancient-evil.png
-8,Minion,Cultist of the Ancient Evil,2,0,1,"On Damaging the opponent, you may TRASH this Unit to return a card from your Discard Pile to your hand.",To bring back the lost requires an equivalent exchange. ,docs/design_docs/Card List/images/writing_cultist-of-the-ancient-evil.png
+TRASH: KO an allied Unit.","""Time for your last rites.""",,
+2,Minion,Melon Zombie Hulk,6,8,7,"Whenever this Minion attacks, TRASH a Unit.",The otherworldly magics of the melon grant it unparalleled strength.,,
+3,Minion,Melon Zombie Hulk,6,8,7,"Whenever this Minion attacks, TRASH a Unit.",The otherworldly magics of the melon grant it unparalleled strength.,,
+4,Minion,Citrus Werewolf,8,9,6,"On Damaging the opponent, gain 1 ORANGE.",Such is the ingenuity of the werewolves.,melina,
+5,Minion,Citrus Werewolf,8,9,6,"On Damaging the opponent, gain 1 ORANGE.",Such is the ingenuity of the werewolves.,melina,
+6,Minion,Avatar of the Ancient Evil,13,10,9,"On cast, you may TRASH any number of other Units. Your opponent also TRASHES that many Units.","A nation of ten million, wiped out in an instant. The Ancient Evil has awoken. ",docs/design_docs/Card List/images/writing_avatar-of-the-ancient-evil.png,Elijah SO (@theroboticseacucumber)
+7,Minion,Cultist of the Ancient Evil,2,0,1,"On Damaging the opponent’s Deck, you may TRASH this Unit to return a card from your Discard Pile to your hand.",To bring back the lost requires an equivalent exchange. ,docs/design_docs/Card List/images/writing_cultist-of-the-ancient-evil.png,Elijah SO (@theroboticseacucumber)
+8,Minion,Cultist of the Ancient Evil,2,0,1,"On Damaging the opponent, you may TRASH this Unit to return a card from your Discard Pile to your hand.",To bring back the lost requires an equivalent exchange. ,docs/design_docs/Card List/images/writing_cultist-of-the-ancient-evil.png,Elijah SO (@theroboticseacucumber)
 9,Minion,Melon Zombie Warlock,4,1,4,"When you TRASH a Minion, you may instead replay it for its cost +1.","A trip to the beyond has returned this creature of its intellect, if not its sanity. ","
-"
-10,Minion,Melon Zombie Warlock,4,1,4,"When you TRASH a Minion, you may instead replay it for its cost +1.","A trip to the beyond has returned this creature of its intellect, if not its sanity. ",
-11,Minion,Melon Zombie,1,0,2,"When TRASHED, you may return this to your hand.",The melon vines on the corpse infuses it with renewed unlife. ,docs/design_docs/Card List/images/writing_melon-zombie.png
-12,Minion,Melon Zombie,1,0,2,"When TRASHED, you may return this to your hand.",The melon vines on the corpse infuses it with renewed unlife. ,docs/design_docs/Card List/images/writing_melon-zombie.png
-13,Minion,Mercenary Trader,3,2,3,"When TRASHED, gain 1 ORANGE.",Oranges don't come cheap in this economy. ,docs/design_docs/Card List/images/writing_mercenary-trader.png
-14,Minion,Mercenary Trader,3,2,3,"When TRASHED, gain 1 ORANGE.",Oranges don't come cheap in this economy. ,docs/design_docs/Card List/images/writing_mercenary-trader.png
+",
+10,Minion,Melon Zombie Warlock,4,1,4,"When you TRASH a Minion, you may instead replay it for its cost +1.","A trip to the beyond has returned this creature of its intellect, if not its sanity. ",,
+11,Minion,Melon Zombie,1,0,2,"When TRASHED, you may return this to your hand.",The melon vines on the corpse infuses it with renewed unlife. ,docs/design_docs/Card List/images/writing_melon-zombie.png,Karina Chen (@kkartin)
+12,Minion,Melon Zombie,1,0,2,"When TRASHED, you may return this to your hand.",The melon vines on the corpse infuses it with renewed unlife. ,docs/design_docs/Card List/images/writing_melon-zombie.png,Karina Chen (@kkartin)
+13,Minion,Mercenary Trader,3,2,3,"When TRASHED, gain 1 ORANGE.",Oranges don't come cheap in this economy. ,docs/design_docs/Card List/images/writing_mercenary-trader.png,Karina Chen (@kkartin)
+14,Minion,Mercenary Trader,3,2,3,"When TRASHED, gain 1 ORANGE.",Oranges don't come cheap in this economy. ,docs/design_docs/Card List/images/writing_mercenary-trader.png,Karina Chen (@kkartin)
 15,Spell,Citrus Sacrifice,6,0,0,"Gain 1 ORANGE for each card in your discard pile. 
-ORANGE: Maximum of 5 ORANGES. Choose one Unit in your Hand. You may cast it for 1 less Cost (Minimum 0).","""lemony fresh occult rituals""",docs/design_docs/Card List/images/writing_citrus-sacrifice.png
+ORANGE: Maximum of 5 ORANGES. Choose one Unit in your Hand. You may cast it for 1 less Cost (Minimum 0).","""lemony fresh occult rituals""",docs/design_docs/Card List/images/writing_citrus-sacrifice.png,Karina Chen (@kkartin)
 16,Spell,Citrus Sacrifice,6,0,0,"Gain 1 ORANGE for each card in your discard pile. 
-ORANGE: Maximum of 5 ORANGES. Choose one Unit in your Hand. You may cast it for 1 less Cost (Minimum 0).","""lemony fresh occult rituals""",docs/design_docs/Card List/images/writing_citrus-sacrifice.png
-17,Spell,Pain Split,1,0,0,TRASH a Unit. Deal 4 Damage to any Unit.,gives you my migraine,docs/design_docs/Card List/images/writing_pain-split.png
-17,Spell,Pain Split,1,0,0,TRASH a Unit. Deal 4 Damage to any Unit.,gives you my migraine,docs/design_docs/Card List/images/writing_pain-split.png
-19,Trap,Ancient One's Protection,3,0,0,"If an allied Unit would be killed in battle, you may TRASH another Unit in its place.",The powers from beyond have their favorites.,docs/design_docs/Card List/images/writing_ancient-one-s-protection.png
-20,Trap,Ancient One's Protection,3,0,0,"If an allied Unit would be killed in battle, you may TRASH another Unit in its place.",The powers from beyond have their favorites.,docs/design_docs/Card List/images/writing_ancient-one-s-protection.png
-21,Trap,Offering,3,0,0,"If you would take Damage, you may give your opponent an ORANGE. If you do, negate that damage.","""Peace?""",docs/design_docs/Card List/images/writing_offering.png
+ORANGE: Maximum of 5 ORANGES. Choose one Unit in your Hand. You may cast it for 1 less Cost (Minimum 0).","""lemony fresh occult rituals""",docs/design_docs/Card List/images/writing_citrus-sacrifice.png,Karina Chen (@kkartin)
+17,Spell,Pain Split,1,0,0,TRASH a Unit. Deal 4 Damage to any Unit.,gives you my migraine,docs/design_docs/Card List/images/writing_pain-split.png,Cas van de Pol (@cas on YouTube)
+17,Spell,Pain Split,1,0,0,TRASH a Unit. Deal 4 Damage to any Unit.,gives you my migraine,docs/design_docs/Card List/images/writing_pain-split.png,Cas van de Pol (@cas on YouTube)
+19,Trap,Ancient One's Protection,3,0,0,"If an allied Unit would be killed in battle, you may TRASH another Unit in its place.",The powers from beyond have their favorites.,docs/design_docs/Card List/images/writing_ancient-one-s-protection.png,Karina Chen (@kkartin)
+20,Trap,Ancient One's Protection,3,0,0,"If an allied Unit would be killed in battle, you may TRASH another Unit in its place.",The powers from beyond have their favorites.,docs/design_docs/Card List/images/writing_ancient-one-s-protection.png,Karina Chen (@kkartin)
+21,Trap,Offering,3,0,0,"If you would take Damage, you may give your opponent an ORANGE. If you do, negate that damage.","""Peace?""",docs/design_docs/Card List/images/writing_offering.png,Karina Chen (@kkartin)

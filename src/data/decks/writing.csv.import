@@ -6,10 +6,10 @@ uid="uid://cnbvua2yowsuv"
 
 [deps]
 
-files=["res://src/data/decks/writing.Type.translation", "res://src/data/decks/writing.Name.translation", "res://src/data/decks/writing.Cost.translation", "res://src/data/decks/writing.Damage.translation", "res://src/data/decks/writing.Health.translation", "res://src/data/decks/writing.Ability.translation", "res://src/data/decks/writing.Flavor Text.translation", "res://src/data/decks/writing.Image.translation"]
+files=["res://src/data/decks/writing.Type.translation", "res://src/data/decks/writing.Name.translation", "res://src/data/decks/writing.Cost.translation", "res://src/data/decks/writing.Damage.translation", "res://src/data/decks/writing.Health.translation", "res://src/data/decks/writing.Ability.translation", "res://src/data/decks/writing.Flavor Text.translation", "res://src/data/decks/writing.Image.translation", "res://src/data/decks/writing.Credit.translation"]
 
 source_file="res://src/data/decks/writing.csv"
-dest_files=["res://src/data/decks/writing.Type.translation", "res://src/data/decks/writing.Name.translation", "res://src/data/decks/writing.Cost.translation", "res://src/data/decks/writing.Damage.translation", "res://src/data/decks/writing.Health.translation", "res://src/data/decks/writing.Ability.translation", "res://src/data/decks/writing.Flavor Text.translation", "res://src/data/decks/writing.Image.translation"]
+dest_files=["res://src/data/decks/writing.Type.translation", "res://src/data/decks/writing.Name.translation", "res://src/data/decks/writing.Cost.translation", "res://src/data/decks/writing.Damage.translation", "res://src/data/decks/writing.Health.translation", "res://src/data/decks/writing.Ability.translation", "res://src/data/decks/writing.Flavor Text.translation", "res://src/data/decks/writing.Image.translation", "res://src/data/decks/writing.Credit.translation"]
 
 [params]
 

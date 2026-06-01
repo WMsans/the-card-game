@@ -180,6 +180,18 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
+[node name="CreditLabel" type="Label" parent="CardSurface/CardViewport/Visuals" unique_id=-1745892880]
+offset_left = 29.0
+offset_top = 252.0
+offset_right = 320.0
+offset_bottom = 270.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+text = "Illustration by Sarah Lee (@mr.sweets / @mrsweetsart)"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
 [node name="LeaderEmblem" type="TextureRect" parent="CardSurface/CardViewport" unique_id=133246350]
 material = SubResource("ShaderMaterial_emblem")
 offset_left = 259.0

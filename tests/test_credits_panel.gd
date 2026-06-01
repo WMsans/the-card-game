@@ -17,11 +17,11 @@ func test_back_button_emits_back_pressed() -> void:
 func test_credits_label_contains_artists_from_file() -> void:
 	var p := _spawn()
 	var text: String = p.get_node("CreditsLabel").text
-	assert_bool("Quin" in text).is_true()
-	assert_bool("Samuel Gines" in text).is_true()
-	assert_bool("Alexander C" in text).is_true()
-	assert_bool("henri" in text).is_true()
-	assert_bool("melina" in text).is_true()
+	assert_bool("Jacob Ho" in text).is_true()
+	assert_bool("Ian Rodriguez" in text).is_true()
+	assert_bool("Alexander Cortez" in text).is_true()
+	assert_bool("Brandon Tsai" in text).is_true()
+	assert_bool("Conner Wood" in text).is_true()
 
 func test_credits_label_starts_below_viewport() -> void:
 	var p := _spawn()
