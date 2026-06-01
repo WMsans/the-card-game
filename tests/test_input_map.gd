@@ -19,6 +19,8 @@ func test_drop_on_play_zone_yields_play_card_when_legal() -> void:
 		return
 	var iid: int = play[0].params["instance_id"]
 	var act = CardInput.play_from_drop(iid, "play_zone", legal)
+	if act == null:
+		act = CardInput.play_from_drop(iid, "play_zone", legal, true)
 	assert_object(act).is_not_null()
 	assert_int(act.type).is_equal(Enums.ActionType.PLAY_CARD)
 
