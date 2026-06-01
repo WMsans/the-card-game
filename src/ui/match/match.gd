@@ -18,6 +18,7 @@ var _dragging_id: int = -1
 var _targeting_for_choice: bool = false
 var _target_candidates: Array = []
 var _director := CombatDirector.new()
+var _action_cue := ActionCue.new()
 var _anim_busy: bool = false
 var _minimized_overlay: CanvasLayer = null
 # tracked for future re-entrancy guards and integration tests
@@ -111,13 +112,15 @@ func apply_action(action: Action) -> void:
 	engine.apply(action)
 	var events := state.bus.log.slice(from)
 	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
+	_anim_busy = true
 	if CombatDirector.has_attack(events):
-		_anim_busy = true
 		await _director.play(events, self)
-		_anim_busy = false
 	render_all(plan)
 	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
+	if not CombatDirector.has_attack(events):
+		await _action_cue.play(self, events)
+	_anim_busy = false
 	_post_action()
 
 func render_all(plan: Array = []) -> void:
@@ -502,6 +505,7 @@ func _play_flourishes(events: Array) -> void:
 		if e.type == Enums.EventType.TURN_STARTED:
 			$Banner.show_turn(e.data["player"] == HUMAN)
 			_director.reset_ramp()
+			_action_cue.reset_ramp()
 
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:

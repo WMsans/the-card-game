@@ -46,3 +46,28 @@ func test_passive_movement_events_make_no_cue() -> void:
 		_ev(Enums.EventType.CARD_RUMMAGED, {"player": 0, "instance": 3}),
 	])
 	assert_int(ds.size()).is_equal(0)
+
+const MATCH := "res://src/ui/match/match.tscn"
+const STRIKE := "res://src/data/decks/strike.csv"
+
+func _match() -> Node:
+	var m: Node = load(MATCH).instantiate()
+	add_child(m)
+	auto_free(m)
+	m.start_game(7, STRIKE, STRIKE)
+	await get_tree().create_timer(0.35).timeout
+	return m
+
+func test_play_spawns_a_label_for_harmonize() -> void:
+	var m := await _match()
+	var fx_before: int = m.get_node("FxLayer").get_child_count()
+	var cue := ActionCue.new()
+	await cue.play(m, [GameEvent.new(Enums.EventType.HARMONIZE, {"player": 0})])
+	assert_int(m.get_node("FxLayer").get_child_count()).is_greater(fx_before)
+
+func test_play_with_no_cue_events_is_noop() -> void:
+	var m := await _match()
+	var fx_before: int = m.get_node("FxLayer").get_child_count()
+	var cue := ActionCue.new()
+	await cue.play(m, [GameEvent.new(Enums.EventType.CARD_DRAWN, {"player": 0, "instance": 1})])
+	assert_int(m.get_node("FxLayer").get_child_count()).is_equal(fx_before)
