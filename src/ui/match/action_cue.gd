@@ -34,11 +34,13 @@ static func _card(label: String, color: Color, iid: int, player: int) -> Diction
 func reset_ramp() -> void:
 	anim_speed = 1.0
 
-func play(m, events: Array) -> void:
+func play(m, events: Array, featured_ids: Array = []) -> void:
 	var ds := descriptors(events)
 	if ds.is_empty():
 		return
 	for d in ds:
+		if featured_ids.has(d["target_id"]):
+			continue
 		anim_speed = FeedbackFx.next_speed(anim_speed, _now() - _last_end)
 		var spd := anim_speed
 		var at := _resolve_pos(m, d)

@@ -48,3 +48,24 @@ func test_run_feedback_features_a_played_spell() -> void:
 	m._run_bespoke(events)
 	await get_tree().create_timer(0.4).timeout
 	assert_float(cv.global_position.y).is_less(700.0)
+
+func test_trap_deploy_ends_face_down_and_smaller() -> void:
+	var m := await _match()
+	var cv := await _hand_card(m, 451, Enums.CardType.TRAP)
+	m._feature_trap_deploy(451, 0)
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME + CardFlight.ORBIT_TIME + 1.0).timeout
+	assert_bool(cv._face_down).is_true()
+	assert_float(cv.scale.x).is_less(cv.base_scale)
+
+func test_handle_drop_marks_card_played() -> void:
+	var m := await _match()
+	var cv := await _hand_card(m, 401, Enums.CardType.SPELL)
+	m._find_card_view_any(401).mark_played()
+	assert_bool(cv._consumed).is_true()
+
+func test_minion_feature_lifts_toward_center() -> void:
+	var m := await _match()
+	var cv := await _hand_card(m, 461, Enums.CardType.MINION)
+	m._feature_minion(461, 0)
+	await get_tree().create_timer(0.4).timeout   # sample during the center hold
+	assert_float(cv.global_position.y).is_less(700.0)

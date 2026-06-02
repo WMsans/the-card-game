@@ -63,3 +63,33 @@ static func flourish_arc(cv: CardView, to_pos: Vector2, control_offset: Vector2,
 	for i in range(1, pts.size()):
 		tw.tween_property(cv, "position", pts[i], seg_time).set_trans(Tween.TRANS_LINEAR)
 	return tw
+
+const ORBIT_TIME := 0.9
+const ORBIT_RADIUS := 280.0
+const ORBIT_SEGMENTS := 16
+
+# Pure: sample a full circle around `center` starting at `start_angle`, returning
+# `segments`+1 points (the last equals the first, closing the loop).
+static func circle_points(center: Vector2, radius: float, start_angle: float, segments: int = ORBIT_SEGMENTS) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in range(segments + 1):
+		var a := start_angle + TAU * (float(i) / float(segments))
+		pts.append(center + Vector2(cos(a), sin(a)) * radius)
+	return pts
+
+# Fly out from the card's current spot into a full 360° loop around `center`,
+# then dart into `to_pos`, scaling down as it lands. Card facing is unchanged.
+static func orbit_loop(cv: CardView, center: Vector2, radius: float, to_pos: Vector2, speed: float = 1.0) -> Tween:
+	var base := cv.base_scale
+	var pts := circle_points(center, radius, -PI / 2.0, ORBIT_SEGMENTS)
+	var dur: float = ORBIT_TIME / maxf(speed, 0.01)
+	# One segment to fly out, ORBIT_SEGMENTS around the ring, one to dart in.
+	var seg: float = dur / float(ORBIT_SEGMENTS + 2)
+	var tw := cv.create_tween()
+	tw.tween_property(cv, "position", pts[0], seg).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	for i in range(1, pts.size()):
+		tw.tween_property(cv, "position", pts[i], seg).set_trans(Tween.TRANS_LINEAR)
+	tw.tween_property(cv, "position", to_pos, seg).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var st := cv.create_tween()
+	st.tween_property(cv, "scale", Vector2(base, base) * 0.55, dur).set_trans(Tween.TRANS_QUAD)
+	return tw

@@ -1,6 +1,7 @@
 class_name CardView
 extends Control
 
+const FACE_DOWN_SCALE := 0.85
 const STAT_NORMAL := Color.WHITE
 const STAT_BUFFED := Color(0.4, 1.0, 0.4)
 const STAT_DAMAGED := Color(1.0, 0.4, 0.4)
@@ -37,6 +38,7 @@ signal clicked(card_view: CardView)
 
 var _instance: CardInstance
 var _face_down: bool = false
+var _consumed: bool = false
 var base_scale: float = 1.0   # table cards render scaled-down; hover is relative to this
 static var _active_drag: CardView = null
 
@@ -64,6 +66,7 @@ var _tween_tilt: Tween
 func setup(instance: CardInstance) -> void:
 	_instance = instance
 	_face_down = false
+	_consumed = false
 	_refresh()
 
 func set_face_down(value: bool) -> void:
@@ -139,6 +142,9 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	gui_input.connect(_on_gui_input)
+
+func mark_played() -> void:
+	_consumed = true
 
 func set_interactive(v: bool) -> void:
 	_interactive = v
@@ -251,6 +257,7 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_dragging = true
+			_consumed = false
 			_active_drag = self
 			# Grab-relative pivot: keep the card exactly where it was picked up so it
 			# doesn't snap-jump to recenter, AND make drag rotation pivot around the
@@ -298,10 +305,11 @@ func _on_gui_input(event: InputEvent) -> void:
 				# Satisfying release: elastic scale drop + return to rest
 				if _tween_release and _tween_release.is_running():
 					_tween_release.kill()
-				_tween_release = create_tween()
-				_tween_release.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-				_tween_release.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-				_tween_release.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+				if not _consumed:
+					_tween_release = create_tween()
+					_tween_release.tween_property(self, "scale", Vector2.ONE * base_scale, 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+					_tween_release.parallel().tween_property(self, "position", _rest_position, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+					_tween_release.parallel().tween_property(self, "rotation", _rest_rotation, 0.25).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	elif event is InputEventMouseMotion and _hovering and _active_drag == null:
 		# Only tilt while this card is the active hover. Without the _active_drag /
 		# _hovering guard, moving over a card while another is dragged would set the
@@ -324,4 +332,14 @@ func flip_to_face_up() -> Tween:
 	t.tween_property(_surface, "scale:x", 0.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	t.tween_callback(func(): set_face_down(false))
 	t.tween_property(_surface, "scale:x", 1.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	return t
+
+func flip_to_face_down() -> Tween:
+	_surface.pivot_offset = _surface.size * 0.5
+	var target := Vector2(base_scale, base_scale) * FACE_DOWN_SCALE
+	var t := _surface.create_tween()
+	t.tween_property(_surface, "scale:x", 0.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	t.tween_callback(func(): set_face_down(true))
+	t.tween_property(_surface, "scale:x", 1.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "scale", target, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	return t

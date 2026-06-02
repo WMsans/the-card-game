@@ -113,15 +113,16 @@ func apply_action(action: Action) -> void:
 	var events := state.bus.log.slice(from)
 	var plan := _enrich(TransitionPlan.compute(before, _snapshot_zones()))
 	_anim_busy = true
+	var featured: Array = []
 	if CombatDirector.has_attack(events):
 		await _director.play(events, self)
 	else:
-		await _run_bespoke(events)
+		featured = await _run_bespoke(events)
 	render_all(plan)
 	_spawn_pile_travelers(plan)
 	_play_flourishes(events)
 	if not CombatDirector.has_attack(events):
-		await _action_cue.play(self, events)
+		await _action_cue.play(self, events, featured)
 	_anim_busy = false
 	_post_action()
 
@@ -346,11 +347,14 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 	var legal: Array = engine.get_legal_actions()
 	var by_tickets: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, false)
 	var by_discard: Action = CardInput.play_from_drop(instance_id, drop_zone, legal, true)
+	var cv := _find_card_view_any(instance_id)
 	if by_tickets != null and by_discard != null:
 		_leader_prompt.show_prompt()
 		_active_overlay = _leader_prompt
 		var handler := func(by_disc: bool):
 			_active_overlay = null
+			if cv != null:
+				cv.mark_played()
 			if by_disc:
 				apply_action(by_discard)
 			else:
@@ -358,9 +362,13 @@ func handle_drop(instance_id: int, drop_zone: String) -> bool:
 		_leader_prompt.chosen.connect(handler, CONNECT_ONE_SHOT)
 		return true
 	if by_discard != null:
+		if cv != null:
+			cv.mark_played()
 		apply_action(by_discard)
 		return true
 	if by_tickets != null:
+		if cv != null:
+			cv.mark_played()
 		apply_action(by_tickets)
 		return true
 	render_all()
@@ -514,14 +522,26 @@ func _play_flourishes(events: Array) -> void:
 			_director.reset_ramp()
 			_action_cue.reset_ramp()
 
-func _run_bespoke(events: Array) -> void:
+func _run_bespoke(events: Array) -> Array:
+	var featured: Array = []
 	for e in events:
 		if e.type == Enums.EventType.CARD_PLAYED:
+			var iid: int = e.data.get("instance", -1)
+			var pl: int = e.data.get("player", -1)
 			match e.data.get("card_type", -1):
 				Enums.CardType.SPELL:
-					await _feature_spell(e.data.get("instance", -1), e.data.get("player", -1))
+					await _feature_spell(iid, pl)
+					featured.append(iid)
 				Enums.CardType.TRAP:
-					await _feature_trap_deploy(e.data.get("instance", -1), e.data.get("player", -1))
+					await _feature_trap_deploy(iid, pl)
+					featured.append(iid)
+				Enums.CardType.MINION:
+					if hand_view.card_views.has(iid):
+						await _feature_minion(iid, pl)
+						featured.append(iid)
+				_:
+					pass
+	return featured
 
 func _on_overlay_minimize(overlay: CanvasLayer) -> void:
 	if _minimized_overlay != null:
@@ -647,10 +667,7 @@ func _overlay_title(overlay: CanvasLayer) -> String:
 		return label.text
 	return "Choose"
 
-func _feature_spell(iid: int, player: int) -> void:
-	var cv := _find_card_view_any(iid)
-	if cv == null:
-		return
+func _fly_to_center(cv: CardView) -> float:
 	cv.z_index = 300
 	var spd := _action_cue.anim_speed
 	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
@@ -660,6 +677,13 @@ func _feature_spell(iid: int, player: int) -> void:
 	await tw.finished
 	CardJuice.spring_wiggle(cv, 10.0, spd)
 	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
+	return spd
+
+func _feature_spell(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null:
+		return
+	await _fly_to_center(cv)
 	var discard_pos := FlightAnchors.of(Enums.Zone.DISCARD, player, self) - cv.size * cv.scale * 0.5
 	await CardFlight.fly_out(cv, discard_pos).finished
 	cv.z_index = 0
@@ -668,20 +692,39 @@ func _feature_trap_deploy(iid: int, player: int) -> void:
 	var cv := _find_card_view_any(iid)
 	if cv == null:
 		return
-	cv.z_index = 300
-	var spd := _action_cue.anim_speed
-	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
-	var tw := cv.create_tween().set_parallel(true)
-	tw.tween_property(cv, "global_position", center_topleft, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(cv, "scale", Vector2(FEATURE_SCALE, FEATURE_SCALE), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await tw.finished
-	await get_tree().create_timer(FeedbackFx.HOLD_TIME / maxf(spd, 0.01)).timeout
-	cv.set_face_down(true)
+	var spd := await _fly_to_center(cv)
+	await cv.flip_to_face_down().finished
 	var pile_pos := FlightAnchors.of(Enums.Zone.TRAP_SET, player, self)
 	var to_topleft := pile_pos - cv.size * (cv.base_scale * 0.55) * 0.5
-	await CardFlight.flourish_arc(cv, to_topleft, Vector2(-220, -120), spd).finished
+	await CardFlight.orbit_loop(cv, cv.position, CardFlight.ORBIT_RADIUS, to_topleft, spd).finished
 	var pile: Control = _player_trap if player == HUMAN else _opp_trap
 	FeedbackFx.bump_pile(pile, spd)
+	cv.z_index = 0
+
+func _feature_minion(iid: int, player: int) -> void:
+	var cv := _find_card_view_any(iid)
+	if cv == null or not hand_view.card_views.has(iid):
+		return
+	var spd := await _fly_to_center(cv)
+	var board: Node2D = player_board if player == HUMAN else opp_board
+	hand_view.card_views.erase(iid)
+	for c in cv.drag_released.get_connections():
+		cv.drag_released.disconnect(c["callable"])
+	for c in cv.drag_started.get_connections():
+		cv.drag_started.disconnect(c["callable"])
+	cv.reparent(board)
+	board.card_views[iid] = cv
+	cv.clicked.connect(func(_cv: CardView): board.unit_clicked.emit(iid))
+	var ps: PlayerState = state.players[player]
+	var idx := 0
+	for i in range(ps.board.size()):
+		if ps.board[i].instance_id == iid:
+			idx = i
+			break
+	var t := BoardLayout.slot(Enums.Zone.BOARD, idx, ps.board.size(), player)
+	var rest_pos := t.origin - BoardLayout.CARD_PIVOT
+	await CardFlight.move_to(cv, rest_pos, t.get_rotation()).finished
+	CardJuice.squash(cv, spd)
 	cv.z_index = 0
 
 func _on_foreground_offset(offset: Vector2) -> void:
