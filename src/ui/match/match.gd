@@ -733,7 +733,13 @@ func _feature_trap_deploy(iid: int, player: int) -> void:
 	await cv.flip_to_face_down().finished
 	var pile_pos := FlightAnchors.of(Enums.Zone.TRAP_SET, player, self)
 	var to_topleft := pile_pos - cv.size * (cv.base_scale * 0.55) * 0.5
-	await CardFlight.orbit_loop(cv, cv.position, CardFlight.ORBIT_RADIUS, to_topleft, spd).finished
+	var base := cv.base_scale
+	var dur: float = CardFlight.FLY_TIME / maxf(spd, 0.01)
+	var tw := cv.create_tween()
+	tw.tween_property(cv, "position", to_topleft, dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	var st := cv.create_tween()
+	st.tween_property(cv, "scale", Vector2(base, base) * 0.55, dur).set_trans(Tween.TRANS_QUAD)
+	await tw.finished
 	var pile: Control = _player_trap if player == HUMAN else _opp_trap
 	FeedbackFx.bump_pile(pile, spd)
 	cv.z_index = 0

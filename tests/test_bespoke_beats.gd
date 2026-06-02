@@ -53,7 +53,7 @@ func test_trap_deploy_ends_face_down_and_smaller() -> void:
 	var m := await _match()
 	var cv := await _hand_card(m, 451, Enums.CardType.TRAP)
 	m._feature_trap_deploy(451, 0)
-	await get_tree().create_timer(FeedbackFx.HOLD_TIME + CardFlight.ORBIT_TIME + 1.0).timeout
+	await get_tree().create_timer(FeedbackFx.HOLD_TIME + CardFlight.FLY_TIME + 1.0).timeout
 	assert_bool(cv._face_down).is_true()
 	assert_float(cv.scale.x).is_less(cv.base_scale)
 
