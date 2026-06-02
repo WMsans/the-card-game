@@ -149,6 +149,18 @@ func mark_played() -> void:
 func set_interactive(v: bool) -> void:
 	_interactive = v
 
+# Pin the card for a scripted feature/flight (e.g. lift-to-center). Stops it from
+# responding to hover and kills any in-flight hover/unhover tweens, which would
+# otherwise animate position:y back to the hand rest slot and drag the card out
+# of center mid-beat.
+func begin_feature() -> void:
+	_interactive = false
+	_hovering = false
+	z_index = 0
+	for tw in [_tween_hover, _tween_unhover, _tween_tilt]:
+		if tw and tw.is_running():
+			tw.kill()
+
 func set_highlight(state: int) -> void:
 	_highlight.set_state(state)
 

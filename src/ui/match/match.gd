@@ -22,6 +22,10 @@ var _target_candidates: Array = []
 var _director := CombatDirector.new()
 var _action_cue := ActionCue.new()
 var _anim_busy: bool = false
+# A spell whose effect spans one or more choices is parked at screen center until
+# the whole effect resolves (pending_choice clears), then flown to the discard.
+var _held_spell: CardView = null
+var _held_spell_player: int = -1
 var _minimized_overlay: CanvasLayer = null
 # tracked for future re-entrancy guards and integration tests
 var _active_overlay: CanvasLayer = null
@@ -202,6 +206,10 @@ func _find_card_view_any(iid: int) -> CardView:
 
 func _post_action() -> void:
 	_refresh_highlights()
+	# The spell's effect has fully resolved (no more choices) — let the card that's
+	# been parked at center finally fly to the discard pile.
+	if _held_spell != null and state.pending_choice == null:
+		_release_held_spell()
 	_end_turn.disabled = state.active_player != HUMAN or state.pending_choice != null
 	if state.phase == Enums.Phase.GAME_OVER:
 		_show_game_over()
@@ -668,6 +676,7 @@ func _overlay_title(overlay: CanvasLayer) -> String:
 	return "Choose"
 
 func _fly_to_center(cv: CardView) -> float:
+	cv.begin_feature()
 	cv.z_index = 300
 	var spd := _action_cue.anim_speed
 	var center_topleft := FEATURE_CENTER - cv.size * FEATURE_SCALE * 0.5
@@ -684,9 +693,37 @@ func _feature_spell(iid: int, player: int) -> void:
 	if cv == null:
 		return
 	await _fly_to_center(cv)
+	# Detach from the hand so render_all() won't sweep this card to the discard as
+	# a leaver (the engine already moved the spell to DISCARD on cast). A spell's
+	# effect can span several choices; keep the card parked at center until the
+	# whole effect resolves, then fly it out — see _release_held_spell().
+	_detach_from_hand(cv, iid)
+	if state.pending_choice != null:
+		_held_spell = cv
+		_held_spell_player = player
+		return
+	_fly_spell_to_discard(cv, player)
+
+func _fly_spell_to_discard(cv: CardView, player: int) -> void:
 	var discard_pos := FlightAnchors.of(Enums.Zone.DISCARD, player, self) - cv.size * cv.scale * 0.5
-	await CardFlight.fly_out(cv, discard_pos).finished
-	cv.z_index = 0
+	_flight.take_leaver(cv, discard_pos)
+
+func _release_held_spell() -> void:
+	var cv := _held_spell
+	var player := _held_spell_player
+	_held_spell = null
+	_held_spell_player = -1
+	_fly_spell_to_discard(cv, player)
+
+# Stop the hand from owning/laying-out a card that's been pulled into a bespoke
+# beat: drop it from card_views and sever its drag wiring. The node keeps its
+# current parent/position; the caller reparents it (board) or flies it out (pile).
+func _detach_from_hand(cv: CardView, iid: int) -> void:
+	hand_view.card_views.erase(iid)
+	for c in cv.drag_released.get_connections():
+		cv.drag_released.disconnect(c["callable"])
+	for c in cv.drag_started.get_connections():
+		cv.drag_started.disconnect(c["callable"])
 
 func _feature_trap_deploy(iid: int, player: int) -> void:
 	var cv := _find_card_view_any(iid)
@@ -707,11 +744,7 @@ func _feature_minion(iid: int, player: int) -> void:
 		return
 	var spd := await _fly_to_center(cv)
 	var board: Node2D = player_board if player == HUMAN else opp_board
-	hand_view.card_views.erase(iid)
-	for c in cv.drag_released.get_connections():
-		cv.drag_released.disconnect(c["callable"])
-	for c in cv.drag_started.get_connections():
-		cv.drag_started.disconnect(c["callable"])
+	_detach_from_hand(cv, iid)
 	cv.reparent(board)
 	board.card_views[iid] = cv
 	cv.clicked.connect(func(_cv: CardView): board.unit_clicked.emit(iid))
@@ -725,6 +758,7 @@ func _feature_minion(iid: int, player: int) -> void:
 	var rest_pos := t.origin - BoardLayout.CARD_PIVOT
 	await CardFlight.move_to(cv, rest_pos, t.get_rotation()).finished
 	CardJuice.squash(cv, spd)
+	cv.set_interactive(true)   # back in play on the board; restore clicks/hover
 	cv.z_index = 0
 
 func _on_foreground_offset(offset: Vector2) -> void:
